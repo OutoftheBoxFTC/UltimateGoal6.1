@@ -7,7 +7,6 @@ import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import MathUtils.Vector3;
 import Odometry.ConstantVOdometer;
-import Odometry.ConstantVOdometerTrackwidth;
 import Odometry.Odometer;
 import OpModes.*;
 import State.GamepadDriveState;
@@ -38,7 +37,6 @@ public class ExampleTeleop extends BasicOpmode {
         velocity = Vector3.ZERO();
         simplePos = Vector3.ZERO();
         simpleVel = Vector3.ZERO();
-        simpleOdo = new ConstantVOdometerTrackwidth(stateMachine, simplePos, simpleVel);
         odometer = new ConstantVOdometer(stateMachine, position, velocity);
         eventSystem.onStart("Drive", new GamepadDriveState(stateMachine, gamepad1));
         eventSystem.onStart("Intake", new LogicState(stateMachine) {
