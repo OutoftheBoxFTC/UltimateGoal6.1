@@ -30,6 +30,14 @@ public class RobotTuner extends BasicOpmode {
                 }
             }
         });
+        eventSystem.onStart("Pods", new LogicState(stateMachine) {
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                telemetry.addData("Left", sensorData.getOdometryLeft());
+                telemetry.addData("Right", sensorData.getOdometryRight());
+                telemetry.addData("Aux", sensorData.getOdometryAux());
+            }
+        });
         eventSystem.onStart("Encoder PPR Explanation", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
@@ -96,6 +104,7 @@ public class RobotTuner extends BasicOpmode {
                 telemetry.addData("Section", "Track Width");
                 telemetry.addLine("Rotate the robot 30 times and return the robot EXACTLY back to the starting angle and record the values and error");
                 telemetry.addLine("This section tests the track width of the robot, the distance between the two pods used to calculate heading");
+                telemetry.addLine("The section will also note down the aux pod track width factor");
                 telemetry.addLine("Press A to start...");
                 if(gamepad1.a){
                     stateMachine.activateLogic("Track Width");
@@ -110,6 +119,7 @@ public class RobotTuner extends BasicOpmode {
                 double factor = ((sensorData.getOdometryRight() - sensorData.getOdometryLeft())/2.0)/(2 * 30 * Math.PI);
                 telemetry.addData("Factor", factor + " | Error: " + (7149.42 - factor));
                 telemetry.addData("Estimated Angle", Math.toDegrees(((sensorData.getOdometryRight() - sensorData.getOdometryLeft())/2.0) / factor));
+                telemetry.addData("Aux Factor", (sensorData.getOdometryAux()/(2 * 30 * Math.PI)));
                 telemetry.addLine("Press X when all values have been recorded");
                 if(gamepad1.x){
                     stateMachine.activateLogic("End");
