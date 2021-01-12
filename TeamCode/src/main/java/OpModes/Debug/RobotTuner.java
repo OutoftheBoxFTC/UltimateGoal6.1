@@ -6,6 +6,7 @@ import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.SkystoneHardware;
 import Hardware.SmartDevices.SmartEncoder.SmartEncoder;
+import Hardware.UltimateGoalHardware;
 import OpModes.BasicOpmode;
 import State.GamepadDriveState;
 import State.LogicState;
@@ -13,14 +14,14 @@ import State.LogicState;
 public class RobotTuner extends BasicOpmode {
 
     public RobotTuner() {
-        super(new SkystoneHardware());
+        super(new UltimateGoalHardware());
     }
 
     @Override
     public void setup() {
         hardware.registerAll();
         hardware.enableAll();
-        stateMachine.appendDriveState("drive", new GamepadDriveState(stateMachine, gamepad1));
+        eventSystem.onStart("drive", new GamepadDriveState(stateMachine, gamepad1));
         eventSystem.onInit("Init Message", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
