@@ -14,7 +14,7 @@ import State.*;
 public class ConstantVOdometer extends Odometer {
     private Vector3 prevEncoderValues, prevPosition;
     private static final double AUX_ROTATION_CONSTANT = 639.79756; //2305.27659012?
-    private double ROT_CONSTANT = 1/(15212.077007575); //
+    private double ROT_CONSTANT = 1/(15095.86757292); //
     private double x, y, rot;
     private long prevTime;
     public ConstantVOdometer(StateMachine stateMachine, Vector3 position, Vector3 velocity) {
@@ -35,7 +35,7 @@ public class ConstantVOdometer extends Odometer {
     @Override
     public void update(SensorData sensors, HardwareData hardwareData) {
         double forInc = ((sensors.getOdometryLeft() + sensors.getOdometryRight())/2.0) - prevEncoderValues.getA();
-        double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2) * ROT_CONSTANT));
+        double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT));
         //double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), sensors.getGyro());
         double strafeInc = (sensors.getOdometryAux() - (AUX_ROTATION_CONSTANT * rotInc)) - prevEncoderValues.getB();
         Vector2 pos = MathUtils.toPolar(ConstantVMathUtil.toRobotCentric(forInc, strafeInc, rotInc));

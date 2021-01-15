@@ -118,7 +118,7 @@ public class RobotTuner extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 telemetry.addData("Section", "Track Width");
                 double factor = ((sensorData.getOdometryRight() - sensorData.getOdometryLeft())/2.0)/(2 * 30 * Math.PI);
-                telemetry.addData("Factor", factor + " | Error: " + (7149.42 - factor));
+                telemetry.addData("Factor", factor + " | Error: " + (15095.86757292 - Math.abs(factor)));
                 telemetry.addData("Estimated Angle", Math.toDegrees(((sensorData.getOdometryRight() - sensorData.getOdometryLeft())/2.0) / factor));
                 telemetry.addData("Aux Factor", (sensorData.getOdometryAux()/(2 * 30 * Math.PI)));
                 telemetry.addLine("Press X when all values have been recorded");

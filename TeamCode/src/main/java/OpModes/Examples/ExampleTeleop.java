@@ -48,6 +48,7 @@ public class ExampleTeleop extends BasicOpmode {
                 telemetry.addData("FPS", fps);
                 telemetry.addData("HardwareFPS", sensorData.getFps());
                 telemetry.addData("Pods", new Vector3(sensorData.getOdometryLeft(), sensorData.getOdometryRight(), sensorData.getOdometryAux()));
+                telemetry.addData("Difference (R-L)", sensorData.getOdometryRight() - sensorData.getOdometryLeft());
             }
         });
     }
