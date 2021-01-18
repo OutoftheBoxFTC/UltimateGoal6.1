@@ -8,8 +8,8 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
  */
 
 public class SmartIMUConfiguration {
-    SmartIMU.AngleUnit angleUnit;
-    BNO055IMU.SensorMode sensorMode;
+    public SmartIMU.AngleUnit angleUnit;
+    public BNO055IMU.SensorMode sensorMode;
     public SmartIMUConfiguration(){
         angleUnit = SmartIMU.AngleUnit.DEGREES;
         sensorMode = BNO055IMU.SensorMode.IMU;

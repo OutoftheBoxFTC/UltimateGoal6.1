@@ -35,14 +35,14 @@ public class ConstantVOdometer extends Odometer {
     @Override
     public void update(SensorData sensors, HardwareData hardwareData) {
         double forInc = ((sensors.getOdometryLeft() + sensors.getOdometryRight())/2.0) - prevEncoderValues.getA();
-        double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2) * ROT_CONSTANT));
+        double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT));
         //double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), sensors.getGyro());
         double strafeInc = (sensors.getOdometryAux() - (AUX_ROTATION_CONSTANT * rotInc)) - prevEncoderValues.getB();
         Vector2 pos = MathUtils.toPolar(ConstantVMathUtil.toRobotCentric(forInc, strafeInc, rotInc));
         Vector2 fieldCentric = MathUtils.toCartesian(pos.getA(), pos.getB() + rot);
         x += fieldCentric.getA();
         y += fieldCentric.getB();
-        rot += rotInc;
+        rot = (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT);
         double tau = (2 * Math.PI);
         rot = ((rot % tau) + tau) % tau;
         position.set(x * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, y * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, rot);
