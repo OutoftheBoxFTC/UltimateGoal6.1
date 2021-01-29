@@ -27,7 +27,7 @@ public class UltimateGoalHardware extends Hardware {
         if(registeredDevices.contains(HardwareDevices.ODOMETRY)){
             smartDevices.put("Odometry Left", new SmartEncoder(map.dcMotor.get("ol"), new SmartEncoderConfiguration()));
             smartDevices.put("Odometry Right", new SmartEncoder(map.dcMotor.get("or"), new SmartEncoderConfiguration().reverseDirection()));
-            smartDevices.put("Odometry Aux", new SmartEncoder(map.dcMotor.get("oa"), new SmartEncoderConfiguration().reverseDirection()));
+            smartDevices.put("Odometry Aux", new SmartEncoder(map.dcMotor.get("oa"), new SmartEncoderConfiguration()));
         }
         if(registeredDevices.contains(HardwareDevices.GYRO)){
             smartDevices.put("gyro", new SmartNavXMicro(map.get(NavxMicroNavigationSensor.class, "gyro"), new SmartNavXConfiguration().setAngleUnit(SmartIMU.AngleUnit.RADIANS)));

@@ -7,6 +7,6 @@ public class RobotConstants {
         public static final double ODOMETRY_TRACK_WIDTH = 7149.42;
     }
     public class UltimateGoal {
-        public static final double ODOMETRY_TRANSLATION_FACTOR = (1/1846.970705865613); //1,816.810276679842
+        public static final double ODOMETRY_TRANSLATION_FACTOR = (1/1849.206349206349); //1,816.810276679842
     }
 }

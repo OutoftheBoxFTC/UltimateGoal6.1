@@ -30,7 +30,7 @@ public class DriveToPointBuilder {
     }
 
     public DriveToPointBuilder setTarget(Vector2 target){
-        target.set(target);
+        this.target.set(target);
         return this;
     }
 

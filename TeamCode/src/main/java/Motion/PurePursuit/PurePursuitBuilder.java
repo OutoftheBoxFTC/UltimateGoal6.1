@@ -11,7 +11,7 @@ import MathUtils.*;
 
 public class PurePursuitBuilder {
     private StateMachine stateMachine;
-    private Vector3 position;
+    private Vector3 position, end;
     public ArrayList<Vector2> targets;
     private double power, radius, rotTarget;
     public PurePursuitBuilder(StateMachine stateMachine, Vector3 position){
@@ -21,6 +21,7 @@ public class PurePursuitBuilder {
         this.power = 1;
         this.radius = 5;
         this.rotTarget = 0;
+        this.end = Vector3.ZERO();
     }
 
     public PurePursuitBuilder addTarget(Vector2 v){
@@ -43,7 +44,12 @@ public class PurePursuitBuilder {
         return this;
     }
 
+    public PurePursuitBuilder setEnd(Vector3 end){
+        this.end = end;
+        return this;
+    }
+
     public PurePursuit complete(){
-        return new PurePursuit(stateMachine, position, power, radius, targets, rotTarget);
+        return new PurePursuit(stateMachine, position, power, radius, targets, rotTarget, end);
     }
 }

@@ -19,12 +19,14 @@ public class PurePursuit extends DriveToPoint {
     private double radius, rotTarget;
     private ArrayList<Vector2> targets;
     private int index = 0;
-    public PurePursuit(StateMachine stateMachine, Vector3 position, double power, double radius, ArrayList<Vector2> targets, double rotTarget) {
+    private Vector3 end;
+    public PurePursuit(StateMachine stateMachine, Vector3 position, double power, double radius, ArrayList<Vector2> targets, double rotTarget, Vector3 end) {
         super(stateMachine, position, Vector3.ZERO(), power);
         this.radius = radius;
         this.targets = new ArrayList<>();
         this.targets.addAll(targets);
         this.rotTarget = rotTarget;
+        this.end = end;
     }
 
     @Override
@@ -40,12 +42,12 @@ public class PurePursuit extends DriveToPoint {
             radius += 0.1;
             intersections = findLineCircleIntersections(position.getA(), position.getB(), locRadius, locTargets[0], locTargets[1], intersect1, intersect2);
         }
-        if(intersect1.distanceTo(pos) < intersect2.distanceTo(pos)){
+        if(intersect1.distanceTo(locTargets[1]) < intersect2.distanceTo(locTargets[1])){
             targetPos.set(intersect1);
         }else{
             targetPos.set(intersect2);
         }
-        //RobotLog.i(targetPos.toString());
+        RobotLog.i(targetPos.toString());
         localTarget.set(targetPos, rotTarget);
     }
 
@@ -57,15 +59,18 @@ public class PurePursuit extends DriveToPoint {
             if(targets.get(i).distanceTo(position.getVector2()) <= radius) {
                 double intersections = findLineCircleIntersections(position.getA(), position.getB(), locRadius, targets.get(index), targets.get(index + 1), intersect1, intersect2);
                 if (intersections == 1) {
-                    distMap.put(intersect1.distanceTo(targets.get(targets.size() - 1)), i);
+                    distMap.put(intersect1.distanceTo(targets.get(i+1)) + (((targets.size()-1) - i) * 100), i);
                 } else {
-                    distMap.put(Math.min(intersect1.distanceTo(targets.get(targets.size() - 1)), intersect2.distanceTo(targets.get(targets.size() - 1))), i);
+                    distMap.put(Math.min(intersect1.distanceTo(targets.get(i+1)) + (((targets.size()-1) - i) * 100), intersect2.distanceTo(targets.get(i+1)) + (((targets.size()-1) - i) * 100)), i);
                 }
             }
         }
         double min = Double.POSITIVE_INFINITY;
         for(double d : distMap.keySet()){
             min = Math.min(d, min);
+        }
+        if(min == Double.POSITIVE_INFINITY){
+            return new Vector2[]{targets.get(0), targets.get(1)};
         }
         return new Vector2[]{targets.get(distMap.get(min)), targets.get(distMap.get(min)+1)};
     }
