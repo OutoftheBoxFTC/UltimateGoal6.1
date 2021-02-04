@@ -16,8 +16,7 @@ public class PrecomputedPathBuilder extends PurePursuitBuilder {
         super(stateMachine, position);
     }
     public PrecomputedPathBuilder setPathString(String s){
-        byte[] decoded = Base64.decode(s, Base64.DEFAULT);
-        String[] arr = new String(decoded).split("/");
+        String[] arr = s.split("/");
         for(String str : arr){
             this.addTarget(new Vector2(Double.parseDouble(str.split(",")[0]), Double.parseDouble(str.split(",")[1])));
         }

@@ -19,60 +19,45 @@ public class PurePursuit extends DriveToPoint {
     private double radius, rotTarget;
     private ArrayList<Vector2> targets;
     private int index = 0;
-    private Vector3 end;
-    public PurePursuit(StateMachine stateMachine, Vector3 position, double power, double radius, ArrayList<Vector2> targets, double rotTarget, Vector3 end) {
+    public PurePursuit(StateMachine stateMachine, Vector3 position, double power, double radius, ArrayList<Vector2> targets, double rotTarget) {
         super(stateMachine, position, Vector3.ZERO(), power);
         this.radius = radius;
         this.targets = new ArrayList<>();
         this.targets.addAll(targets);
         this.rotTarget = rotTarget;
-        this.end = end;
     }
 
     @Override
     public void setTarget() {
         double locRadius = radius;
-        Vector2 intersect1 = Vector2.ZERO(), intersect2 = Vector2.ZERO();
-        Vector2 pos = position.getVector2();
-        Vector2 targetPos = Vector2.ZERO();
-        //RobotLog.ii("Position", position.toString());
-        Vector2[] locTargets = getBestLine();
-        double intersections = findLineCircleIntersections(position.getA(), position.getB(), locRadius, locTargets[0], locTargets[1], intersect1, intersect2);
-        while(intersections < 2){
-            radius += 0.1;
-            intersections = findLineCircleIntersections(position.getA(), position.getB(), locRadius, locTargets[0], locTargets[1], intersect1, intersect2);
-        }
-        if(intersect1.distanceTo(locTargets[1]) < intersect2.distanceTo(locTargets[1])){
-            targetPos.set(intersect1);
-        }else{
-            targetPos.set(intersect2);
-        }
-        RobotLog.i(targetPos.toString());
-        localTarget.set(targetPos, rotTarget);
-    }
-
-    private Vector2[] getBestLine(){
-        HashMap<Double, Integer> distMap = new HashMap<>();
-        Vector2 intersect1 = Vector2.ZERO(), intersect2 = Vector2.ZERO();
-        double locRadius = radius;
-        for(int i = 0; i < (targets.size()-1); i ++){
-            if(targets.get(i).distanceTo(position.getVector2()) <= radius) {
-                double intersections = findLineCircleIntersections(position.getA(), position.getB(), locRadius, targets.get(index), targets.get(index + 1), intersect1, intersect2);
-                if (intersections == 1) {
-                    distMap.put(intersect1.distanceTo(targets.get(i+1)) + (((targets.size()-1) - i) * 100), i);
-                } else {
-                    distMap.put(Math.min(intersect1.distanceTo(targets.get(i+1)) + (((targets.size()-1) - i) * 100), intersect2.distanceTo(targets.get(i+1)) + (((targets.size()-1) - i) * 100)), i);
-                }
+        boolean holdPosition = false;
+        if(position.getVector2().distanceTo(targets.get(index+1)) < radius){
+            if(index < (targets.size()-2)){
+                index ++;
+            }else{
+                holdPosition = true;
             }
         }
-        double min = Double.POSITIVE_INFINITY;
-        for(double d : distMap.keySet()){
-            min = Math.min(d, min);
+        Vector2 point1 = targets.get(index);
+        Vector2 point2 = targets.get(index+1);
+        Vector2 intersect1 = Vector2.ZERO();
+        Vector2 intersect2 = Vector2.ZERO();
+        double numIntersect = findLineCircleIntersections(position.getA(), position.getB(), locRadius, point1, point2, intersect1, intersect2);
+        while(numIntersect < 2){
+            locRadius += 1;
+            numIntersect = findLineCircleIntersections(position.getA(), position.getB(), locRadius, point1, point2, intersect1, intersect2);
         }
-        if(min == Double.POSITIVE_INFINITY){
-            return new Vector2[]{targets.get(0), targets.get(1)};
+        Vector2 target = Vector2.ZERO();
+        if(intersect1.distanceTo(point2) < intersect2.distanceTo(point2)){
+            target.set(intersect1);
+        }else{
+            target.set(intersect2);
         }
-        return new Vector2[]{targets.get(distMap.get(min)), targets.get(distMap.get(min)+1)};
+        if(holdPosition){
+            localTarget.set(point2, rotTarget);
+        }else {
+            localTarget.set(target, rotTarget);
+        }
     }
 
     private double findLineCircleIntersections(
