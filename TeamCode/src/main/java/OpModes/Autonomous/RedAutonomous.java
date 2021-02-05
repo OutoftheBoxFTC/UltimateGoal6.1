@@ -95,10 +95,10 @@ public class RedAutonomous extends BasicOpmode {
 
         final LinearEventSystem linearSystem = new LinearEventSystem(stateMachine, LinearEventSystem.ENDTYPE.CONTINUE_LAST);
         linearSystem.put("Left Powershot", new OrientationTerminator(position, new Vector3(-2, 45.75, 0), 0.3));
-        linearSystem.put("End", new TimeTerminator(1000));
-        linearSystem.put("Centre Powershot", new OrientationTerminator(position, new Vector3(6, 45.75, 0), 0.25));
-        linearSystem.put("End2", new TimeTerminator(1000));
-        linearSystem.put("Right Powershot", new OrientationTerminator(position, new Vector3(14, 45.75, 0), 5));
+        linearSystem.put("End", new TimeTerminator(300));
+        linearSystem.put("Centre Powershot", new OrientationTerminator(position, new Vector3(6, 45.75, 0), 0.3));
+        linearSystem.put("End2", new TimeTerminator(300));
+        linearSystem.put("Right Powershot", new OrientationTerminator(position, new Vector3(14, 45.75, 0), 0.3));
         //linearSystem.put("Third", new OrientationTerminator(position, new Vector3(-15, 80, 0), 5));
         //linearSystem.put("Fourth", new OrientationTerminator(position, new Vector3(-10, 70, 0), 5));
         //linearSystem.put("End", Terminator.nullTerminator());
