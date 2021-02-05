@@ -27,8 +27,7 @@ public class SkystoneHardware extends Hardware {
             smartDevices.put("IMU", new SmartIMU(map.get(BNO055IMU.class, "imu"), new SmartIMUConfiguration().setAngleUnit(SmartIMU.AngleUnit.RADIANS)));
         }
         if(registeredDevices.contains(HardwareDevices.INTAKE)){
-            smartDevices.put("Intake Left", new SmartMotor(map.dcMotor.get("leftIntake"), new SmartMotorConfiguration().reverseDirection()));
-            smartDevices.put("Intake Right", new SmartMotor(map.dcMotor.get("rightIntake"), new SmartMotorConfiguration()));
+            smartDevices.put("Intake", new SmartMotor(map.dcMotor.get("intake"), new SmartMotorConfiguration()));
         }
         if(registeredDevices.contains(HardwareDevices.ODOMETRY)){
             smartDevices.put("Odometry Left", new SmartEncoder(map.dcMotor.get("leftIntake"), new SmartEncoderConfiguration()));
@@ -46,8 +45,7 @@ public class SkystoneHardware extends Hardware {
             smartDevices.get("Back Right", SmartMotor.class).setPower(hardware.getBr());
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
-            smartDevices.get("Intake Left", SmartMotor.class).setPower(hardware.getIntakeLeft());
-            smartDevices.get("Intake Right", SmartMotor.class).setPower(hardware.getIntakeRight());
+            smartDevices.get("Intake", SmartMotor.class).setPower(hardware.getIntake());
         }
     }
 

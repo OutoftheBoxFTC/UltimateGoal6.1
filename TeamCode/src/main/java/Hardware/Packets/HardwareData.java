@@ -8,15 +8,15 @@ import MathUtils.Vector4;
  */
 
 public class HardwareData {
-    private double bl, br, fl, fr, intakeLeft, intakeRight;
+    private double bl, br, fl, fr, intake, shooter, shooterTilt;
     private long timestamp;
     public HardwareData(){
         bl = 0;
         br = 0;
         fl = 0;
         fr = 0;
-        intakeLeft = 0;
-        intakeRight = 0;
+        intake = 0;
+        shooter = 0;
     }
 
     public void setDriveMotors(Vector4 powers){
@@ -42,25 +42,28 @@ public class HardwareData {
         return fr;
     }
 
-    public double getIntakeRight() {
-        return intakeRight;
+    public double getIntake() {
+        return intake;
     }
 
-    public double getIntakeLeft() {
-        return intakeLeft;
+    public void setIntakePower(double powers){
+        this.intake = powers;
     }
 
-    public void setIntakeRight(double intakeRight) {
-        this.intakeRight = intakeRight;
+    public void setShooter(double shooter) {
+        this.shooter = shooter;
     }
 
-    public void setIntakeLeft(double intakeLeft) {
-        this.intakeLeft = intakeLeft;
+    public double getShooter() {
+        return shooter;
     }
 
-    public void setIntakePowers(double powers){
-        this.intakeRight = powers;
-        this.intakeLeft = powers;
+    public double getShooterTilt() {
+        return shooterTilt;
+    }
+
+    public void setShooterTilt(double shooterTilt) {
+        this.shooterTilt = shooterTilt;
     }
 
     public long getTimestamp() {

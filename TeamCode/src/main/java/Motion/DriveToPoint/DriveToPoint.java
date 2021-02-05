@@ -42,26 +42,29 @@ public abstract class DriveToPoint extends VelocityDriveState {
         double theta = Math.atan2(errY, errX) + position.getC();
         double errRot = MathUtils.getRadRotDist(position.getC(), Math.toRadians(localTarget.getC()));
         if(Math.abs(errRot) < Math.toRadians(15) && errRot != 0){
-            errRot = (Math.abs(errRot)/errRot) * 0.25;
+            errRot = (Math.abs(errRot)/errRot) * 0.175;
         }else if(errRot != 0){
             errRot = (Math.abs(errRot)/errRot) * 1;
         }
         double comb = Math.abs(((r * Math.cos(theta))) + ((r * Math.sin(theta))));
         double powerMod = 1;
-        if(r < 7){
-            powerMod = 0.4;
+        if(r < 15){
+            powerMod = r/25;
+            if((powerMod * power) < 0.2){
+                powerMod = 0.2/power;
+            }
         }
         if(r < 0.25){
             powerMod = 0;
         }
         double rotMod = 1;
-        if(Math.abs(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), Math.toRadians(localTarget.getC())))) < 2){
+        if(Math.abs(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), Math.toRadians(localTarget.getC())))) < 1.5){
             rotMod = 0;
         }
-        double x = (r * Math.cos(theta))/comb;
-        double y = (r * Math.sin(theta))/comb;
+        double x = (r * Math.cos(theta))/r;
+        double y = (r * Math.sin(theta))/r;
         RobotLog.ii("Test", x + ", " + y);
-        velocity.set(-x * power * powerMod, -y * power * powerMod, errRot * power * rotMod);
+        velocity.set(x * power * powerMod, -y * power * powerMod, errRot * power * rotMod);
     }
 
     public abstract void setTarget();

@@ -50,6 +50,6 @@ public class PurePursuitBuilder {
     }
 
     public PurePursuit complete(){
-        return new PurePursuit(stateMachine, position, power, radius, targets, rotTarget, end);
+        return new PurePursuit(stateMachine, position, power, radius, targets, rotTarget);
     }
 }

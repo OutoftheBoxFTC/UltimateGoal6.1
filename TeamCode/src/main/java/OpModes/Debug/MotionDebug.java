@@ -1,6 +1,7 @@
 package OpModes.Debug;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
 import java.util.ArrayList;
 
@@ -19,7 +20,7 @@ import Odometry.Odometer;
 import OpModes.BasicOpmode;
 import State.GamepadDriveState;
 import State.LogicState;
-@Autonomous
+@Disabled
 public class MotionDebug extends BasicOpmode {
     Vector3 position, velocity;
     Odometer odometer;
@@ -35,13 +36,9 @@ public class MotionDebug extends BasicOpmode {
         velocity = Vector3.ZERO();
         odometer = new ConstantVOdometer(stateMachine, position, velocity);
         eventSystem.onStart("Odometer", odometer);
-        eventSystem.onStart("Drive", new PurePursuitBuilder(stateMachine, position)
-                .addTarget(new Vector2(0, 0))
-                .addTarget(new Vector2(0, 30))
-                .addTarget(new Vector2(30, 30))
-                .addTarget(new Vector2(0, 50))
-                .setSpeed(1)
-                .setEnd(new Vector3(0, 50, 0))
+        eventSystem.onStart("Drive", new DriveToPointBuilder(stateMachine, position)
+                .setTarget(new Vector2(-.25, 31.75))
+                .setSpeed(0.2)
                 .complete());
         eventSystem.onStart("Telemetry", new LogicState(stateMachine) {
             @Override

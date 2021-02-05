@@ -1,6 +1,7 @@
 package Hardware.SmartDevices.SmartServo;
 
 import com.qualcomm.robotcore.hardware.*;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import Hardware.SmartDevices.*;
 
@@ -57,7 +58,7 @@ public class SmartServo extends SmartDevice {
 
     @Override
     public void update() {
-        if(Math.abs(position - prevPosition) < 0.005 && ((ServoImplEx)servo).isPwmEnabled()){
+        if(Math.abs(position - prevPosition) > 0.005){
             servo.setPosition(position);
             prevPosition = position;
         }
