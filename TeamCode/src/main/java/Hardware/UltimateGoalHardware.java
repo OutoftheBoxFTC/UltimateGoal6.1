@@ -1,6 +1,7 @@
 package Hardware;
 
 import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import Hardware.Hardware;
@@ -38,9 +39,12 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.put("gyro", new SmartNavXMicro(map.get(NavxMicroNavigationSensor.class, "gyro"), new SmartNavXConfiguration().setAngleUnit(SmartIMU.AngleUnit.RADIANS)));
         }
         if(registeredDevices.contains(HardwareDevices.SHOOTER)){
-            smartDevices.put("Shooter Left", new SmartMotor(map.dcMotor.get("ol"), new SmartMotorConfiguration().reverseDirection()));
-            smartDevices.put("Shooter Right", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().reverseDirection()));
+            smartDevices.put("Shooter Left", new SmartMotor(map.dcMotor.get("ol"), new SmartMotorConfiguration().reverseDirection().setRunMode(DcMotor.RunMode.RUN_USING_ENCODER)));
+            smartDevices.put("Shooter Right", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().reverseDirection().setRunMode(DcMotor.RunMode.RUN_USING_ENCODER)));
             smartDevices.put("Shooter Tilt", new SmartServo(map.servo.get("shooterTilt"), new SmartServoConfiguration().setInitPos(0.37)));
+        }
+        if(registeredDevices.contains(HardwareDevices.WOBBLE)){
+            smartDevices.put("Wobble Lift", new SmartMotor(map.dcMotor.get("wobbleLift"), new SmartMotorConfiguration()));
         }
     }
 
