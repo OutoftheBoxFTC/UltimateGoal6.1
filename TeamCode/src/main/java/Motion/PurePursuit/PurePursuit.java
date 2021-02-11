@@ -20,7 +20,7 @@ public class PurePursuit extends DriveToPoint {
     private ArrayList<Vector2> targets;
     private int index = 0;
     public PurePursuit(StateMachine stateMachine, Vector3 position, double power, double radius, ArrayList<Vector2> targets, double rotTarget) {
-        super(stateMachine, position, Vector3.ZERO(), power);
+        super(stateMachine, position, Vector3.ZERO(), power, radius + 1, 0, 0);
         this.radius = radius;
         this.targets = new ArrayList<>();
         this.targets.addAll(targets);

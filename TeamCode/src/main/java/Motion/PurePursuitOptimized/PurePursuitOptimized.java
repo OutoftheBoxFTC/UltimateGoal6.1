@@ -16,7 +16,7 @@ public class PurePursuitOptimized extends DriveToPoint {
     private ArrayList<Vector2> targets;
     private int index = 0;
     public PurePursuitOptimized(StateMachine stateMachine, Vector3 position, double power, double radius, ArrayList<Vector2> targets, double approachAngle) {
-        super(stateMachine, position, Vector3.ZERO(), power);
+        super(stateMachine, position, Vector3.ZERO(), power, radius + 1, 0, 0);
         this.radius = radius;
         targets.addAll(targets);
         this.rotTarget = 0;

@@ -18,14 +18,17 @@ import MathUtils.*;
 public abstract class DriveToPoint extends VelocityDriveState {
     public Vector3 position, localTarget;
     private Vector3 target, velocity;
-    double power = 0;
-    public DriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power) {
+    double power = 0, r1, r2, slowMod;
+    public DriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double r1, double r2, double slowMod) {
         super(stateMachine);
         this.position = position;
         this.target = target;
         localTarget = Vector3.ZERO();
         this.power = power;
         this.velocity = Vector3.ZERO();
+        this.r1 = r1;
+        this.r2 = r2;
+        this.slowMod = slowMod;
     }
 
     @Override
@@ -48,13 +51,13 @@ public abstract class DriveToPoint extends VelocityDriveState {
         }
         double comb = Math.abs(((r * Math.cos(theta))) + ((r * Math.sin(theta))));
         double powerMod = 1;
-        if(r < 15){
-            powerMod = r/25;
+        if(r < r1){
+            powerMod = r/slowMod;
             if((powerMod * power) < 0.2){
                 powerMod = 0.2/power;
             }
         }
-        if(r < 0.25){
+        if(r < r2){
             powerMod = 0;
         }
         double rotMod = 1;
