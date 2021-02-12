@@ -87,11 +87,11 @@ public class ExampleAutonomous extends BasicOpmode {
         stateMachine.appendLogicStates(autoStates);
 
         final LinearEventSystem linearSystem = new LinearEventSystem(stateMachine, LinearEventSystem.ENDTYPE.CONTINUE_LAST);
-        linearSystem.put("Test", new OrientationTerminator(position, new Vector3(0, 10, 0), 1));
-        linearSystem.put("First", new OrientationTerminator(position, new Vector3(-20, 50, 0), 5));
-        linearSystem.put("Second", new OrientationTerminator(position, new Vector3(-15, 20, 0), 5));
-        linearSystem.put("Third", new OrientationTerminator(position, new Vector3(-15, 80, 0), 5));
-        linearSystem.put("Fourth", new OrientationTerminator(position, new Vector3(-10, 70, 0), 5));
+        linearSystem.put("Test", new OrientationTerminator(position, new Vector3(0, 10, 0), 1, 0.5));
+        linearSystem.put("First", new OrientationTerminator(position, new Vector3(-20, 50, 0), 5, 0.5));
+        linearSystem.put("Second", new OrientationTerminator(position, new Vector3(-15, 20, 0), 5, 0.5));
+        linearSystem.put("Third", new OrientationTerminator(position, new Vector3(-15, 80, 0), 5, 0.5));
+        linearSystem.put("Fourth", new OrientationTerminator(position, new Vector3(-10, 70, 0), 5, 0.5));
         linearSystem.put("End", Terminator.nullTerminator());
 
         stateMachine.appendLogicState("Main", new LogicState(stateMachine) {

@@ -18,7 +18,7 @@ import MathUtils.*;
 public abstract class DriveToPoint extends VelocityDriveState {
     public Vector3 position, localTarget;
     private Vector3 target, velocity;
-    double power = 0, r1, r2, slowMod;
+    public double power = 0, r1, r2, slowMod, minimums, rotPrec;
     public DriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double r1, double r2, double slowMod) {
         super(stateMachine);
         this.position = position;
@@ -29,6 +29,22 @@ public abstract class DriveToPoint extends VelocityDriveState {
         this.r1 = r1;
         this.r2 = r2;
         this.slowMod = slowMod;
+        this.minimums = 0.125;
+        rotPrec = 0.5;
+    }
+
+    public DriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double r1, double r2, double slowMod, double minimums, double rotPrec) {
+        super(stateMachine);
+        this.position = position;
+        this.target = target;
+        localTarget = Vector3.ZERO();
+        this.power = power;
+        this.velocity = Vector3.ZERO();
+        this.r1 = r1;
+        this.r2 = r2;
+        this.slowMod = slowMod;
+        this.minimums = minimums;
+        this.rotPrec = rotPrec;
     }
 
     @Override
@@ -44,25 +60,32 @@ public abstract class DriveToPoint extends VelocityDriveState {
         double r = Math.sqrt((errX * errX) + (errY * errY));
         double theta = Math.atan2(errY, errX) + position.getC();
         double errRot = MathUtils.getRadRotDist(position.getC(), Math.toRadians(localTarget.getC()));
-        if(Math.abs(errRot) < Math.toRadians(15) && errRot != 0){
-            errRot = (Math.abs(errRot)/errRot) * 0.175;
-        }else if(errRot != 0){
-            errRot = (Math.abs(errRot)/errRot) * 1;
-        }
         double comb = Math.abs(((r * Math.cos(theta))) + ((r * Math.sin(theta))));
         double powerMod = 1;
         if(r < r1){
             powerMod = r/slowMod;
-            if((powerMod * power) < 0.2){
-                powerMod = 0.2/power;
+            if((powerMod * power) < minimums){
+                powerMod = minimums/power;
             }
         }
         if(r < r2){
             powerMod = 0;
         }
         double rotMod = 1;
-        if(Math.abs(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), Math.toRadians(localTarget.getC())))) < 1.5){
+        if(Math.abs(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), Math.toRadians(localTarget.getC())))) < rotPrec){
             rotMod = 0;
+        }
+        if(Math.abs(errRot) < Math.toRadians(15) && errRot != 0){
+            errRot = errRot * 0.25;
+        }else if(errRot != 0){
+            errRot = (Math.abs(errRot)/errRot) * 1;
+        }
+        if(Math.abs(errRot * power) < 0.1){
+            if(powerMod != 0) {
+                errRot = (errRot / Math.abs(errRot)) * (0.08 / power);
+            }else{
+                errRot = (errRot / Math.abs(errRot)) * (0.12 / power);
+            }
         }
         double x = (r * Math.cos(theta))/r;
         double y = (r * Math.sin(theta))/r;

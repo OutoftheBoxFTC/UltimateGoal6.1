@@ -24,8 +24,6 @@ public class MainTeleOp extends BasicOpmode {
     public void setup() {
         hardware.registerAll();
         hardware.enableAll();
-        hardware.disableDevice(Hardware.HardwareDevices.WOBBLE);
-        hardware.deRegisterDevice(Hardware.HardwareDevices.WOBBLE);
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new ConstantVOdometer(stateMachine, position, velocity);

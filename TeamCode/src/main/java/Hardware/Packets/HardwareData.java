@@ -8,7 +8,7 @@ import MathUtils.Vector4;
  */
 
 public class HardwareData {
-    private double bl, br, fl, fr, intake, shooter, shooterTilt, shooterLoadArm, wobbleLift;
+    private double bl, br, fl, fr, intake, shooter, shooterTilt, shooterLoadArm, wobbleLift, wobbleOneuseRight;
     private long timestamp;
     public HardwareData(){
         bl = 0;
@@ -18,6 +18,7 @@ public class HardwareData {
         intake = 0;
         shooter = 0;
         wobbleLift = 0;
+        wobbleOneuseRight = 0;
     }
 
     public void setDriveMotors(Vector4 powers){
@@ -81,6 +82,14 @@ public class HardwareData {
 
     public void setWobbleLift(double wobbleLift) {
         this.wobbleLift = wobbleLift;
+    }
+
+    public void setWobbleOneuseRight(double wobbleOneuseRight) {
+        this.wobbleOneuseRight = wobbleOneuseRight;
+    }
+
+    public double getWobbleOneuseRight() {
+        return wobbleOneuseRight;
     }
 
     public long getTimestamp() {
