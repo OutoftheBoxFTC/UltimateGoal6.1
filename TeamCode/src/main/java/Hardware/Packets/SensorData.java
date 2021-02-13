@@ -6,7 +6,7 @@ package Hardware.Packets;
  */
 
 public class SensorData {
-    private double gyro, gyro2, fps, wobbleLift;
+    private double gyro, gyro2, fps, wobbleLift, backlog;
     private int odometryLeft, odometryRight, odometryAux;
     public SensorData(){
         odometryAux = 0;
@@ -15,6 +15,7 @@ public class SensorData {
         gyro = 0;
         gyro2 = 0;
         wobbleLift = 0;
+        backlog = 0;
     }
 
     public int getOdometryAux() {
@@ -63,6 +64,14 @@ public class SensorData {
 
     public double getWobbleLift() {
         return wobbleLift;
+    }
+
+    public double getBacklog() {
+        return backlog;
+    }
+
+    public void setBacklog(double backlog) {
+        this.backlog = backlog;
     }
 
     public double getFps() {

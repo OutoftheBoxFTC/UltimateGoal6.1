@@ -9,15 +9,14 @@ import OpModes.BasicOpmode;
 import State.LogicState;
 @TeleOp
 public class ShooterLoadTiming extends BasicOpmode {
-    long timeCoeff = 75;
+    long timeCoeff = 500;
     public ShooterLoadTiming() {
         super(new UltimateGoalHardware());
     }
 
     @Override
     public void setup() {
-        hardware.registerAll();
-        hardware.enableAll();
+
         eventSystem.onStart("Load Arm", new LogicState(stateMachine) {
             int state = 0;
             long timer = 0;

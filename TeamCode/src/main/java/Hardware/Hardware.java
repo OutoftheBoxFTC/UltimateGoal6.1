@@ -114,6 +114,7 @@ public abstract class Hardware implements Runnable {
             SensorData sensorData = new SensorData();
             setSensors(sensorData);
             synchronized (sensorPackets) {
+                sensorData.setBacklog(hardwarePackets.size());
                 sensorPackets.add(sensorData);
             }
             available.set(true);

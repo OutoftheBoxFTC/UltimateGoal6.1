@@ -67,26 +67,41 @@ public class MainTeleOp extends BasicOpmode {
                 }
 
                 telemetry.addData("Tilt", tiltLevel);
-                hardwareData.setShooterTilt(tiltLevel);
+                if(gamepad2.right_trigger > 0.1){
+                    //hardwareData.setWobbleLiftLeft(tiltLevel);
+                    telemetry.addData("Servo", "Wobble Left");
+                }else if(gamepad2.left_trigger > 0.1){
+                    //hardwareData.setWobbleLiftRight(tiltLevel);
+                    telemetry.addData("Servo", "Wobble Right");
+                }else {
+                    hardwareData.setShooterTilt(tiltLevel);
+                    telemetry.addData("Servo", "Shooter");
+                }
                 frameTime = System.currentTimeMillis();
             }
         });
 
         eventSystem.onStart("Wobble Control", new LogicState(stateMachine) {
-            int state = 0;
+
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(gamepad1.a){
+                    hardwareData.setWobbleLiftRight(0.43622);
+                    hardwareData.setWobbleLiftLeft(0.5208);
+                }
+                if(gamepad1.x){
+                    hardwareData.setWobbleLiftRight(0.49055);
+                    hardwareData.setWobbleLiftLeft(0.4801);
+                }
+                if(gamepad1.b){
+                    hardwareData.setWobbleLiftRight(0.57676);
+                    hardwareData.setWobbleLiftLeft(0.37882);
+                }
                 if(gamepad1.y){
-                    state = 1;
+                    hardwareData.setWobbleLiftRight(0.96634);
+                    hardwareData.setWobbleLiftLeft(0.01);
                 }
-
-                if(state == 1){
-                    if(sensorData.getWobbleLift() < 500){
-                        hardwareData.setWobbleLift(1);
-                    }else{
-                        hardwareData.setWobbleLift(0.1);
-                    }
-                }
+                telemetry.addData("Backlog", sensorData.getBacklog());
             }
         });
 

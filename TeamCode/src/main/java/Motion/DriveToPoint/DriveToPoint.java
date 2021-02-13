@@ -80,11 +80,11 @@ public abstract class DriveToPoint extends VelocityDriveState {
         }else if(errRot != 0){
             errRot = (Math.abs(errRot)/errRot) * 1;
         }
-        if(Math.abs(errRot * power) < 0.1){
+        if(Math.abs(errRot * power) < 0.12){
             if(powerMod != 0) {
-                errRot = (errRot / Math.abs(errRot)) * (0.08 / power);
-            }else{
                 errRot = (errRot / Math.abs(errRot)) * (0.12 / power);
+            }else{
+                errRot = (errRot / Math.abs(errRot)) * (0.15 / power);
             }
         }
         double x = (r * Math.cos(theta))/r;

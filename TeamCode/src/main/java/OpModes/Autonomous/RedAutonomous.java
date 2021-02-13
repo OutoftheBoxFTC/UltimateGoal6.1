@@ -43,8 +43,6 @@ public class RedAutonomous extends BasicOpmode {
     public void setup() {
         hardware.registerAll();
         hardware.enableAll();
-        hardware.deRegisterDevice(Hardware.HardwareDevices.WOBBLE);
-        hardware.disableDevice(Hardware.HardwareDevices.WOBBLE);
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         wobble1pos = Vector3.ZERO();
@@ -58,7 +56,7 @@ public class RedAutonomous extends BasicOpmode {
                 hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                hardwareData.setShooterTilt(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_HOLD);
+                hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_HOLD);
                 if(isStarted()){
                     deactivateThis();
                 }
@@ -71,7 +69,7 @@ public class RedAutonomous extends BasicOpmode {
         HashMap<String, DriveState> driveStates = new HashMap<>();
         driveStates.put("Drive To Left Powershot", new DriveToPointBuilder(stateMachine, position)
                 .setTarget(new Vector2(-3.5, 60))
-                .setSpeed(0.9)
+                .setSpeed(0.3)
                 .setR1(40)
                 .setR2(0.25)
                 .setSlowMod(55)
@@ -106,7 +104,7 @@ public class RedAutonomous extends BasicOpmode {
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-
+                telemetry.addData("Done", "done");
             }
         });
 
@@ -124,6 +122,7 @@ public class RedAutonomous extends BasicOpmode {
 
         stateMachine.appendDriveStates(driveStates);
 
+        //Turn Drive States into Logic States - this is for some compatibility stuff
         HashMap<String, LogicState> autoStates = new HashMap<>();
         autoStates.put("Left Powershot", new DriveStateActivator(stateMachine, "Drive To Left Powershot"));
         autoStates.put("Centre Powershot", new DriveStateActivator(stateMachine, "Drive To Centre Powershot"));
@@ -132,7 +131,7 @@ public class RedAutonomous extends BasicOpmode {
         autoStates.put("Release Wobble 1", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setShooterTilt(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
+                hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
                 telemetry.addData("Dropping", "The wobble Goal");
             }
         });
@@ -141,9 +140,10 @@ public class RedAutonomous extends BasicOpmode {
         autoStates.put("End2", new DriveStateActivator(stateMachine, "Stop2"));
         stateMachine.appendLogicStates(autoStates);
 
+        //Auto Linear System in order of states executed
         final LinearEventSystem linearSystem = new LinearEventSystem(stateMachine, LinearEventSystem.ENDTYPE.CONTINUE_LAST);
-        linearSystem.put("Left Powershot", new OrientationTerminator(position, new Vector3(-3.5, 60, 0), 0.26, 0.2));
-        linearSystem.put("End", new TimeTerminator(100));
+        linearSystem.put("Left Powershot", new OrientationTerminator(position, new Vector3(-3.5, 60, 0), 0.26, 0.1));
+        linearSystem.put("End", new TimeTerminator(10000));
         linearSystem.put("Centre Powershot", new OrientationTerminator(position, new Vector3(4.5, 60, 0), 0.26, 0.15));
         linearSystem.put("End", new TimeTerminator(100));
         linearSystem.put("Right Powershot", new OrientationTerminator(position, new Vector3(12.5, 60, 0), 0.26, 0.15));
@@ -158,7 +158,7 @@ public class RedAutonomous extends BasicOpmode {
             public void main(SensorData sensorData, HardwareData hardwareData) {
                 hardwareData.setDriveMotors(MecanumSystem.translate(new Vector3(0, -0.8, 0)));
                 if(stackHeight == 4){
-                    wobble1pos.set(new Vector3(40, 124, 0));
+                    wobble1pos.set(new Vector3(40, 120, 0));
                 }
                 stateMachine.appendDriveState("Drive To Wobble 1", new DriveToPointBuilder(stateMachine, position)
                         .setTarget(wobble1pos.getVector2())
