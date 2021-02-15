@@ -1,23 +1,23 @@
-package Motion.DriveToPoint;
-
-import com.qualcomm.robotcore.util.RobotLog;
+package Motion.VelocityCorrectedDrive;
 
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
+import MathSystems.MathUtils;
+import MathSystems.Vector3;
 import State.StateMachine;
 import State.VelocityDriveState;
-import MathSystems.*;
 
 /**
  * Drives to a given point using a straight line method
  * the setTarget() function sets the target to drive to
  */
 
-public abstract class DriveToPoint extends VelocityDriveState {
+public abstract class VelocityDriveToPoint extends VelocityDriveState {
     public Vector3 position, localTarget;
     private Vector3 target, velocity;
     double power = 0, r1, r2, slowMod;
-    public DriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double r1, double r2, double slowMod) {
+    final double kp = 1;
+    public VelocityDriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double r1, double r2, double slowMod) {
         super(stateMachine);
         this.position = position;
         this.target = target;
@@ -64,7 +64,18 @@ public abstract class DriveToPoint extends VelocityDriveState {
         }
         double x = (r * Math.cos(theta))/r;
         double y = (r * Math.sin(theta))/r;
-        RobotLog.ii("Test", x + ", " + y);
+
+        double xRaw = Math.cos(theta);
+        double yRaw = Math.sin(theta);
+
+        double velTheta = Math.atan2(velocity.getB(), velocity.getA());
+
+        double xCorr = (Math.cos(velTheta)) - xRaw;
+        double yCorr = (Math.sin(velTheta)) - yRaw;
+
+        x += (xCorr * kp);
+        y += (yCorr * kp);
+
         velocity.set(x * power * powerMod, -y * power * powerMod, errRot * power * rotMod);
     }
 

@@ -1,6 +1,6 @@
 package Hardware.Packets;
 
-import MathUtils.Vector4;
+import MathSystems.Vector4;
 
 /**
  * Hardware Data Packet

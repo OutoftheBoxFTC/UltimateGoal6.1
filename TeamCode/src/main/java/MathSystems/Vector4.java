@@ -1,4 +1,4 @@
-package MathUtils;
+package MathSystems;
 
 public class Vector4 {
     private double a, b, c, d;

@@ -5,10 +5,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import java.util.ArrayList;
 
 import Hardware.*;
-import MathUtils.*;
+import MathSystems.*;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import MathUtils.Vector3;
+import MathSystems.Vector3;
 import Odometry.ConstantVOdometer;
 import Odometry.Odometer;
 import OpModes.BasicOpmode;

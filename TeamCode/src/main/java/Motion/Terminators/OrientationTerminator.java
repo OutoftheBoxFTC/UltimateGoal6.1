@@ -2,7 +2,7 @@ package Motion.Terminators;
 
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import MathUtils.Vector3;
+import MathSystems.Vector3;
 
 /**
  * Orientation Terminator

@@ -7,7 +7,7 @@ import java.util.HashMap;
 import Hardware.*;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import MathUtils.Vector3;
+import MathSystems.Vector3;
 import Odometry.ConstantVOdometer;
 import OpModes.BasicOpmode;
 import State.GamepadDriveState;

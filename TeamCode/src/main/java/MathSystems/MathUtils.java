@@ -1,4 +1,4 @@
-package MathUtils;
+package MathSystems;
 
 /**
  * Contains some commonly used math functions, so they don't need to be repeatedly typed out

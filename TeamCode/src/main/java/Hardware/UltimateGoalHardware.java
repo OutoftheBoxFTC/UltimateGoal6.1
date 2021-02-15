@@ -4,7 +4,6 @@ import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import Hardware.Hardware;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.SmartDevices.SmartEncoder.SmartEncoder;
@@ -76,7 +75,7 @@ public class UltimateGoalHardware extends Hardware {
         if(enabledDevices.contains(HardwareDevices.GYRO)){
             sensorData.setGyro(smartDevices.get("gyro", SmartNavXMicro.class).getHeading());
         }
-        sensorData.setFps(1/(MathUtils.MathUtils.nanoToDSec(System.nanoTime()-prevTime)));
+        sensorData.setFps(1/(Math.MathUtils.nanoToDSec(System.nanoTime()-prevTime)));
         prevTime = System.nanoTime();
     }
 }

@@ -1,14 +1,10 @@
 package Motion.PurePursuit;
 
-import com.qualcomm.robotcore.util.RobotLog;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import Motion.DriveToPoint.DriveToPoint;
 import State.StateMachine;
-import MathUtils.*;
+import MathSystems.*;
 
 /**
  * Drives in a curve using the Pure Pursuit driving system

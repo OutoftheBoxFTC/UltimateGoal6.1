@@ -2,21 +2,16 @@ package OpModes.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import Hardware.*;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import MathUtils.*;
-import MathUtils.Vector3;
-import Motion.DriveToPoint.DriveToPoint;
+import MathSystems.*;
+import MathSystems.Vector3;
 import Motion.DriveToPoint.DriveToPointBuilder;
-import Motion.PurePursuit.PurePursuitBuilder;
-import Motion.PurePursuitOptimized.PurePursuitOptimized;
 import Motion.PurePursuitOptimized.PurePursuitOptimizedBuilder;
 import Motion.Terminators.OrientationTerminator;
-import Motion.Terminators.Terminator;
 import Motion.Terminators.TimeTerminator;
 import Odometry.ConstantVOdometer;
 import Odometry.Odometer;
@@ -24,7 +19,6 @@ import OpModes.BasicOpmode;
 import State.DriveState;
 import State.DriveStateActivator;
 import State.EventSystem.LinearEventSystem;
-import State.GamepadDriveState;
 import State.LogicState;
 @Autonomous
 public class RedAutonomous extends BasicOpmode {

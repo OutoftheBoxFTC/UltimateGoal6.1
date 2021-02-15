@@ -1,4 +1,4 @@
-package MathUtils;
+package MathSystems;
 
 public class Vector3 {
     private static final Vector3 ZERO = new Vector3(0, 0, 0);

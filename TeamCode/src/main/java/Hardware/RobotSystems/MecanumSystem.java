@@ -1,6 +1,6 @@
 package Hardware.RobotSystems;
 
-import MathUtils.*;
+import MathSystems.*;
 
 public class MecanumSystem {
     /**

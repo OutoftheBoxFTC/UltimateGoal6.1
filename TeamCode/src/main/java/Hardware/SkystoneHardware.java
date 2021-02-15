@@ -2,7 +2,6 @@ package Hardware;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.*;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import Hardware.Packets.*;
 import Hardware.SmartDevices.SmartEncoder.SmartEncoder;
@@ -59,7 +58,7 @@ public class SkystoneHardware extends Hardware {
             sensorData.setOdometryRight(smartDevices.get("Odometry Right", SmartEncoder.class).getCurrentPosition());
             sensorData.setOdometryAux(smartDevices.get("Odometry Aux", SmartEncoder.class).getCurrentPosition());
         }
-        sensorData.setFps(1/(MathUtils.MathUtils.nanoToDSec(System.nanoTime()-prevTime)));
+        sensorData.setFps(1/(Math.MathUtils.nanoToDSec(System.nanoTime()-prevTime)));
         prevTime = System.nanoTime();
     }
 }

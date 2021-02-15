@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Hardware.SmartDevices.SmartDevice;
-import MathUtils.Vector3;
+import MathSystems.Vector3;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;

@@ -1,4 +1,4 @@
-package MathUtils;
+package MathSystems;
 
 public class Matrix22 {
     private Vector2 i, j;

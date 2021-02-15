@@ -3,7 +3,7 @@ package Motion.PurePursuit;
 import java.util.ArrayList;
 
 import State.StateMachine;
-import MathUtils.*;
+import MathSystems.*;
 
 /**
  * Builds a Pure Pursuit class, returning a drive state that can be used in the statemachine

@@ -1,24 +1,16 @@
 package OpModes.Debug;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-
-import java.util.ArrayList;
 
 import Hardware.*;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import MathUtils.*;
-import MathUtils.Vector3;
-import Motion.DriveToPoint.DriveToPoint;
+import MathSystems.*;
+import MathSystems.Vector3;
 import Motion.DriveToPoint.DriveToPointBuilder;
-import Motion.PurePursuit.PurePursuitBuilder;
-import Motion.PurePursuitOptimized.PurePursuitOptimized;
-import Motion.PurePursuitOptimized.PurePursuitOptimizedBuilder;
 import Odometry.ConstantVOdometer;
 import Odometry.Odometer;
 import OpModes.BasicOpmode;
-import State.GamepadDriveState;
 import State.LogicState;
 @Disabled
 public class MotionDebug extends BasicOpmode {

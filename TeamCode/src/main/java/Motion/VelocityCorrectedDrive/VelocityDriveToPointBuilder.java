@@ -1,17 +1,19 @@
-package Motion.DriveToPoint;
-import MathSystems.*;
+package Motion.VelocityCorrectedDrive;
+
+import MathSystems.Vector2;
+import MathSystems.Vector3;
 import State.StateMachine;
 
 /**
  * Builds a standard drive to point class, returning a driveState that can be used in the statemachine
  */
 
-public class DriveToPointBuilder {
+public class VelocityDriveToPointBuilder {
     private StateMachine stateMachine;
     private double speed, rot, r1, r2, slowMod;
     private Vector3 position;
     private Vector2 target;
-    public DriveToPointBuilder(StateMachine stateMachine, Vector3 position){
+    public VelocityDriveToPointBuilder(StateMachine stateMachine, Vector3 position){
         this.position = position;
         this.stateMachine = stateMachine;
         target = Vector2.ZERO();
@@ -22,17 +24,17 @@ public class DriveToPointBuilder {
         slowMod = 25;
     }
 
-    public DriveToPointBuilder setSpeed(double speed){
+    public VelocityDriveToPointBuilder setSpeed(double speed){
         this.speed = speed;
         return this;
     }
 
-    public DriveToPointBuilder setRot(double rot){
+    public VelocityDriveToPointBuilder setRot(double rot){
         this.rot = rot;
         return this;
     }
 
-    public DriveToPointBuilder setTarget(Vector2 target){
+    public VelocityDriveToPointBuilder setTarget(Vector2 target){
         this.target.set(target);
         return this;
     }
@@ -49,8 +51,8 @@ public class DriveToPointBuilder {
         this.slowMod = slowMod;
     }
 
-    public DriveToPoint complete(){
-        return new DriveToPoint(stateMachine, position, target.toVector3(rot), speed, r1, r2, slowMod) {
+    public VelocityDriveToPoint complete(){
+        return new VelocityDriveToPoint(stateMachine, position, target.toVector3(rot), speed, r1, r2, slowMod) {
             @Override
             public void setTarget() {
                 localTarget.set(target.toVector3(rot));

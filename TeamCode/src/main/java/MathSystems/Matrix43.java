@@ -1,4 +1,4 @@
-package MathUtils;
+package MathSystems;
 
 public class Matrix43 {
     private Vector4 i, j, k;

@@ -1,6 +1,6 @@
 package Odometry;
 
-import MathUtils.Vector3;
+import MathSystems.Vector3;
 import State.LogicState;
 import State.StateMachine;
 
