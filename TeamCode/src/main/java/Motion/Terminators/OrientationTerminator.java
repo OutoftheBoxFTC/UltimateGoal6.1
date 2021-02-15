@@ -2,7 +2,8 @@ package Motion.Terminators;
 
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import MathSystems.Vector3;
+import MathUtils.MathUtils;
+import MathUtils.Vector3;
 
 /**
  * Orientation Terminator
@@ -11,16 +12,23 @@ import MathSystems.Vector3;
 
 public class OrientationTerminator extends Terminator {
     private Vector3 position, target;
-    private double distance;
+    private double distance, rotation;
+    private int meme = 0;
 
-    public OrientationTerminator(Vector3 position, Vector3 target, double distance){
+    public OrientationTerminator(Vector3 position, Vector3 target, double distance, double rotation){
         this.position = position;
         this.target = target;
         this.distance = distance;
+        this.rotation = rotation;
     }
 
     @Override
     public boolean shouldTerminate(SensorData sensorData, HardwareData hardwareData) {
-        return (position.getVector2().distanceTo(target.getVector2())) < distance;
+        if((position.getVector2().distanceTo(target.getVector2())) < distance && Math.abs(MathUtils.getRadRotDist(position.getC(), target.getC())) < Math.toRadians(rotation)) {
+            meme++;
+        }else{
+            meme = 0;
+        }
+        return meme > 10;
     }
 }

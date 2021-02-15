@@ -58,7 +58,7 @@ public class SmartServo extends SmartDevice {
 
     @Override
     public void update() {
-        if(Math.abs(position - prevPosition) > 0.005){
+        if(Math.abs(position - prevPosition) > 0.005 && position >= 0){
             servo.setPosition(position);
             prevPosition = position;
         }

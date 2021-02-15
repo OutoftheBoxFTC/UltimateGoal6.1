@@ -27,23 +27,25 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.put("Back Right", new SmartMotor(map.dcMotor.get("br"), new SmartMotorConfiguration().reverseDirection()));
         }
         if(registeredDevices.contains(HardwareDevices.ODOMETRY)){
-            smartDevices.put("Odometry Left", new SmartEncoder(map.dcMotor.get("ol"), new SmartEncoderConfiguration()));
+            smartDevices.put("Odometry Left", new SmartEncoder(map.dcMotor.get("ol"), new SmartEncoderConfiguration().reverseDirection()));
             smartDevices.put("Odometry Right", new SmartEncoder(map.dcMotor.get("br"), new SmartEncoderConfiguration()));
-            smartDevices.put("Odometry Aux", new SmartEncoder(map.dcMotor.get("oa"), new SmartEncoderConfiguration().reverseDirection()));
+            smartDevices.put("Odometry Aux", new SmartEncoder(map.dcMotor.get("oa"), new SmartEncoderConfiguration()));
         }
         if(registeredDevices.contains(HardwareDevices.INTAKE)){
-            smartDevices.put("Intake", new SmartMotor(map.dcMotor.get("intake"), new SmartMotorConfiguration().reverseDirection()));
+            smartDevices.put("Intake", new SmartMotor(map.dcMotor.get("intake"), new SmartMotorConfiguration()));
         }
         if(registeredDevices.contains(HardwareDevices.GYRO)){
-            smartDevices.put("gyro", new SmartNavXMicro(map.get(NavxMicroNavigationSensor.class, "gyro"), new SmartNavXConfiguration().setAngleUnit(SmartIMU.AngleUnit.RADIANS)));
+            //smartDevices.put("gyro", new SmartNavXMicro(map.get(NavxMicroNavigationSensor.class, "gyro"), new SmartNavXConfiguration().setAngleUnit(SmartIMU.AngleUnit.RADIANS)));
         }
         if(registeredDevices.contains(HardwareDevices.SHOOTER)){
-            smartDevices.put("Shooter Left", new SmartMotor(map.dcMotor.get("ol"), new SmartMotorConfiguration().reverseDirection().setRunMode(DcMotor.RunMode.RUN_USING_ENCODER)));
-            smartDevices.put("Shooter Right", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().reverseDirection().setRunMode(DcMotor.RunMode.RUN_USING_ENCODER)));
+            smartDevices.put("Shooter Left", new SmartMotor(map.dcMotor.get("ol"), new SmartMotorConfiguration()));
+            smartDevices.put("Shooter Right", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration()));
             smartDevices.put("Shooter Tilt", new SmartServo(map.servo.get("shooterTilt"), new SmartServoConfiguration().setInitPos(0.37)));
         }
         if(registeredDevices.contains(HardwareDevices.WOBBLE)){
-            smartDevices.put("Wobble Lift", new SmartMotor(map.dcMotor.get("wobbleLift"), new SmartMotorConfiguration()));
+            smartDevices.put("Wobble Oneuse Right", new SmartServo(map.servo.get("wobbleR"), new SmartServoConfiguration().setInitPos(0.5)));
+            smartDevices.put("Wobble Lift Right", new SmartServo(map.servo.get("wobbleLR"), new SmartServoConfiguration().setInitPos(0.5)));
+            smartDevices.put("Wobble Lift Left", new SmartServo(map.servo.get("wobbleLL"), new SmartServoConfiguration().setInitPos(0.5)));
         }
     }
 
@@ -54,6 +56,11 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.get("Front Right", SmartMotor.class).setPower(hardware.getFr());
             smartDevices.get("Back Left", SmartMotor.class).setPower(hardware.getBl());
             smartDevices.get("Back Right", SmartMotor.class).setPower(hardware.getBr());
+        }
+        if(enabledDevices.contains(HardwareDevices.WOBBLE)){
+            smartDevices.get("Wobble Oneuse Right", SmartServo.class).setPosition(hardware.getWobbleOneuseRight());
+            smartDevices.get("Wobble Lift Right", SmartServo.class).setPosition(hardware.getWobbleLiftRight());
+            smartDevices.get("Wobble Lift Left", SmartServo.class).setPosition(hardware.getWobbleLiftLeft());
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             smartDevices.get("Intake", SmartMotor.class).setPower(hardware.getIntake());
@@ -73,7 +80,7 @@ public class UltimateGoalHardware extends Hardware {
             sensorData.setOdometryAux(smartDevices.get("Odometry Aux", SmartEncoder.class).getCurrentPosition());
         }
         if(enabledDevices.contains(HardwareDevices.GYRO)){
-            sensorData.setGyro(smartDevices.get("gyro", SmartNavXMicro.class).getHeading());
+            //sensorData.setGyro(smartDevices.get("gyro", SmartNavXMicro.class).getHeading());
         }
         sensorData.setFps(1/(Math.MathUtils.nanoToDSec(System.nanoTime()-prevTime)));
         prevTime = System.nanoTime();
