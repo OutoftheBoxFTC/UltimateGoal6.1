@@ -2,8 +2,8 @@ package Motion.Terminators;
 
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import MathUtils.MathUtils;
-import MathUtils.Vector3;
+import MathSystems.MathUtils;
+import MathSystems.Vector3;
 
 /**
  * Orientation Terminator
