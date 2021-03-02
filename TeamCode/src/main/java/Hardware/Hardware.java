@@ -139,6 +139,7 @@ public abstract class Hardware implements Runnable {
         registeredDevices.add(HardwareDevices.GYRO);
         registeredDevices.add(HardwareDevices.SHOOTER);
         registeredDevices.add(HardwareDevices.WOBBLE);
+        registeredDevices.add(HardwareDevices.WEBCAM);
     }
 
     public void enableAll(){
@@ -148,6 +149,7 @@ public abstract class Hardware implements Runnable {
         enabledDevices.add(HardwareDevices.GYRO);
         enabledDevices.add(HardwareDevices.SHOOTER);
         enabledDevices.add(HardwareDevices.WOBBLE);
+        enabledDevices.add(HardwareDevices.WEBCAM);
     }
 
     public void disableAll(){
@@ -172,6 +174,7 @@ public abstract class Hardware implements Runnable {
         GYRO,
         ODOMETRY,
         SHOOTER,
-        WOBBLE
+        WOBBLE,
+        WEBCAM
     }
 }

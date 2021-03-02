@@ -5,25 +5,27 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import Hardware.*;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
+import Hardware.Robots.RobotConstants;
 import OpModes.BasicOpmode;
 import State.LogicState;
 @TeleOp
 public class ShooterLoadTiming extends BasicOpmode {
-    long timeCoeff = 500;
+    long timeCoeff = 3000;
     public ShooterLoadTiming() {
         super(new UltimateGoalHardware());
     }
 
     @Override
     public void setup() {
-
+        hardware.enableAll();
+        hardware.registerAll();
         eventSystem.onStart("Load Arm", new LogicState(stateMachine) {
             int state = 0;
             long timer = 0;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
-                    hardwareData.setShooterLoadArm(0.5);
+                    hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_HOLD);
                     timer = System.currentTimeMillis() + timeCoeff;
                     state = 1;
                 }
@@ -33,7 +35,7 @@ public class ShooterLoadTiming extends BasicOpmode {
                     }
                 }
                 if(state == 2){
-                    hardwareData.setShooterLoadArm(0.3);
+                    hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
                     timer = System.currentTimeMillis() + timeCoeff;
                     state = 3;
                 }
@@ -42,6 +44,7 @@ public class ShooterLoadTiming extends BasicOpmode {
                         state = 0;
                     }
                 }
+                telemetry.addData("state", state);
             }
         });
 
@@ -55,6 +58,7 @@ public class ShooterLoadTiming extends BasicOpmode {
                 if(!prevUp && gamepad1.dpad_up){
                     timeCoeff += 1;
                 }
+                telemetry.addData("Timing", timeCoeff);
                 prevDown = gamepad1.dpad_down;
                 prevUp = gamepad1.dpad_up;
             }

@@ -17,4 +17,6 @@ public abstract class Odometer extends LogicState {
         this.position = position;
         this.velocity = velocity;
     }
+
+    public abstract void reset();
 }

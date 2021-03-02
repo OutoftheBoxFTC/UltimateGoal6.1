@@ -54,6 +54,14 @@ public class StateMachine {
         deactivatedLogicStates.clear();
     }
 
+    public String getActiveStates(){
+        String s = "";
+        for(String state : activeLogicStates.keySet()){
+            s += state + ", ";
+        }
+        return s;
+    }
+
     public boolean containsState(String state){
         return logicStates.containsKey(state);
     }
@@ -81,7 +89,8 @@ public class StateMachine {
     public void appendDriveState(String name, DriveState state){
         state.setName(name);
         logicStates.put(name, state);
-        driveStates.add(name);
+        if(!driveStates.contains(name))
+            driveStates.add(name);
     }
 
     public void appendDriveStates(HashMap<String, DriveState> map){

@@ -13,22 +13,31 @@ import MathSystems.Vector3;
 public class OrientationTerminator extends Terminator {
     private Vector3 position, target;
     private double distance, rotation;
-    private int meme = 0;
+    private int frameCount = 0, numFrames;
 
     public OrientationTerminator(Vector3 position, Vector3 target, double distance, double rotation){
         this.position = position;
         this.target = target;
         this.distance = distance;
         this.rotation = rotation;
+        numFrames = 0;
+    }
+
+    public OrientationTerminator(Vector3 position, Vector3 target, double distance, double rotation, int numFrames){
+        this.position = position;
+        this.target = target;
+        this.distance = distance;
+        this.rotation = rotation;
+        this.numFrames = numFrames;
     }
 
     @Override
     public boolean shouldTerminate(SensorData sensorData, HardwareData hardwareData) {
-        if((position.getVector2().distanceTo(target.getVector2())) < distance && Math.abs(MathUtils.getRadRotDist(position.getC(), target.getC())) < Math.toRadians(rotation)) {
-            meme++;
+        if((position.getVector2().distanceTo(target.getVector2())) < distance && (Math.abs(MathUtils.getRadRotDist(position.getC(), Math.toRadians(target.getC()))) < Math.toRadians(rotation))) {
+            frameCount++;
         }else{
-            meme = 0;
+            frameCount = 0;
         }
-        return meme > 10;
+        return frameCount > numFrames;
     }
 }

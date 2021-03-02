@@ -1,9 +1,11 @@
 package MathSystems;
 
+import com.qualcomm.robotcore.util.RobotLog;
+
 public class PIDSystem {
-    private double kp, ki, kd, target, error, previousError;
+    private double kp, ki, kd, target, error, previousError, dt, integralRange;
     private double proportional, integral, derivative;
-    private float dt;
+    private long prevTime;
 
     public PIDSystem(double kp, double ki, double kd){
         this.kp = kp;
@@ -16,9 +18,10 @@ public class PIDSystem {
         integral = 0;
         derivative = 0;
         dt = 0;
+        this.integralRange = 5;
     }
 
-    public PIDSystem(double kp, double ki, double kd, double target){
+    public PIDSystem(double kp, double ki, double kd, double integralRange){
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;
@@ -29,21 +32,23 @@ public class PIDSystem {
         integral = 0;
         derivative = 0;
         dt = 0;
+        this.integralRange = integralRange;
     }
 
-    public double getCorrection(double current){
-        float start = System.currentTimeMillis();
-        error = target - current;
+    public double getCorrection(double error){
         proportional = error * kp;
         if(dt != 0){
-            integral += error * ki * dt;
+            if(Math.abs(error) < integralRange)
+                integral += error * ki * dt;
             if(previousError != 0){
                 derivative = kd * (error - previousError) / dt;
             }
         }
 
-        dt = System.currentTimeMillis() - start;
         previousError = error;
+
+        dt = MathUtils.millisToSec(System.currentTimeMillis() - prevTime);
+        prevTime = System.currentTimeMillis();
 
         return proportional + integral + derivative;
     }

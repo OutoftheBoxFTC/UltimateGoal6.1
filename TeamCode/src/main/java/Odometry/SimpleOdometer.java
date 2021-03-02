@@ -21,6 +21,11 @@ public class SimpleOdometer extends Odometer {
         this(stateMachine, position, velocity, 0, 0);
     }
 
+    @Override
+    public void reset() {
+
+    }
+
     public SimpleOdometer(StateMachine stateMachine, Vector3 position, Vector3 velocity, double x, double y) {
         super(stateMachine, position, velocity);
         prevEncoderValues = Vector3.ZERO();

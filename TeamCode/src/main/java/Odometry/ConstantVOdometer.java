@@ -1,5 +1,7 @@
 package Odometry;
 
+import com.qualcomm.robotcore.util.RobotLog;
+
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
@@ -21,6 +23,15 @@ public class ConstantVOdometer extends Odometer {
         this(stateMachine, position, velocity, 0, 0);
     }
 
+    @Override
+    public void reset() {
+        this.x = 0;
+        this.y = 0;
+        rot = 0;
+        position.set(x, y, 0);
+        prevPosition.set(x, y, 0);
+    }
+
     public ConstantVOdometer(StateMachine stateMachine, Vector3 position, Vector3 velocity, double x, double y) {
         super(stateMachine, position, velocity);
         prevEncoderValues = Vector3.ZERO();
@@ -39,16 +50,19 @@ public class ConstantVOdometer extends Odometer {
         //double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), sensors.getGyro());
         double strafeInc = (sensors.getOdometryAux() - (AUX_ROTATION_CONSTANT * rotInc)) - prevEncoderValues.getB();
         Vector2 pos = MathUtils.toPolar(ConstantVMathUtil.toRobotCentric(forInc, strafeInc, rotInc));
-        Vector2 fieldCentric = MathUtils.toCartesian(pos.getA(), pos.getB() + rot);
+        Vector2 fieldCentric = MathUtils.toCartesian(pos.getA(), pos.getB() - rot);
         x += fieldCentric.getA();
         y += fieldCentric.getB();
         rot = (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT);
         double tau = (2 * Math.PI);
         rot = ((rot % tau) + tau) % tau;
         position.set(x * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, -y * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, rot);
-        velocity.set(position.subtract(prevPosition).scale(1.0/MathUtils.nanoToSec(System.nanoTime() - prevTime)));
-        prevPosition.set(position);
+        Vector3 localVel = position.subtract(prevPosition).scale(1.0/MathUtils.nanoToDSec(System.nanoTime() - prevTime));
         prevTime = System.nanoTime();
+        if(!Double.isNaN(localVel.getA()) && !Double.isNaN(localVel.getB()) && !Double.isNaN(localVel.getC()) && !Double.isInfinite(localVel.getA()) && !Double.isInfinite(localVel.getB()) && !Double.isInfinite(localVel.getC())) {
+            velocity.set(localVel);
+        }
+        prevPosition.set(position);
         prevEncoderValues.set(((sensors.getOdometryLeft() + sensors.getOdometryRight())/2.0), (sensors.getOdometryAux() - (AUX_ROTATION_CONSTANT * rotInc)), rot);
     }
 }

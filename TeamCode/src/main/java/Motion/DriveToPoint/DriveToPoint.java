@@ -56,7 +56,7 @@ public abstract class DriveToPoint extends VelocityDriveState {
         double errY = localTarget.getB() - position.getB();
         double errX = localTarget.getA() - position.getA();
         double r = Math.sqrt((errX * errX) + (errY * errY));
-        double theta = Math.atan2(errY, errX) + position.getC();
+        double theta = Math.atan2(errY, errX) - position.getC();
         double errRot = MathUtils.getRadRotDist(position.getC(), Math.toRadians(localTarget.getC()));
         double comb = Math.abs(((r * Math.cos(theta))) + ((r * Math.sin(theta))));
         double powerMod = 1;
@@ -87,7 +87,7 @@ public abstract class DriveToPoint extends VelocityDriveState {
         }
         double x = (r * Math.cos(theta))/r;
         double y = (r * Math.sin(theta))/r;
-        RobotLog.ii("Test", x + ", " + y);
+        //RobotLog.ii("Test", x + ", " + y);
         velocity.set(x * power * powerMod, -y * power * powerMod, errRot * power * rotMod);
     }
 
