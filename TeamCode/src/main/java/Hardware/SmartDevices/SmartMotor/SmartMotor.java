@@ -19,6 +19,7 @@ public class SmartMotor extends SmartDevice {
     private SmartMotorConfiguration configuration;
     private volatile double position, velocity, power, prevPower, positionOffset;
     private int port;
+    private boolean calibrated = false;
     public SmartMotor(DcMotor motor, SmartMotorConfiguration configuration) {
         this.motor = (DcMotorEx)motor;
         this.configuration = configuration;
@@ -32,7 +33,7 @@ public class SmartMotor extends SmartDevice {
     }
 
     public double getPosition() {
-        return position - positionOffset;
+        return position;
     }
 
     public DcMotor getMotor() {
@@ -65,7 +66,8 @@ public class SmartMotor extends SmartDevice {
     @Override
     public void calibrate() {
         if(configuration.readPosition){
-            positionOffset = (position * (configuration.direction ? -1 : 1));
+            positionOffset = (motor.getCurrentPosition());
+            calibrated = true;
         }
     }
 
@@ -76,7 +78,10 @@ public class SmartMotor extends SmartDevice {
             prevPower = power;
         }
         if(configuration.readPosition){
-            position = ((motor.getCurrentPosition() * (configuration.direction ? -1 : 1)) - positionOffset);
+            if(!calibrated){
+                positionOffset = motor.getCurrentPosition();
+            }
+            position = ((motor.getCurrentPosition() - positionOffset)  * (configuration.direction ? -1 : 1));
         }
         if(configuration.readVelocity){
             velocity = motor.getVelocity(configuration.angleUnit) * (configuration.direction ? -1 : 1);

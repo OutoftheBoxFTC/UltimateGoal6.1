@@ -8,6 +8,7 @@ import Hardware.*;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
+import MathSystems.MathUtils;
 import MathSystems.PIDSystem;
 import MathSystems.Vector3;
 import Odometry.ConstantVOdometer;
@@ -28,6 +29,8 @@ public class MainTeleOp extends BasicOpmode {
     public void setup() {
         hardware.registerAll();
         hardware.enableAll();
+        hardware.disableDevice(Hardware.HardwareDevices.WEBCAM);
+        hardware.deRegisterDevice(Hardware.HardwareDevices.WEBCAM);
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new ConstantVOdometer(stateMachine, position, velocity);
@@ -45,8 +48,15 @@ public class MainTeleOp extends BasicOpmode {
         eventSystem.onStart("GamepadDrive", new VelocityDriveState(stateMachine) {
             @Override
             public Vector3 getVelocities() {
-                double speedMod = (gamepad1.right_trigger != 0) ? 0.3 : 1;
-                return new Vector3(gamepad1.left_stick_x * speedMod, gamepad1.left_stick_y * speedMod, -gamepad1.right_stick_x * speedMod);
+                if(gamepad1.right_trigger > 0.1) {
+                    double speedMod = (gamepad1.right_trigger != 0) ? 0.6 : 1;
+                    return new Vector3(gamepad1.left_stick_x * speedMod, gamepad1.left_stick_y * speedMod, -gamepad1.right_stick_x * speedMod);
+                }else if(gamepad1.left_trigger > 0.1){
+                    double speedMod = (gamepad1.left_trigger != 0) ? 0.6 : 1;
+                    return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x * speedMod);
+                }else{
+                    return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
+                }
             }
 
             @Override
@@ -66,17 +76,20 @@ public class MainTeleOp extends BasicOpmode {
         });
 
         eventSystem.onStart("Shoot", new LogicState(stateMachine) {
-            double tiltLevel = 0.331;
+            double tiltLevel = 0;
             long frameTime = System.currentTimeMillis();
-            PIDSystem system = new PIDSystem(0.7, 0, 0);
+            PIDSystem system = new PIDSystem(1, 0, 0);
             final double targetSpeed = 5.0;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                double reqSpeed = (gamepad1.right_trigger > 0.2) ? 0.8 : 0;
+                double reqSpeed = (gamepad2.right_trigger > 0.2) ? 0.8 : 0;
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 telemetry.addData("Shooter Velocity", vel);
-                if(gamepad1.right_trigger != 0)
+                if(gamepad2.right_trigger > 0.1) {
                     hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel));
+                }else{
+                    hardwareData.setShooter(0.2);
+                }
                 if(gamepad2.dpad_up){
                     tiltLevel += (0.01 * ((System.currentTimeMillis() - frameTime)/1000.0));
                 }
@@ -90,8 +103,17 @@ public class MainTeleOp extends BasicOpmode {
                     }
                 }
 
+                if(Math.abs(gamepad2.left_stick_y) > 0.2){
+                    hardwareData.setShooterTilt(0.49);
+                    hardwareData.setShooter(0);
+                }else if(gamepad2.right_stick_y < -0.1){
+                    hardwareData.setShooterTilt(0.345 + tiltLevel);
+                }else if(gamepad2.right_stick_y > 0.1){
+                    hardwareData.setShooterTilt(0.4 + tiltLevel);
+                }
+
                 telemetry.addData("Tilt", tiltLevel);
-                hardwareData.setShooterTilt(tiltLevel);
+                //hardwareData.setShooterTilt(tiltLevel);
                 telemetry.addData("Servo", "Shooter");
                 frameTime = System.currentTimeMillis();
             }
@@ -117,13 +139,27 @@ public class MainTeleOp extends BasicOpmode {
                      hardwareData.setWobbleLiftRight(0.96634);
                      hardwareData.setWobbleLiftLeft(0.01);
                  }
-                 if(gamepad2.left_stick_y > 0.1){
+                 double minVal = -1;
+                 double maxVal = 1;
+                 if(sensorData.getWobbleLift() >= 0){
+                     maxVal = 0;
+                 }
+                 if(sensorData.getWobbleLift() <= -380){
+                     minVal = 0;
+                 }
+                 telemetry.addData("Wobble", sensorData.getWobbleLift() + " | " + minVal + " | " + maxVal);
+                hardwareData.setWobbleLift(-MathUtils.clamp(gamepad2.left_stick_y * 0.75, minVal, maxVal));
+                if(Math.abs(gamepad2.left_stick_y) < 0.1){
+                     hardwareData.setWobbleLift(0.1);
+                 }
+                 /**
+                 if(gamepad2.left_stick_y < -0.1){
                      if(!stateMachine.logicStateActive("Lift Wobble")) {
                          stateMachine.activateLogic("Lift Wobble");
                      }
                      hardwareData.setWobbleLiftRight(0.57676);
                      hardwareData.setWobbleLiftLeft(0.37882);
-                 }else if(gamepad2.left_stick_y < -0.1){
+                 }else if(gamepad2.left_stick_y > 0.1){
                      if(stateMachine.logicStateActive("Lift Wobble")){
                          stateMachine.deactivateState("Lift Wobble");
                      }
@@ -133,21 +169,24 @@ public class MainTeleOp extends BasicOpmode {
                      hardwareData.setWobbleLiftRight(0.43622);
                      hardwareData.setWobbleLiftLeft(0.5208);
                  }
+                  */
                 telemetry.addData("Backlog", sensorData.getBacklog());
             }
         });
 
         stateMachine.appendLogicState("Lift Wobble", new LogicState(stateMachine) {
-            double tolerence = 5, target = 100;
-            double kp = 0.1;
+            double tolerence = 30, target = (390/2.0);
+            double power = 0.8;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLift((target - sensorData.getWobbleLift()) * kp);
+                hardwareData.setShooterTilt(0.49);
+                hardwareData.setWobbleLift(MathUtils.sign(target - (-sensorData.getWobbleLift())) * power);
                 if(Math.abs(target - sensorData.getWobbleLift()) < tolerence){
                     stateMachine.activateLogic("Hold Wobble");
                     telemetry.addData("Moving", "Wobble");
                     deactivateThis();
                 }
+                telemetry.addData("Pos", sensorData.getWobbleLift());
             }
         });
 
@@ -166,7 +205,7 @@ public class MainTeleOp extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
                     hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 70;
+                    timer = System.currentTimeMillis() + 140;
                     state = 1;
                 }
                 if(state == 1){
@@ -176,7 +215,7 @@ public class MainTeleOp extends BasicOpmode {
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.875);
-                    timer = System.currentTimeMillis() + 70;
+                    timer = System.currentTimeMillis() + 140;
                     state = 3;
                 }
                 if(state == 3){

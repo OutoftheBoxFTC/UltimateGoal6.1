@@ -32,6 +32,7 @@ public class PIDSystem {
         integral = 0;
         derivative = 0;
         dt = 0;
+        prevTime = 0;
         this.integralRange = integralRange;
     }
 
@@ -46,7 +47,8 @@ public class PIDSystem {
         }
 
         previousError = error;
-
+        if(prevTime == 0)
+            prevTime = System.currentTimeMillis();
         dt = MathUtils.millisToSec(System.currentTimeMillis() - prevTime);
         prevTime = System.currentTimeMillis();
 
