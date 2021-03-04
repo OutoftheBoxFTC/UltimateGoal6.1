@@ -765,31 +765,32 @@ public class RedAutonomous2 extends BasicOpmode {
 
     public void setStackHeight4(LinearEventSystem linearSystem){
         wobble1pos.set(new Vector3(35, 122, 0));
-        wobble2pos.set(new Vector3(25, 115, 0));
+        wobble2pos.set(new Vector3(25, 111, 0));
 
-        linearSystem.put("Left Powershot", new OrientationTerminator(position, new Vector3(-7, 60, 6), 0.7, 0.7));
+        linearSystem.put("Left Powershot", new OrientationTerminator(position, new Vector3(-7, 60, 11), 0.7, 1));
+        linearSystem.put("Rot To Left", new OrientationTerminator(position, new Vector3(-7, 60, 8), 5, 1));
         linearSystem.put("Shoot", new TimeTerminator(50));
         //linearSystem.put("Shoot", new OrientationTerminator(position, new Vector3(-4.5, 60, -25), 5, 2.5));
-        linearSystem.put("Centre Powershot", new OrientationTerminator(position, new Vector3(-6, 60, 2), 5, 2.5));
+        linearSystem.put("Centre Powershot", new OrientationTerminator(position, new Vector3(-6, 60, 3), 5, 1));
         linearSystem.put("Shoot", new TimeTerminator(50));
-        linearSystem.put("Right Powershot", new OrientationTerminator(position, new Vector3(-6, 60, 356), 5, 2.5));
+        linearSystem.put("Right Powershot", new OrientationTerminator(position, new Vector3(-6, 60, 358), 5, 1));
         linearSystem.put("Shoot", new TimeTerminator(50));
-        linearSystem.put("Stop Shooter", new TimeTerminator(50));
+        linearSystem.put("Stop Shooter", new TimeTerminator(10));
         linearSystem.put("Drive To Wobble 1 Activator", new OrientationTerminator(position, wobble1pos, 5, 3));
-        linearSystem.put("Release Wobble 1", new TimeTerminator(50));
+        linearSystem.put("Release Wobble 1", new TimeTerminator(10));
         linearSystem.put("Release Forks", new TimeTerminator(50));
         linearSystem.put("Drive Wobble 2 Activator", new OrientationTerminator(position, new Vector3(45, 45, 0), 5, 1));
         linearSystem.put("Move Forks Down", new TimeTerminator(5));
         linearSystem.put("Collect Wobble 2 Activator", new OrientationTerminator(position, new Vector3(43, 25, 0), 3, 1));
         linearSystem.put("Raise Forks", new TimeTerminator(50));
         linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(27, 20, 5), 3, 2.5));
-        linearSystem.put("Drop And Outtake", new TimeTerminator(50));
+        linearSystem.put("Drop And Outtake", new TimeTerminator(20));
         linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(25, 36.5, 5), 6, 2));
         linearSystem.put("End", new TimeTerminator(50));
         linearSystem.put("Shoot", new TimeTerminator(60));
         linearSystem.put("ShootMain", new TimeTerminator(50));
         linearSystem.put("Back Up Activator", new TimeTerminator(25));
-        linearSystem.put("Intake Stack 2 Activator", new OrientationTerminator(position, new Vector3(25, 58, 9), 6, 2));
+        linearSystem.put("Intake Stack 2 Activator", new OrientationTerminator(position, new Vector3(25, 58, 5), 6, 2));
         linearSystem.put("End", new TimeTerminator(50));
         linearSystem.put("Shoot", new TimeTerminator(60));
         linearSystem.put("ShootMain", new TimeTerminator(60));
@@ -817,17 +818,29 @@ public class RedAutonomous2 extends BasicOpmode {
         driveStates.put("Drive To Left Powershot", new DriveToPointBuilder(stateMachine, position)
                 .setTarget(new Vector2(-7, 60)) //b should be 60
                 .setSpeed(0.7)
-                .setRot(6)
+                .setRot(11)
                 .setRotPrec(1)
                 .setR1(35)
                 .setSlowMod(70)
                 .setMinimums(0.15)
-                .complete());
+                .complete()); //Rotate To Left Powershot
+
+        driveStates.put("Rotate To Left Powershot", new VelocityDriveState(stateMachine) {
+            @Override
+            public Vector3 getVelocities() {
+                return new Vector3(0, 0, -0.15);
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+
+            }
+        });
 
         driveStates.put("Drive To Centre Powershot", new VelocityDriveState(stateMachine) {
             @Override
             public Vector3 getVelocities() {
-                return new Vector3(0, 0, -0.2);
+                return new Vector3(0, 0, -0.15);
             }
 
             @Override
@@ -838,7 +851,7 @@ public class RedAutonomous2 extends BasicOpmode {
         driveStates.put("Drive to Right Powershot", new VelocityDriveState(stateMachine) {
             @Override
             public Vector3 getVelocities() {
-                return new Vector3(0, 0, -0.2);
+                return new Vector3(0, 0, -0.15);
             }
 
             @Override
@@ -904,7 +917,7 @@ public class RedAutonomous2 extends BasicOpmode {
         driveStates.put("Intake Stack 2", new DriveToPointBuilder(stateMachine, position)
                 .setTarget(new Vector2(25, 58))
                 .setSpeed(0.5)
-                .setRot(9)
+                .setRot(5)
                 .setRotPrec(1)
                 .setMinimums(0.15)
                 .complete());
@@ -1001,6 +1014,7 @@ public class RedAutonomous2 extends BasicOpmode {
         //Turn Drive States into Logic States - this is for some compatibility stuff
         HashMap<String, LogicState> autoStates = new HashMap<>();
         autoStates.put("Left Powershot", new DriveStateActivator(stateMachine, "Drive To Left Powershot"));
+        autoStates.put("Rot To Left", new DriveStateActivator(stateMachine, "Rotate To Left Powershot"));
         autoStates.put("Centre Powershot", new DriveStateActivator(stateMachine, "Drive To Centre Powershot"));
         autoStates.put("Right Powershot", new DriveStateActivator(stateMachine, "Drive to Right Powershot"));
         autoStates.put("Drive To Wobble 1 Activator", new DriveStateActivator(stateMachine, "Drive To Wobble 1"));
@@ -1062,6 +1076,7 @@ public class RedAutonomous2 extends BasicOpmode {
                 hardwareData.setWobbleLiftRight(0.43622);
                 hardwareData.setWobbleLiftLeft(0.5208);
                 hardwareData.setShooterTilt(0.34);
+                hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
             }
         });
         autoStates.put("Raise Forks", new LogicState(stateMachine) {

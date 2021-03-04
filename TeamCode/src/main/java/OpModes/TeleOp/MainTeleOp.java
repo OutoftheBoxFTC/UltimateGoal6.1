@@ -21,6 +21,7 @@ import State.VelocityDriveState;
 public class MainTeleOp extends BasicOpmode {
     ConstantVOdometer odometer;
     Vector3 position, velocity;
+    boolean holdShoot = true;
     public MainTeleOp() {
         super(new UltimateGoalHardware());
     }
@@ -61,7 +62,39 @@ public class MainTeleOp extends BasicOpmode {
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
+            }
+        });
 
+        stateMachine.appendDriveState("Rotate", new VelocityDriveState(stateMachine) {
+            @Override
+            public Vector3 getVelocities() {
+                return new Vector3(0, 0, -0.2);
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(MathUtils.getRadRotDist(position.getC(), Math.toRadians(4)) < Math.toRadians(1)){
+                    stateMachine.setActiveDriveState("GamepadDrive");
+                }
+            }
+        });
+
+        eventSystem.onStart("Rotate Manager", new LogicState(stateMachine) {
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(gamepad1.a){
+                    if(stateMachine.driveStateActive("GamepadDrive")){
+                        if(!stateMachine.logicStateActive("Load Shooter Turn")){
+                            odometer.reset();
+                            stateMachine.activateLogic("Load Shooter Turn");
+                        }
+                    }
+                }
+                if(Math.abs(gamepad1.left_stick_x) > 0.2 || Math.abs(gamepad1.right_stick_x) > 0.2 || Math.abs(gamepad1.left_stick_y) > 0.2){
+                    if(stateMachine.driveStateActive("Rotate")){
+                        stateMachine.setActiveDriveState("GamepadDrive");
+                    }
+                }
             }
         });
 
@@ -103,13 +136,20 @@ public class MainTeleOp extends BasicOpmode {
                     }
                 }
 
+                if(holdShoot){
+                    hardwareData.setShooterTilt(0.345 + tiltLevel);
+                }else{
+                    //hardwareData.setShooterTilt(0.35 + tiltLevel);
+                }
+
                 if(Math.abs(gamepad2.left_stick_y) > 0.2){
                     hardwareData.setShooterTilt(0.49);
                     hardwareData.setShooter(0);
-                }else if(gamepad2.right_stick_y < -0.1){
-                    hardwareData.setShooterTilt(0.345 + tiltLevel);
-                }else if(gamepad2.right_stick_y > 0.1){
-                    hardwareData.setShooterTilt(0.4 + tiltLevel);
+                    holdShoot = false;
+                }else if(gamepad2.right_stick_y < -0.2){
+                    holdShoot = true;
+                }else if(gamepad2.right_stick_y > 0.2){
+                    hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
 
                 telemetry.addData("Tilt", tiltLevel);
@@ -148,7 +188,7 @@ public class MainTeleOp extends BasicOpmode {
                      minVal = 0;
                  }
                  telemetry.addData("Wobble", sensorData.getWobbleLift() + " | " + minVal + " | " + maxVal);
-                hardwareData.setWobbleLift(-MathUtils.clamp(gamepad2.left_stick_y * 0.75, minVal, maxVal));
+                hardwareData.setWobbleLift(-MathUtils.clamp(gamepad2.left_stick_y * 1, minVal, maxVal));
                 if(Math.abs(gamepad2.left_stick_y) < 0.1){
                      hardwareData.setWobbleLift(0.1);
                  }
@@ -228,7 +268,38 @@ public class MainTeleOp extends BasicOpmode {
                 telemetry.addData("state", state);
             }
         });
-
+        logicStates.put("Load Shooter Turn", new LogicState(stateMachine) {
+            int state = 0;
+            long timer = 0;
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(state == 0){
+                    hardwareData.setShooterLoadArm(0.7);
+                    timer = System.currentTimeMillis() + 140;
+                    state = 1;
+                }
+                if(state == 1){
+                    if(System.currentTimeMillis() >= timer){
+                        state = 2;
+                    }
+                }
+                if(state == 2){
+                    hardwareData.setShooterLoadArm(0.875);
+                    timer = System.currentTimeMillis() + 140;
+                    state = 3;
+                }
+                if(state == 3){
+                    if(System.currentTimeMillis() >= timer){
+                        stateMachine.setActiveDriveState("Rotate");
+                        deactivateThis();
+                    }
+                }
+                telemetry.addData("state", state);
+            }
+        });
+        /**
+         *
+         */
         stateMachine.appendLogicStates(logicStates);
     }
 }
