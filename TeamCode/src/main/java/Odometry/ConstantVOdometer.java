@@ -53,7 +53,7 @@ public class ConstantVOdometer extends Odometer {
         Vector2 fieldCentric = MathUtils.toCartesian(pos.getA(), pos.getB() - rot);
         x += fieldCentric.getA();
         y += fieldCentric.getB();
-        rot = (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT);
+        rot += rotInc;
         double tau = (2 * Math.PI);
         rot = ((rot % tau) + tau) % tau;
         position.set(x * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, -y * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, rot);

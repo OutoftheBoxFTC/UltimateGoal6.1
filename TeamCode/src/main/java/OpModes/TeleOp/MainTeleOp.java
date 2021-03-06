@@ -1,6 +1,7 @@
 package OpModes.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 import java.util.HashMap;
 
@@ -11,8 +12,10 @@ import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import MathSystems.MathUtils;
 import MathSystems.PIDSystem;
 import MathSystems.Vector3;
+import MathSystems.Vector4;
 import Odometry.ConstantVOdometer;
 import OpModes.BasicOpmode;
+import State.DriveState;
 import State.GamepadDriveState;
 import State.LogicState;
 import State.VelocityDriveState;
@@ -51,11 +54,23 @@ public class MainTeleOp extends BasicOpmode {
             public Vector3 getVelocities() {
                 if(gamepad1.right_trigger > 0.1) {
                     double speedMod = (gamepad1.right_trigger != 0) ? 0.6 : 1;
+                    hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     return new Vector3(gamepad1.left_stick_x * speedMod, gamepad1.left_stick_y * speedMod, -gamepad1.right_stick_x * speedMod);
                 }else if(gamepad1.left_trigger > 0.1){
                     double speedMod = (gamepad1.left_trigger != 0) ? 0.6 : 1;
+                    hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x * speedMod);
                 }else{
+                    hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                    hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                    hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                    hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                     return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
                 }
             }
@@ -66,14 +81,40 @@ public class MainTeleOp extends BasicOpmode {
         });
 
         stateMachine.appendDriveState("Rotate", new VelocityDriveState(stateMachine) {
+            long timer = 0;
             @Override
             public Vector3 getVelocities() {
-                return new Vector3(0, 0, -0.2);
+                return new Vector3(0, 0, 0.2);
+            }
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                timer = System.currentTimeMillis() + 300;
             }
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                if(MathUtils.getRadRotDist(position.getC(), Math.toRadians(4)) < Math.toRadians(1)){
+                if(System.currentTimeMillis() > timer){
+                    stateMachine.setActiveDriveState("GamepadDrive");
+                }
+            }
+        });
+
+        stateMachine.appendDriveState("LinearMove", new VelocityDriveState(stateMachine) {
+            long timer = 0;
+            @Override
+            public Vector3 getVelocities() {
+                return new Vector3(0.3, 0, 0);
+            }
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                timer = System.currentTimeMillis() + 2000;
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(System.currentTimeMillis() > timer){
                     stateMachine.setActiveDriveState("GamepadDrive");
                 }
             }
@@ -82,16 +123,22 @@ public class MainTeleOp extends BasicOpmode {
         eventSystem.onStart("Rotate Manager", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                if(gamepad1.a){
+                if(gamepad1.x && false){
+                    if(!stateMachine.driveStateActive("LinearMove")){
+                        stateMachine.setActiveDriveState("LinearMove");
+                    }
+                }
+                if(gamepad1.y){
                     if(stateMachine.driveStateActive("GamepadDrive")){
                         if(!stateMachine.logicStateActive("Load Shooter Turn")){
+                            stateMachine.deactivateState("Load Shooter");
                             odometer.reset();
                             stateMachine.activateLogic("Load Shooter Turn");
                         }
                     }
                 }
                 if(Math.abs(gamepad1.left_stick_x) > 0.2 || Math.abs(gamepad1.right_stick_x) > 0.2 || Math.abs(gamepad1.left_stick_y) > 0.2){
-                    if(stateMachine.driveStateActive("Rotate")){
+                    if(stateMachine.driveStateActive("Rotate") || stateMachine.driveStateActive("LinearMove")){
                         stateMachine.setActiveDriveState("GamepadDrive");
                     }
                 }
@@ -112,10 +159,10 @@ public class MainTeleOp extends BasicOpmode {
             double tiltLevel = 0;
             long frameTime = System.currentTimeMillis();
             PIDSystem system = new PIDSystem(1, 0, 0);
-            final double targetSpeed = 5.0;
+            final double targetSpeed = 4.6875;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                double reqSpeed = (gamepad2.right_trigger > 0.2) ? 0.8 : 0;
+                double reqSpeed = (gamepad2.right_trigger > 0.2) ? 0.75 : 0;
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 telemetry.addData("Shooter Velocity", vel);
                 if(gamepad2.right_trigger > 0.1) {
@@ -149,10 +196,11 @@ public class MainTeleOp extends BasicOpmode {
                 }else if(gamepad2.right_stick_y < -0.2){
                     holdShoot = true;
                 }else if(gamepad2.right_stick_y > 0.2){
-                    hardwareData.setShooterTilt(0.35 + tiltLevel);
+                    hardwareData.setShooterTilt(0.36 + tiltLevel);
                 }
 
                 telemetry.addData("Tilt", tiltLevel);
+                telemetry.addData("Servo", hardwareData.getShooterTilt());
                 //hardwareData.setShooterTilt(tiltLevel);
                 telemetry.addData("Servo", "Shooter");
                 frameTime = System.currentTimeMillis();
@@ -187,6 +235,7 @@ public class MainTeleOp extends BasicOpmode {
                  if(sensorData.getWobbleLift() <= -380){
                      minVal = 0;
                  }
+                 maxVal = 0.2;
                  telemetry.addData("Wobble", sensorData.getWobbleLift() + " | " + minVal + " | " + maxVal);
                 hardwareData.setWobbleLift(-MathUtils.clamp(gamepad2.left_stick_y * 1, minVal, maxVal));
                 if(Math.abs(gamepad2.left_stick_y) < 0.1){

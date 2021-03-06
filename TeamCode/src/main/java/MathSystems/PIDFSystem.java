@@ -7,7 +7,7 @@ import Debug.Logger;
 public class PIDFSystem {
     private double kp, ki, kd, kf, target, error, previousError, dt;
     private double proportional, integral, derivative;
-    private long prevTime;
+    private long prevTime = 0;
 
     public PIDFSystem(double kp, double ki, double kd, double kf){
         this.kp = kp;
