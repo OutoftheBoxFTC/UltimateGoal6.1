@@ -1,6 +1,7 @@
 package OpModes.Autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import State.LogicState;
 import State.SingleLogicState;
 
 @Autonomous
+@Disabled
 public class RedAutonomous extends BasicOpmode {
     Vector3 position, velocity;
     Vector3 wobble1pos;

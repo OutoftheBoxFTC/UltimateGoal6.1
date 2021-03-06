@@ -1,5 +1,6 @@
 package OpModes.Debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import Hardware.*;
@@ -8,6 +9,7 @@ import Hardware.Packets.SensorData;
 import OpModes.BasicOpmode;
 import State.LogicState;
 @TeleOp
+@Disabled
 public class WobbleLiftDebug extends BasicOpmode {
     public WobbleLiftDebug() {
         super(new UltimateGoalHardware());

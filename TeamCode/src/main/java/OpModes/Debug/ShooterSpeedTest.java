@@ -1,5 +1,6 @@
 package OpModes.Debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import Hardware.*;
@@ -9,6 +10,7 @@ import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import OpModes.BasicOpmode;
 import State.LogicState;
 @TeleOp
+@Disabled
 public class ShooterSpeedTest extends BasicOpmode {
     public ShooterSpeedTest() {
         super(new UltimateGoalHardware());

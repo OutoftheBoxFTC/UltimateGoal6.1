@@ -1,5 +1,6 @@
 package OpModes.Debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcontroller.internal.WebInterface.InterfaceHandler;
@@ -12,7 +13,7 @@ import MathSystems.Vector3;
 import OpModes.BasicOpmode;
 import State.LogicState;
 
-@Configurable
+@Disabled
 @TeleOp
 public class ConfiruationTest extends BasicOpmode {
     public static double dTestVar = 0.5;

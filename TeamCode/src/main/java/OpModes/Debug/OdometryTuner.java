@@ -1,5 +1,6 @@
 package OpModes.Debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import OpModes.BasicOpmode;
 import State.GamepadDriveState;
 import State.LogicState;
 @TeleOp
+@Disabled
 public class OdometryTuner extends BasicOpmode {
     Vector3 position, velocity;
     Odometer odometer;

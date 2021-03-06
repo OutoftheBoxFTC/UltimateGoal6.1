@@ -1,5 +1,6 @@
 package OpModes.Debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import Hardware.Packets.HardwareData;
@@ -9,6 +10,7 @@ import MathSystems.Vector4;
 import OpModes.BasicOpmode;
 import State.LogicState;
 @TeleOp
+@Disabled
 public class RobotCheck extends BasicOpmode {
     public RobotCheck() {
         super(new UltimateGoalHardware());

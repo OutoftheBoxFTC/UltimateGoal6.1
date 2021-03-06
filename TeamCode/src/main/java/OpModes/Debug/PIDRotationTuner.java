@@ -1,5 +1,6 @@
 package OpModes.Debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.io.BufferedInputStream;
@@ -26,6 +27,7 @@ import State.DriveState;
 import State.GamepadDriveState;
 import State.LogicState;
 @TeleOp
+@Disabled
 public class PIDRotationTuner extends BasicOpmode {
     Vector3 position;
     Vector2 pos2d;

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import Hardware.*;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
+import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import MathSystems.MathUtils;
 import MathSystems.PIDSystem;
@@ -183,6 +184,8 @@ public class MainTeleOp extends BasicOpmode {
                     }
                 }
 
+                hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
+
                 if(holdShoot){
                     hardwareData.setShooterTilt(0.345 + tiltLevel);
                 }else{
@@ -323,7 +326,7 @@ public class MainTeleOp extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
-                    hardwareData.setShooterLoadArm(0.7);
+                    //hardwareData.setShooterLoadArm(0.7);
                     timer = System.currentTimeMillis() + 140;
                     state = 1;
                 }
@@ -333,7 +336,7 @@ public class MainTeleOp extends BasicOpmode {
                     }
                 }
                 if(state == 2){
-                    hardwareData.setShooterLoadArm(0.875);
+                    //hardwareData.setShooterLoadArm(0.875);
                     timer = System.currentTimeMillis() + 140;
                     state = 3;
                 }
