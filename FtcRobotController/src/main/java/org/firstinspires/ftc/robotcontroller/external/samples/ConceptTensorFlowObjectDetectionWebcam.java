@@ -50,6 +50,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * is explained below.
  */
 @TeleOp(name = "Concept: TensorFlow Object Detection Webcam", group = "Concept")
+@Disabled
 public class ConceptTensorFlowObjectDetectionWebcam extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
     private static final String LABEL_FIRST_ELEMENT = "Quad";
@@ -68,7 +69,7 @@ public class ConceptTensorFlowObjectDetectionWebcam extends LinearOpMode {
      * and paste it in to your code on the next line, between the double quotes.
      */
     private static final String VUFORIA_KEY =
-            "AWgMoiX/////AAABmWgxXRIPp0SKg/1vlWFXQHpvvUse8cgKFT6YVhd53nIsJoARWa0D3gSDe5KvRbJicI9jlwYY2wJ7ae7+Mx16NzOlGaOfoV5zRfNH8Ym3FCfjz9kXfjjgbpVfm6GARMvqHxfb7aTJAUf2+UFjjJhigeI16elpoZgAOpTYtXLmcT9Jj+P7ZZAz6rayYr11cfI5yj5QY2KDfiB0IPPH5FQpnixu6VyjN2EEMl4xGfDnPfCscG4wL66VX93BEh7vNyFyZE9+hmPSylugcYU5GeNRCE0JINYqZHvJ90ELPAlmUt4A+R6JfuzexKtwMU4PwBf2WrBxYmV+QT8208slL0CaGEZ34Re6qwPRLOyZ72LQ2+bI";
+            " -- YOUR NEW VUFORIA KEY GOES HERE  --- ";
 
     /**
      * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
@@ -102,7 +103,7 @@ public class ConceptTensorFlowObjectDetectionWebcam extends LinearOpMode {
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
             // should be set to the value of the images used to create the TensorFlow Object Detection model
             // (typically 16/9).
-            tfod.setZoom(1.5, 16.0/9.0);
+            tfod.setZoom(2.5, 16.0/9.0);
         }
 
         /** Wait for the game to begin */
