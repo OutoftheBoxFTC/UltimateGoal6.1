@@ -45,6 +45,7 @@ public abstract class BasicOpmode extends LinearOpMode {
         eventSystem.triggerInit();
         prevTime = System.nanoTime();
         robotThread.start();
+        ProgramClock.update();
         while(!isStopRequested()){
             if(isStarted() && !triggeredRun){
                 eventSystem.triggerStart();
@@ -65,6 +66,7 @@ public abstract class BasicOpmode extends LinearOpMode {
             hardwareData.setTimestamp(System.currentTimeMillis());
             hardware.addHardwarePacket(hardwareData);
             telemetry.update();
+            ProgramClock.update();
         }
         hardware.stop();
     }

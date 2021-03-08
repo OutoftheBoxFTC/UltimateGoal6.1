@@ -1,8 +1,8 @@
-package Motion.PrecomputedPath;
+package Motion.Kinematics.PrecomputedPath;
 
 import android.util.*;
 import MathSystems.*;
-import Motion.PurePursuitOptimized.*;
+import Motion.Kinematics.PurePursuitOptimized.*;
 import State.*;
 
 /**

@@ -3,27 +3,14 @@ package OpModes.Debug;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-
-import Debug.Logger;
 import Hardware.*;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import MathSystems.ConstantVMathUtil;
 import MathSystems.Vector2;
 import MathSystems.Vector3;
-import MathSystems.Vector4;
-import Motion.PIDDriveToPoint.PIDDriveToPoint;
-import Motion.PIDDriveToPoint.PIDDriveToPointBuilder;
 import Odometry.ConstantVOdometer;
 import Odometry.Odometer;
 import OpModes.BasicOpmode;
-import State.DriveState;
 import State.GamepadDriveState;
 import State.LogicState;
 @TeleOp

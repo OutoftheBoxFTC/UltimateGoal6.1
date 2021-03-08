@@ -1,5 +1,7 @@
 package State;
 
+import Hardware.Packets.HardwareData;
+import Hardware.Packets.SensorData;
 import Hardware.RobotSystems.*;
 import MathSystems.*;
 
@@ -19,4 +21,18 @@ public abstract class VelocityDriveState extends DriveState{
     }
 
     public abstract Vector3 getVelocities();
+
+    public static VelocityDriveState STOP(StateMachine stateMachine){
+        return new VelocityDriveState(stateMachine) {
+            @Override
+            public Vector3 getVelocities() {
+                return Vector3.ZERO();
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+
+            }
+        };
+    }
 }

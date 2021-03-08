@@ -53,6 +53,18 @@ public class MathUtils {
         return coordinates;
     }
 
+    public static ArrayList<Vector2> approxCurve(Vector2 start, Vector2 end, Vector2 control) {
+        return approxCurve(start, end, control, (start.distanceTo(control) + control.distanceTo(end)) * 0.1);
+    }
+
+    public static double arcLength(ArrayList<Vector2> lines) {
+        double dist = 0;
+        for(int i = 1; i < lines.size(); i ++) {
+            dist += lines.get(i-1).distanceTo(lines.get(i));
+        }
+        return dist;
+    }
+
     public static Vector2 getClosestPoint(Vector2 line1point1, Vector2 line1point2, Vector2 line2point){
         double dx = line1point1.getA() - line1point2.getA();
         double dy = line1point1.getB() - line1point2.getB();

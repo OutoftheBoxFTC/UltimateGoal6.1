@@ -13,11 +13,11 @@ public abstract class SingleLogicState extends LogicState {
         super(stateMachine);
     }
 
-    public abstract void main(SensorData sensorData, HardwareData hardwareData);
+    public abstract void run(SensorData sensorData, HardwareData hardwareData);
 
     @Override
     public void update(SensorData sensorData, HardwareData hardwareData) {
-        main(sensorData, hardwareData);
+        run(sensorData, hardwareData);
         deactivateThis();
     }
 }

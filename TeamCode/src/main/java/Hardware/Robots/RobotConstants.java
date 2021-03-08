@@ -20,5 +20,11 @@ public class RobotConstants {
         public static final double MAX_ROTATION_SPEED = 4;
         public static final double MAX_X_SPEED = 30;
         public static final double MAX_Y_SPEED = 30;
+
+        public static final double MAX_SPEED = 30;
+        public static final double MAX_LIN_ACCEL = 30;
+        public static final double MAX_R_ACCEL = 4;
+
+        public static final double kStatic = 0.15;
     }
 }

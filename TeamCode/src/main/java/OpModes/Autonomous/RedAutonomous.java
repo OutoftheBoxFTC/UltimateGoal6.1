@@ -16,10 +16,9 @@ import Hardware.UltimateGoalHardware;
 import MathSystems.Vector2;
 import MathSystems.Vector3;
 import MathSystems.Vector4;
-import Motion.DriveToPoint.DriveToPointBuilder;
-import Motion.PIDDriveToPoint.PIDDriveToPointBuilder;
-import Motion.PurePursuit.PurePursuitBuilder;
-import Motion.Terminators.LogicStateTerminator;
+import Motion.Kinematics.DriveToPoint.DriveToPointBuilder;
+import Motion.Kinematics.PIDDriveToPoint.PIDDriveToPointBuilder;
+import Motion.Kinematics.PurePursuit.PurePursuitBuilder;
 import Motion.Terminators.OrientationTerminator;
 import Motion.Terminators.TimeTerminator;
 import Odometry.ConstantVOdometer;
@@ -189,7 +188,7 @@ public class RedAutonomous extends BasicOpmode {
         autoStates.put("Shoot", new SingleLogicState(stateMachine) {
 
             @Override
-            public void main(SensorData sensorData, HardwareData hardwareData) {
+            public void run(SensorData sensorData, HardwareData hardwareData) {
                 stateMachine.activateLogic("ShootMain");
                 telemetry.addData("Shooting", true);
             }
@@ -286,7 +285,7 @@ public class RedAutonomous extends BasicOpmode {
 
         eventSystem.onStart("Jog", new SingleLogicState(stateMachine) {
             @Override
-            public void main(SensorData sensorData, HardwareData hardwareData) {
+            public void run(SensorData sensorData, HardwareData hardwareData) {
                 odometer.reset();
                 hardwareData.setDriveMotors(MecanumSystem.translate(new Vector3(0, -0.8, 0)));
                 hardwareData.setShooter(0.8);

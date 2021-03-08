@@ -1,8 +1,8 @@
-package Motion.PurePursuit;
+package Motion.Kinematics.PurePursuit;
 
 import java.util.ArrayList;
 
-import Motion.DriveToPoint.DriveToPoint;
+import Motion.Kinematics.DriveToPoint.DriveToPoint;
 import State.StateMachine;
 import MathSystems.*;
 

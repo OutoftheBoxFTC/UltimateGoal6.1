@@ -18,4 +18,13 @@ public abstract class Terminator {
             }
         };
     }
+
+    public static Terminator trueTerminator(){
+        return new Terminator() {
+            @Override
+            public boolean shouldTerminate(SensorData sensorData, HardwareData hardwareData) {
+                return true;
+            }
+        };
+    }
 }

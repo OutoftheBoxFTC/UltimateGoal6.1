@@ -1,4 +1,4 @@
-package Motion.DriveToPoint;
+package Motion.Kinematics.DriveToPoint;
 import MathSystems.*;
 import State.StateMachine;
 

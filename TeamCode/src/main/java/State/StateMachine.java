@@ -102,8 +102,13 @@ public class StateMachine {
     }
 
     public boolean activateLogic(String state){
-        if(logicStates.containsKey(state) && (!activeLogicStates.containsKey(state))){
-            queriedLogicStates.put(state, logicStates.get(state));
+        if((logicStates.containsKey(state) && (!activeLogicStates.containsKey(state)))){
+            if(driveStates.contains(state)){
+                setActiveDriveState(state);
+                return true;
+            }else {
+                queriedLogicStates.put(state, logicStates.get(state));
+            }
             return true;
         }
         return false;

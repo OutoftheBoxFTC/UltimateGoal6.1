@@ -1,33 +1,45 @@
-package Motion.NormalDriveToPoint;
+package Motion.Kinematics.DriveToPoint;
 
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import MathSystems.MathUtils;
-import MathSystems.Vector3;
 import State.StateMachine;
 import State.VelocityDriveState;
+import MathSystems.*;
 
-public abstract class NormalDriveToPoint extends VelocityDriveState {
+/**
+ * Drives to a given point using a straight line method
+ * the setTarget() function sets the target to drive to
+ */
+
+public abstract class DriveToPoint extends VelocityDriveState {
     public Vector3 position, localTarget;
-    public Vector3 target, velocity;
-    public double power = 0, rotPrec, powerMod;
-    public NormalDriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power) {
+    private Vector3 target, velocity;
+    public double power = 0, r1, r2, slowMod, minimums, rotPrec;
+    public DriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double r1, double r2, double slowMod) {
         super(stateMachine);
         this.position = position;
         this.target = target;
         localTarget = Vector3.ZERO();
         this.power = power;
         this.velocity = Vector3.ZERO();
-        rotPrec = 1;
+        this.r1 = r1;
+        this.r2 = r2;
+        this.slowMod = slowMod;
+        this.minimums = 0.125;
+        rotPrec = 0.5;
     }
 
-    public NormalDriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double rotPrec) {
+    public DriveToPoint(StateMachine stateMachine, Vector3 position, Vector3 target, double power, double r1, double r2, double slowMod, double minimums, double rotPrec) {
         super(stateMachine);
         this.position = position;
         this.target = target;
         localTarget = Vector3.ZERO();
         this.power = power;
         this.velocity = Vector3.ZERO();
+        this.r1 = r1;
+        this.r2 = r2;
+        this.slowMod = slowMod;
+        this.minimums = minimums;
         this.rotPrec = rotPrec;
     }
 
@@ -45,6 +57,16 @@ public abstract class NormalDriveToPoint extends VelocityDriveState {
         double theta = Math.atan2(errY, errX) - position.getC();
         double errRot = MathUtils.getRadRotDist(position.getC(), Math.toRadians(localTarget.getC()));
         double comb = Math.abs(((r * Math.cos(theta))) + ((r * Math.sin(theta))));
+        double powerMod = 1;
+        if(r < r1){
+            powerMod = r/slowMod;
+            if((powerMod * power) < minimums){
+                powerMod = minimums/power;
+            }
+        }
+        if(r < r2){
+            powerMod = 0;
+        }
         double rotMod = 1;
         if(Math.abs(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), Math.toRadians(localTarget.getC())))) < rotPrec){
             rotMod = 0;
@@ -55,7 +77,11 @@ public abstract class NormalDriveToPoint extends VelocityDriveState {
             errRot = (Math.abs(errRot)/errRot) * 1;
         }
         if(Math.abs(errRot * power) < 0.12){
-            errRot = (errRot / Math.abs(errRot)) * (0.12 / power);
+            if(powerMod != 0) {
+                errRot = (errRot / Math.abs(errRot)) * (0.12 / power);
+            }else{
+                errRot = (errRot / Math.abs(errRot)) * (0.15 / power);
+            }
         }
         double x = (r * Math.cos(theta))/r;
         double y = (r * Math.sin(theta))/r;

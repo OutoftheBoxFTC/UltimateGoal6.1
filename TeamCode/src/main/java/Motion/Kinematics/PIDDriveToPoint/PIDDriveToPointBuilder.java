@@ -1,4 +1,4 @@
-package Motion.PIDDriveToPoint;
+package Motion.Kinematics.PIDDriveToPoint;
 
 import MathSystems.Vector2;
 import MathSystems.Vector3;

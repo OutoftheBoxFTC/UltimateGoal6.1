@@ -1,6 +1,6 @@
-package Motion.PrecomputedPath;
+package Motion.Kinematics.PrecomputedPath;
 
-import Motion.PurePursuit.*;
+import Motion.Kinematics.PurePursuit.*;
 import State.*;
 import MathSystems.*;
 

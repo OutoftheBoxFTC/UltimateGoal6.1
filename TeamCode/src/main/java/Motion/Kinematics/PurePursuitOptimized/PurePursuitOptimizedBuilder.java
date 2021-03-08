@@ -1,4 +1,4 @@
-package Motion.PurePursuitOptimized;
+package Motion.Kinematics.PurePursuitOptimized;
 
 import java.util.ArrayList;
 

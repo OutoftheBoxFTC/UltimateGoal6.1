@@ -1,4 +1,4 @@
-package Motion.PurePursuit;
+package Motion.Kinematics.PurePursuit;
 
 import java.util.ArrayList;
 
