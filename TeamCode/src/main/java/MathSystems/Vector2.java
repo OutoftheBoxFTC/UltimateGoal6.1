@@ -51,6 +51,10 @@ public class Vector2 {
         return new Vector2(v.a + a, v.b + b);
     }
 
+    public Vector2 subtract(Vector2 v) {
+        return new Vector2(a - v.a, b - v.b);
+    }
+
     public Vector2 clone(){
         return new Vector2(a, b);
     }
@@ -66,6 +70,10 @@ public class Vector2 {
             return Math.PI*2-angle;
         }
         return angle;
+    }
+
+    public Vector2 rotate(Angle angle) {
+        return MathUtils.toCartesian(MathUtils.toPolar(this).add(new Vector2(0, angle.radians())));
     }
 
     public Vector2 normalize() {

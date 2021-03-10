@@ -1,6 +1,7 @@
 package MathSystems;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Contains some commonly used math functions, so they don't need to be repeatedly typed out
@@ -97,6 +98,22 @@ public class MathUtils {
         }
 
         return new Vector2(x, y);
+    }
+
+    public static double arcLength(ArrayList<Vector2> lines) {
+        double dist = 0;
+        for(int i = 1; i < lines.size(); i ++) {
+            dist += lines.get(i-1).distanceTo(lines.get(i));
+        }
+        return dist;
+    }
+
+    public static double arcLength(List<Vector2> lines) {
+        double dist = 0;
+        for(int i = 1; i < lines.size(); i ++) {
+            dist += lines.get(i-1).distanceTo(lines.get(i));
+        }
+        return dist;
     }
 
     public static Vector2 toPolar(Vector2 pos){
