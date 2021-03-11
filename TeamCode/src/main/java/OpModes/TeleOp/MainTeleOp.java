@@ -1,7 +1,11 @@
 package OpModes.TeleOp;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
 
@@ -11,6 +15,7 @@ import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import MathSystems.MathUtils;
+import MathSystems.PIDFSystem;
 import MathSystems.PIDSystem;
 import MathSystems.Vector3;
 import MathSystems.Vector4;
@@ -26,6 +31,7 @@ public class MainTeleOp extends BasicOpmode {
     ConstantVOdometer odometer;
     Vector3 position, velocity;
     boolean holdShoot = true;
+    public static Vector4 PIDF = new Vector4(1, 0, 0, 1);
     public MainTeleOp() {
         super(new UltimateGoalHardware());
     }
@@ -85,23 +91,30 @@ public class MainTeleOp extends BasicOpmode {
             long shot1, shot2, shot3;
             @Override
             public Vector3 getVelocities() {
-                return new Vector3(0.3, 0, 0.05);
+                return new Vector3(0.6, 0, 0);
             }
 
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
-                shot1 = System.currentTimeMillis() + 2000;
-                shot2 = System.currentTimeMillis() + 2500;
-                shot3 = System.currentTimeMillis() + 3000;
+                shot1 = System.currentTimeMillis() + 750;
+                shot2 = shot1 + 400;
+                shot3 = shot2 + 400;
+                stateMachine.activateLogic("Load Shooter Turn");
             }
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
+                hardwareData.setShooter(1);
+                hardwareData.setShooterTilt(0.36);
                 if(System.currentTimeMillis() > shot1){
+                    //hardwareData.setShooterLoadArm(0.7);
                     stateMachine.activateLogic("Load Shooter Turn");
+                    shot1 = Long.MAX_VALUE;
                 }
                 if(System.currentTimeMillis() > shot2){
+                    //hardwareData.setShooterLoadArm(0.7);
                     stateMachine.activateLogic("Load Shooter Turn");
+                    shot2 = Long.MAX_VALUE;
                 }
                 if(System.currentTimeMillis() > shot3){
                     stateMachine.activateLogic("Load Shooter Turn");
@@ -123,6 +136,7 @@ public class MainTeleOp extends BasicOpmode {
                         stateMachine.deactivateState("LinearMove");
                     }
                 }
+                telemetry.addData("States", stateMachine.getActiveStates());
             }
         });
 
@@ -139,7 +153,7 @@ public class MainTeleOp extends BasicOpmode {
         eventSystem.onStart("Shoot", new LogicState(stateMachine) {
             double tiltLevel = 0;
             long frameTime = System.currentTimeMillis();
-            PIDSystem system = new PIDSystem(1, 0, 0);
+            PIDFSystem system = new PIDFSystem(PIDF);
             final double targetSpeed = 4.6875;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
@@ -147,10 +161,14 @@ public class MainTeleOp extends BasicOpmode {
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 telemetry.addData("Shooter Velocity", vel);
                 if(gamepad2.right_trigger > 0.1) {
-                    hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel));
+                    hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad2.right_bumper ? 1 : 0)));
                 }else{
                     hardwareData.setShooter(0.2);
                 }
+                Telemetry t = FtcDashboard.getInstance().getTelemetry();
+                t.addData("Speed", vel);
+                t.addData("Target", targetSpeed);
+                t.update();
                 if(gamepad2.dpad_up){
                     tiltLevel += (0.01 * ((System.currentTimeMillis() - frameTime)/1000.0));
                 }
@@ -277,7 +295,7 @@ public class MainTeleOp extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
                     hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 140;
+                    timer = System.currentTimeMillis() + 70;
                     state = 1;
                 }
                 if(state == 1){
@@ -287,7 +305,7 @@ public class MainTeleOp extends BasicOpmode {
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.875);
-                    timer = System.currentTimeMillis() + 140;
+                    timer = System.currentTimeMillis() + 70;
                     state = 3;
                 }
                 if(state == 3){
@@ -303,11 +321,18 @@ public class MainTeleOp extends BasicOpmode {
         logicStates.put("Load Shooter Turn", new LogicState(stateMachine) {
             int state = 0;
             long timer = 0;
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                state = 0;
+                timer = 0;
+            }
+
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
                     hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 140;
+                    timer = System.currentTimeMillis() + 70;
                     state = 1;
                 }
                 if(state == 1){
@@ -317,7 +342,7 @@ public class MainTeleOp extends BasicOpmode {
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.875);
-                    timer = System.currentTimeMillis() + 140;
+                    timer = System.currentTimeMillis() + 70;
                     state = 3;
                 }
                 if(state == 3){

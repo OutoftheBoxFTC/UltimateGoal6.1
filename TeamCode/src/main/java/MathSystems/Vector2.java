@@ -77,6 +77,8 @@ public class Vector2 {
     }
 
     public Vector2 normalize() {
+        if(length() == 0)
+            return Vector2.ZERO();
         return scale(1/length());
     }
 

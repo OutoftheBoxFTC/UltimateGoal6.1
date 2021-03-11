@@ -1,19 +1,32 @@
 package MathSystems;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.util.RobotLog;
 
-import Debug.Logger;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import Debug.Logger;
+@Config
 public class PIDFSystem {
-    private double kp, ki, kd, kf, target, error, previousError, dt;
+    private double target, error, previousError, dt;
+    private Vector4 coef;
     private double proportional, integral, derivative;
     private long prevTime = 0;
 
     public PIDFSystem(double kp, double ki, double kd, double kf){
-        this.kp = kp;
-        this.ki = ki;
-        this.kd = kd;
-        this.kf = kf;
+        this.coef = new Vector4(kp, ki, kd, kf);
+        target = 0;
+        error = 0;
+        previousError = 0;
+        proportional = 0;
+        integral = 0;
+        derivative = 0;
+        dt = 0;
+    }
+
+    public PIDFSystem(Vector4 coef){
+        this.coef = coef;
         target = 0;
         error = 0;
         previousError = 0;
@@ -24,10 +37,7 @@ public class PIDFSystem {
     }
 
     public PIDFSystem(double kp, double ki, double kd, double kf, double target){
-        this.kp = kp;
-        this.ki = ki;
-        this.kd = kd;
-        this.kf = kf;
+        this.coef = new Vector4(kp, ki, kd, kf);
         this.target = target;
         error = 0;
         previousError = 0;
@@ -38,12 +48,12 @@ public class PIDFSystem {
     }
 
     public double getCorrection(double error, double feedforward){
-        proportional = error * kp;
+        proportional = error * coef.getA();
         if(dt != 0){
             if(error < 10)
-                integral += error * ki * dt;
+                integral += error * coef.getB() * dt;
             if(previousError != 0){
-                derivative = kd * (Math.abs(error - previousError) / dt);
+                derivative = coef.getC() * (Math.abs(error - previousError) / dt);
                 if((previousError < 0 && error > 0) || (previousError > 0 && error < 0)){
                     integral = 0;
                 }
@@ -62,7 +72,7 @@ public class PIDFSystem {
         //Logger.getInstance().add("D", derivative);
         //Logger.getInstance().add("Error", Math.toDegrees(error));
 
-        return proportional + integral - derivative + (feedforward * kf);
+        return proportional + integral - derivative + (feedforward * coef.getD());
     }
 
     public void setTarget(double target) {

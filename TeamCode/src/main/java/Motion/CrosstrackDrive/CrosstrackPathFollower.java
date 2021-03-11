@@ -1,5 +1,7 @@
 package Motion.CrosstrackDrive;
 
+import com.qualcomm.robotcore.util.RobotLog;
+
 import java.util.ArrayList;
 
 import Hardware.Packets.HardwareData;
@@ -85,7 +87,7 @@ public class CrosstrackPathFollower extends VelocityDriveState {
         pathList.add(0, position.getVector2());
 
         double rotWeight = MathUtils.arcLength(pathList)/pathLength;
-        double rotTarget = ((path.getStartpoint().getC() - path.getEndpoint().getC()) * rotWeight) + path.getEndpoint().getC();
+        double rotTarget = path.getEndpoint().getC();
 
         double maxRotSpeed = Math.sqrt(2 * RobotConstants.UltimateGoal.MAX_R_ACCEL * Math.abs(MathUtils.getRadRotDist(position.getC(), rotTarget)));
         maxRotSpeed = MathUtils.clamp(maxRotSpeed, 0, RobotConstants.UltimateGoal.MAX_ROTATION_SPEED * speed);
@@ -95,11 +97,11 @@ public class CrosstrackPathFollower extends VelocityDriveState {
         if(mainVel.length() == 0) {
             rSign = 0;
         }
-
         rotatedVels.setB(rotatedVels.getB() * -1);
-        rotatedVels.scale(1/RobotConstants.UltimateGoal.MAX_SPEED);
+        rotatedVels.set(rotatedVels.scale(1/RobotConstants.UltimateGoal.MAX_SPEED));
         maxRotSpeed *= 1/RobotConstants.UltimateGoal.MAX_ROTATION_SPEED;
-        velocity.set(rotatedVels, maxRotSpeed);
+        RobotLog.ii("Vel", rotatedVels.toString() + " | " + mainVel + " | " + tang + " | " + closestPoint);
+        velocity.set(rotatedVels, maxRotSpeed * MathUtils.sign(MathUtils.getRadRotDist(position.getC(), rotTarget)));
     }
 
     public Vector2 getLinVel(Vector3 start, Vector3 target, Vector2 closestPoint) {

@@ -9,14 +9,17 @@ import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import MathSystems.*;
 import MathSystems.Vector3;
+import Motion.CrosstrackDrive.CrosstrackBuilder;
 import Motion.DriveToPoint.DriveToPointBuilder;
+import Motion.Path.Path;
+import Motion.Path.PathBuilder;
 import Odometry.ConstantVOdometer;
 import Odometry.Odometer;
 import OpModes.BasicOpmode;
+import State.DriveStateActivator;
 import State.GamepadDriveState;
 import State.LogicState;
 @TeleOp
-@Disabled
 public class MotionDebug extends BasicOpmode {
     Vector3 position, velocity;
     Odometer odometer;
@@ -33,21 +36,13 @@ public class MotionDebug extends BasicOpmode {
         odometer = new ConstantVOdometer(stateMachine, position, velocity);
         eventSystem.onStart("Odometer", odometer);
 
-        eventSystem.onStart("Drive", new GamepadDriveState(stateMachine, gamepad1));
+        Path p = new PathBuilder(new Vector3(0, 0, 0))
+                .bezierSplineTo(new Vector2(30, 30), new Vector2(0, 30))
+                .complete();
 
-        eventSystem.onStart("Logging", new LogicState(stateMachine) {
-            double maxX, maxY, maxR;
-            @Override
-            public void update(SensorData sensorData, HardwareData hardwareData) {
-                this.maxX = Math.max(maxX, Math.abs(velocity.getA()));
-                this.maxY = Math.max(maxY, Math.abs(velocity.getB()));
-                this.maxR = Math.max(maxR, Math.toDegrees(Math.abs(velocity.getC())));
-                telemetry.addData("MaxX", maxX);
-                telemetry.addData("MaxY", maxY);
-                telemetry.addData("MaxR", maxR);
-            }
-        });
+        CrosstrackBuilder b = new CrosstrackBuilder(stateMachine, position);
 
+        eventSystem.onStart("Drive", b.follow(p));
 
 
         eventSystem.onStart("Telemetry", new LogicState(stateMachine) {
@@ -57,7 +52,7 @@ public class MotionDebug extends BasicOpmode {
                 telemetry.addData("Velocity", velocity);
                 telemetry.addData("FPS", fps);
                 telemetry.addData("Pods", new Vector3(sensorData.getOdometryLeft(), sensorData.getOdometryRight(), sensorData.getOdometryAux()));
-                RobotLog.ii("Vel", velocity.toString());
+                //RobotLog.ii("Vel", velocity.toString());
             }
         });
     }

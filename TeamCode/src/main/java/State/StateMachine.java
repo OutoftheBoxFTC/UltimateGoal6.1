@@ -31,11 +31,13 @@ public class StateMachine {
     }
 
     public void update(SensorData sensors, HardwareData hardware){
-        for(String state : queriedLogicStates.keySet()){
-            queriedLogicStates.get(state).init(sensors, hardware);
+        synchronized (queriedLogicStates) {
+            for (String state : queriedLogicStates.keySet()) {
+                queriedLogicStates.get(state).init(sensors, hardware);
+            }
+            activeLogicStates.putAll(queriedLogicStates);
+            queriedLogicStates.clear();
         }
-        activeLogicStates.putAll(queriedLogicStates);
-        queriedLogicStates.clear();
         for(String state : activeLogicStates.keySet()){
             activeLogicStates.get(state).update(sensors, hardware);
         }
