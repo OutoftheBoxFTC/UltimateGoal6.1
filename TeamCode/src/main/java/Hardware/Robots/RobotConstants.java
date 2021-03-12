@@ -14,8 +14,9 @@ public class RobotConstants {
         public static final double ONEUSE_RIGHT_ARM_HOLD = 0.85; //0.29249
         public static final double ONEUSE_RIGHT_ARM_RELEASE = 0.29249; //0.85
 
-        public static final double HOLD_INTAKE = 0.27;
-        public static final double RELEASE_INTAKE = 0.5;
+        public static final double HOLD_INTAKE = 0.25;
+        public static final double RELEASE_INTAKE = 0.8;
+        public static final double IDLE_INTAKE = 0.4;
 
         public static final double MAX_ROTATION_SPEED = 4;
         public static final double MAX_SPEED = 30;

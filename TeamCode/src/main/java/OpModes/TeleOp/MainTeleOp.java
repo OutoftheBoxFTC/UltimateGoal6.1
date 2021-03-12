@@ -99,7 +99,7 @@ public class MainTeleOp extends BasicOpmode {
                 shot1 = System.currentTimeMillis() + 750;
                 shot2 = shot1 + 400;
                 shot3 = shot2 + 400;
-                stateMachine.activateLogic("Load Shooter Turn");
+                //stateMachine.activateLogic("Load Shooter Turn");
             }
 
             @Override
@@ -170,10 +170,13 @@ public class MainTeleOp extends BasicOpmode {
                 t.addData("Target", targetSpeed);
                 t.update();
                 if(gamepad2.dpad_up){
-                    tiltLevel += (0.01 * ((System.currentTimeMillis() - frameTime)/1000.0));
-                }
-                if(gamepad2.dpad_down){
-                    tiltLevel -= (0.01 * ((System.currentTimeMillis() - frameTime)/1000.0));
+                    //tiltLevel += (0.01 * ((System.currentTimeMillis() - frameTime)/1000.0));
+                    hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.HOLD_INTAKE);
+                }else if(gamepad2.dpad_down){
+                    //tiltLevel -= (0.01 * ((System.currentTimeMillis() - frameTime)/1000.0));
+                    hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
+                }else{
+                    hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.IDLE_INTAKE);
                 }
 
                 if(gamepad2.right_bumper){

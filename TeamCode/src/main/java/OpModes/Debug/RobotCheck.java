@@ -5,12 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
+import Hardware.Robots.RobotConstants;
 import Hardware.UltimateGoalHardware;
 import MathSystems.Vector4;
 import OpModes.BasicOpmode;
 import State.LogicState;
 @TeleOp
-@Disabled
 public class RobotCheck extends BasicOpmode {
     public RobotCheck() {
         super(new UltimateGoalHardware());
@@ -23,7 +23,7 @@ public class RobotCheck extends BasicOpmode {
         eventSystem.onStart("Main", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setDriveMotors(new Vector4(gamepad1.a ? 1 : 0, gamepad1.b ? 1 : 0, gamepad1.y ? 1 : 0, gamepad1.x ? 1 : 0));
+                hardwareData.setIntakeRelease(gamepad1.a ? RobotConstants.UltimateGoal.RELEASE_INTAKE : RobotConstants.UltimateGoal.HOLD_INTAKE);
             }
         });
     }

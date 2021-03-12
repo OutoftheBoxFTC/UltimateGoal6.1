@@ -263,8 +263,8 @@ public class RedAutonomous2 extends BasicOpmode {
         linearSystem.put("Move Forks Down", new TimeTerminator(5));
         linearSystem.put("Collect Wobble 2 Activator", new OrientationTerminator(position, new Vector3(35, 25, 0), 3, 1));
         linearSystem.put("Raise Forks", new TimeTerminator(50));
-        linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(20, 20, 5), 2, 2));
-        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(17, 36.5, 6), 3, 1));
+        linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(20, 20, 4), 2, 2));
+        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(17, 36.5, 4), 3, 1));
         linearSystem.put("End", new TimeTerminator(50));
         linearSystem.put("ShootMain", new TimeTerminator(30));
         linearSystem.put("ShootMain", new TimeTerminator(50));
@@ -453,7 +453,7 @@ public class RedAutonomous2 extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 hardwareData.setWobbleLiftRight(0.43622);
                 hardwareData.setWobbleLiftLeft(0.5208);
-                hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
+                //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
                 hardwareData.setShooterTilt(0.34);
             }
         });
@@ -469,7 +469,7 @@ public class RedAutonomous2 extends BasicOpmode {
         autoStates.put("Drop And Outtake", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
+                //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
                 stateMachine.activateLogic("Intake");
                 stateMachine.activateLogic("SpinShooter2");
             }
@@ -484,7 +484,7 @@ public class RedAutonomous2 extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 stateMachine.deactivateState("SpinShooter");
-                hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
+                //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
                 //stateMachine.activateLogic("Intake");
                 //hardwareData.setIntakePower(1);
             }
@@ -634,7 +634,7 @@ public class RedAutonomous2 extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
-                hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
+                //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
                 telemetry.addData("Dropping", "The wobble Goal");
             }
         });
@@ -700,7 +700,7 @@ public class RedAutonomous2 extends BasicOpmode {
         autoStates.put("Drop And Outtake", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
+                //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
                 stateMachine.activateLogic("Intake");
                 stateMachine.activateLogic("SpinShooter2");
             }
@@ -748,7 +748,7 @@ public class RedAutonomous2 extends BasicOpmode {
         //linearSystem.put("Shoot", new TimeTerminator(30));
         //linearSystem.put("ShootMain", new TimeTerminator(30));
         //linearSystem.put("ShootMain", new TimeTerminator(30));
-        linearSystem.put("Repeat Shoot", new TimeTerminator(10));
+        linearSystem.put("Repeat Shoot", new TimeTerminator(70));
         linearSystem.put("Dump Wobble 2 Activator", new OrientationTerminator(position, wobble2pos, 5, 5));
         linearSystem.put("Rotate 180 Activator", new OrientationTerminator(position, new Vector3(0, 0, 90), 500, 10));
         linearSystem.put("End", new TimeTerminator(5));
@@ -953,7 +953,7 @@ public class RedAutonomous2 extends BasicOpmode {
                 hardwareData.setWobbleLiftRight(0.43622);
                 hardwareData.setWobbleLiftLeft(0.5208);
                 hardwareData.setShooterTilt(0.34);
-                hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
+                //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
             }
         });
         autoStates.put("Raise Forks", new LogicState(stateMachine) {
@@ -967,7 +967,7 @@ public class RedAutonomous2 extends BasicOpmode {
         autoStates.put("Drop And Outtake", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
+                //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
                 stateMachine.activateLogic("Intake");
                 stateMachine.activateLogic("SpinShooter2");
             }
