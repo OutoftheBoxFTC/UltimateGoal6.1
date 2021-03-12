@@ -23,6 +23,13 @@ public class ConstantVOdometer extends Odometer {
         this(stateMachine, position, velocity, 0, 0);
     }
 
+    public void set(Vector3 position){
+        this.x = x / RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR;
+        this.y = y / RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR;
+        rot = position.getC();
+        position.set(this.x, this.y, this.rot);
+    }
+
     @Override
     public void reset() {
         this.x = 0;

@@ -1,7 +1,6 @@
 package OpModes.TeleOp;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -9,30 +8,30 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
 
-import Hardware.*;
+import Hardware.CustomClasses.SingletonVariables;
+import Hardware.Hardware;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
+import Hardware.UltimateGoalHardware;
 import MathSystems.MathUtils;
 import MathSystems.PIDFSystem;
-import MathSystems.PIDSystem;
+import MathSystems.Vector2;
 import MathSystems.Vector3;
 import MathSystems.Vector4;
 import Odometry.ConstantVOdometer;
 import OpModes.BasicOpmode;
-import State.DriveState;
-import State.GamepadDriveState;
 import State.LogicState;
 import State.VelocityDriveState;
 
 @TeleOp
-public class MainTeleOp extends BasicOpmode {
+public class AutoTeleOp extends BasicOpmode {
     ConstantVOdometer odometer;
     Vector3 position, velocity;
     boolean holdShoot = true;
     public static Vector4 PIDF = new Vector4(1, 0, 0, 1);
-    public MainTeleOp() {
+    public AutoTeleOp() {
         super(new UltimateGoalHardware());
     }
 
@@ -50,6 +49,7 @@ public class MainTeleOp extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 telemetry.addLine("Hit start to start");
+                odometer.set(SingletonVariables.getInstance().getPosition());
                 if(isStarted()){
                     deactivateThis();
                 }
@@ -66,13 +66,6 @@ public class MainTeleOp extends BasicOpmode {
                     hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     return new Vector3(gamepad1.left_stick_x * speedMod, gamepad1.left_stick_y * speedMod, -gamepad1.right_stick_x * speedMod);
-                }else if(gamepad1.left_trigger > 0.1){
-                    double speedMod = (gamepad1.left_trigger != 0) ? 0.6 : 1;
-                    hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    return new Vector3(gamepad1.left_stick_x * 1, gamepad1.left_stick_y * 1, -gamepad1.right_stick_x * speedMod);
                 }else{
                     hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                     hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -124,11 +117,36 @@ public class MainTeleOp extends BasicOpmode {
             }
         });
 
+        stateMachine.appendDriveState("Rotate To Target", new VelocityDriveState(stateMachine) {
+            private final Vector2 targetPosition = new Vector2(20, 144);
+
+            @Override
+            public Vector3 getVelocities() {
+                double deltaX = 20 - position.getA();
+                double deltaY = 144 - position.getB();
+                double angDelta = MathUtils.getRadRotDist(position.getC(), Math.atan2(deltaY, deltaX));
+
+                if(Math.abs(angDelta) > 2.5){
+                    return new Vector3(0, 0, 0.4 * MathUtils.sign(angDelta));
+                }else {
+                    return Vector3.ZERO();
+                }
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+
+            }
+        });
+
         eventSystem.onStart("Powershot Manager", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(gamepad1.x){
                     stateMachine.setActiveDriveState("LinearMove");
+                }
+                if(gamepad1.left_trigger > 0.25){
+                    stateMachine.setActiveDriveState("Rotate To Target");
                 }
                 if(Math.abs(gamepad1.left_stick_x) > 0.2 || Math.abs(gamepad1.right_stick_x) > 0.2 || Math.abs(gamepad1.left_stick_y) > 0.2){
                     stateMachine.setActiveDriveState("GamepadDrive");
