@@ -732,7 +732,7 @@ public class RedAutonomous2 extends BasicOpmode {
         linearSystem.put("Drive To Wobble 1 Activator", new OrientationTerminator(position, wobble1pos, 5, 3));
         linearSystem.put("Release Wobble 1", new TimeTerminator(10));
         linearSystem.put("Release Forks", new TimeTerminator(50));
-        linearSystem.put("Drive Wobble 2 Activator", new OrientationTerminator(position, new Vector3(40, 45, 0), 5, 1));
+        linearSystem.put("Drive Wobble 2 Activator", new OrientationTerminator(position, new Vector3(43, 45, 0), 5, 1));
         linearSystem.put("Move Forks Down", new TimeTerminator(5));
         linearSystem.put("Collect Wobble 2 Activator", new OrientationTerminator(position, new Vector3(40, 27, 0), 5, 1));
         linearSystem.put("Raise Forks", new TimeTerminator(50));
@@ -861,7 +861,7 @@ public class RedAutonomous2 extends BasicOpmode {
                 .complete());
 
         stateMachine.appendDriveState("Drive To Wobble 2", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(new Vector2(40, 45))
+                .setTarget(new Vector2(43, 45))
                 .setSpeed(0.8)
                 .setR1(30)
                 .setSlowMod(75)
