@@ -258,13 +258,13 @@ public class RedAutonomous2 extends BasicOpmode {
         linearSystem.put("Release Wobble 1", new TimeTerminator(5));
         linearSystem.put("Release Forks", new TimeTerminator(10));
         linearSystem.put("Clear Wobble 1 Activator", new OrientationTerminator(position, new Vector3(7, 65, 0), 5, 10));
-        linearSystem.put("Clear Ring Stack Activator", new OrientationTerminator(position, new Vector3(35, 65, 0), 2.5, 10));
+        linearSystem.put("Clear Ring Stack Activator", new OrientationTerminator(position, new Vector3(32, 65, 0), 2.5, 10));
         linearSystem.put("Drive Wobble 2 Activator", new OrientationTerminator(position, new Vector3(32, 45, 0), 5, 1));
         linearSystem.put("Move Forks Down", new TimeTerminator(5));
         linearSystem.put("Collect Wobble 2 Activator", new OrientationTerminator(position, new Vector3(35, 25, 0), 3, 1));
         linearSystem.put("Raise Forks", new TimeTerminator(50));
-        linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(20, 20, 4), 2, 2));
-        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(17, 36.5, 4), 3, 1));
+        linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(18, 20, 4), 2, 2));
+        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(17, 36.5, 4.0000001), 2, 1));
         linearSystem.put("End", new TimeTerminator(50));
         linearSystem.put("ShootMain", new TimeTerminator(30));
         linearSystem.put("ShootMain", new TimeTerminator(50));
@@ -289,9 +289,9 @@ public class RedAutonomous2 extends BasicOpmode {
         );
 
         driveStates.put("Intake Stack 1", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(new Vector2(17, 36.5))
+                .setTarget(new Vector2(19, 36.5))
                 .setSpeed(0.5)
-                .setRot(6)
+                .setRot(4)
                 .setRotPrec(1)
                 .complete()
         );
@@ -350,11 +350,11 @@ public class RedAutonomous2 extends BasicOpmode {
                 .setSpeed(0.75)
                 .complete());
         stateMachine.appendDriveState("Drive To Clear Ring Stack", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(new Vector2(35, 65))
+                .setTarget(new Vector2(32, 65))
                 .setSpeed(0.5)
                 .complete());
         stateMachine.appendDriveState("Drive To Wobble 2", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(new Vector2(35, 45))
+                .setTarget(new Vector2(32, 45))
                 .setSpeed(0.6)
                 .setR1(20)
                 .setMinimums(0.15)

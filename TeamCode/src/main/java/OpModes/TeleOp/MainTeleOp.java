@@ -174,7 +174,7 @@ public class MainTeleOp extends BasicOpmode {
             double tiltLevel = 0;
             long frameTime = System.currentTimeMillis();
             PIDFSystem system = new PIDFSystem(PIDF);
-            final double targetSpeed = 4.2;
+            final double targetSpeed = 4;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 double reqSpeed = (gamepad2.right_trigger > 0.2) ? 0.7 : 0;
@@ -208,7 +208,7 @@ public class MainTeleOp extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.335 + tiltLevel);
+                    hardwareData.setShooterTilt(0.3225 + tiltLevel);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
