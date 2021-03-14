@@ -30,7 +30,8 @@ public class AutoTeleOp extends BasicOpmode {
     ConstantVOdometer odometer;
     Vector3 position, velocity;
     boolean holdShoot = true;
-    public static Vector4 PIDF = new Vector4(1, 0, 0, 1);
+    boolean shot = false;
+    public static Vector4 PIDF = new Vector4(1, 0, 0, 0.15);
     public AutoTeleOp() {
         super(new UltimateGoalHardware());
     }
@@ -129,6 +130,7 @@ public class AutoTeleOp extends BasicOpmode {
                 if(Math.abs(angDelta) > 2.5){
                     return new Vector3(0, 0, 0.4 * MathUtils.sign(angDelta));
                 }else {
+                    shot = true;
                     return Vector3.ZERO();
                 }
             }
@@ -333,6 +335,9 @@ public class AutoTeleOp extends BasicOpmode {
                     if(System.currentTimeMillis() >= timer){
                         if(gamepad2.right_bumper) {
                             state = 0;
+                        }else if(shot){
+                            state = 0;
+                            shot = false;
                         }
                     }
                 }
