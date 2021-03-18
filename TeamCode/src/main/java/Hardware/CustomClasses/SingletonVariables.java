@@ -3,7 +3,7 @@ package Hardware.CustomClasses;
 import MathSystems.Vector3;
 
 public class SingletonVariables {
-    private static SingletonVariables instance = new SingletonVariables();
+    private static final SingletonVariables instance = new SingletonVariables();
     private Vector3 position;
     public SingletonVariables(){
         this.position = Vector3.ZERO();

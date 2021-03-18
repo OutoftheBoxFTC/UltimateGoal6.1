@@ -15,8 +15,8 @@ import State.*;
  */
 public class ConstantVOdometer extends Odometer {
     private Vector3 prevEncoderValues, prevPosition;
-    private static final double AUX_ROTATION_CONSTANT = 639.79756; //2305.27659012?
-    private double ROT_CONSTANT = 1/(15161.82356); //15141.82356
+    private static final double AUX_ROTATION_CONSTANT = 750.8771; //2305.27659012?
+    private double ROT_CONSTANT = 1/(15178.3496); //15141.82356
     private double x, y, rot;
     private long prevTime;
     public ConstantVOdometer(StateMachine stateMachine, Vector3 position, Vector3 velocity) {
@@ -24,10 +24,10 @@ public class ConstantVOdometer extends Odometer {
     }
 
     public void set(Vector3 position){
-        this.x = x / RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR;
-        this.y = y / RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR;
+        this.x = position.getA() / RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR;
+        this.y = -position.getB() / RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR;
         rot = position.getC();
-        position.set(this.x, this.y, this.rot);
+        this.position.set(position);
     }
 
     @Override
@@ -54,6 +54,7 @@ public class ConstantVOdometer extends Odometer {
     public void update(SensorData sensors, HardwareData hardwareData) {
         double forInc = ((sensors.getOdometryLeft() + sensors.getOdometryRight())/2.0) - prevEncoderValues.getA();
         double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT));
+        RobotLog.ii("Encoders", rotInc + " | " + sensors.getOdometryRight() + " | " + sensors.getOdometryLeft() + " | " + prevEncoderValues.getC());
         //double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), sensors.getGyro());
         double strafeInc = (sensors.getOdometryAux() - (AUX_ROTATION_CONSTANT * rotInc)) - prevEncoderValues.getB();
         Vector2 pos = MathUtils.toPolar(ConstantVMathUtil.toRobotCentric(forInc, strafeInc, rotInc));
@@ -70,6 +71,6 @@ public class ConstantVOdometer extends Odometer {
             velocity.set(localVel);
         }
         prevPosition.set(position);
-        prevEncoderValues.set(((sensors.getOdometryLeft() + sensors.getOdometryRight())/2.0), (sensors.getOdometryAux() - (AUX_ROTATION_CONSTANT * rotInc)), rot);
+        prevEncoderValues.set(((sensors.getOdometryLeft() + sensors.getOdometryRight())/2.0), (sensors.getOdometryAux() - (AUX_ROTATION_CONSTANT * rotInc)), (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT));
     }
 }

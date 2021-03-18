@@ -18,10 +18,12 @@ public class RobotConstants {
         public static final double RELEASE_INTAKE = 0.85;
         public static final double IDLE_INTAKE = 0.4;
 
-        public static final double MAX_ROTATION_SPEED = 4;
+        public static final double MAX_ROTATION_SPEED = 2.5;
         public static final double MAX_SPEED = 30;
 
         public static final double MAX_LIN_ACCEL = 5;
-        public static final double MAX_R_ACCEL = 4;
+        public static final double MAX_R_ACCEL = 2;
+
+        public static final double KF = 0.15;
     }
 }

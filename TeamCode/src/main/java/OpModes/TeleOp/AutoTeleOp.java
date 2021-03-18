@@ -31,6 +31,8 @@ public class AutoTeleOp extends BasicOpmode {
     Vector3 position, velocity;
     boolean holdShoot = true;
     boolean shot = false;
+    int timer = 0;
+    double rotOffset;
     public static Vector4 PIDF = new Vector4(1, 0, 0, 0.15);
     public AutoTeleOp() {
         super(new UltimateGoalHardware());
@@ -50,6 +52,7 @@ public class AutoTeleOp extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 telemetry.addLine("Hit start to start");
+                telemetry.addData("Singleton", SingletonVariables.getInstance().getPosition());
                 odometer.set(SingletonVariables.getInstance().getPosition());
                 if(isStarted()){
                     deactivateThis();
@@ -119,18 +122,28 @@ public class AutoTeleOp extends BasicOpmode {
         });
 
         stateMachine.appendDriveState("Rotate To Target", new VelocityDriveState(stateMachine) {
-            private final Vector2 targetPosition = new Vector2(20, 144);
+            private final Vector2 targetPosition = new Vector2(10, 144);
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                timer=0;
+            }
 
             @Override
             public Vector3 getVelocities() {
-                double deltaX = 20 - position.getA();
-                double deltaY = 144 - position.getB();
-                double angDelta = MathUtils.getRadRotDist(position.getC(), Math.atan2(deltaY, deltaX));
+                double deltaX = targetPosition.getA()-position.getA();
+                double deltaY = targetPosition.getB()-position.getB();
+                double angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)) + Math.toRadians(rotOffset);
 
-                if(Math.abs(angDelta) > 2.5){
-                    return new Vector3(0, 0, 0.4 * MathUtils.sign(angDelta));
+                double maxSpeed = Math.sqrt(2 * RobotConstants.UltimateGoal.MAX_R_ACCEL * Math.abs(angDelta));
+                maxSpeed = maxSpeed/RobotConstants.UltimateGoal.MAX_ROTATION_SPEED;
+                maxSpeed = Math.max(maxSpeed, RobotConstants.UltimateGoal.KF);
+                shot = timer > 10;
+                if(Math.abs(angDelta) > Math.toRadians(1)){
+                    timer = 0;
+                    return new Vector3(0, 0, maxSpeed * MathUtils.sign(angDelta));
                 }else {
-                    shot = true;
+                    timer += 1;
                     return Vector3.ZERO();
                 }
             }
@@ -149,11 +162,14 @@ public class AutoTeleOp extends BasicOpmode {
                 }
                 if(gamepad1.left_trigger > 0.25){
                     stateMachine.setActiveDriveState("Rotate To Target");
+                }else{
+                    shot = false;
+                    timer=0;
                 }
                 if(Math.abs(gamepad1.left_stick_x) > 0.2 || Math.abs(gamepad1.right_stick_x) > 0.2 || Math.abs(gamepad1.left_stick_y) > 0.2){
                     stateMachine.setActiveDriveState("GamepadDrive");
-                    if(stateMachine.logicStateActive("LinearMove")){
-                        stateMachine.deactivateState("LinearMove");
+                    if(stateMachine.logicStateActive("Rotate To Target")){
+                        stateMachine.deactivateState("Rotate To Target");
                     }
                 }
                 telemetry.addData("States", stateMachine.getActiveStates());
@@ -177,14 +193,10 @@ public class AutoTeleOp extends BasicOpmode {
             final double targetSpeed = 4.6875;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                double reqSpeed = (gamepad2.right_trigger > 0.2) ? 0.75 : 0;
+                double reqSpeed = (gamepad2.right_trigger < 0.2) ? 0.75 : 0;
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 telemetry.addData("Shooter Velocity", vel);
-                if(gamepad2.right_trigger > 0.1) {
-                    hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad2.right_bumper ? 1 : 0)));
-                }else{
-                    hardwareData.setShooter(0.2);
-                }
+                hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad1.dpad_down ? 1 : 0)));
                 Telemetry t = FtcDashboard.getInstance().getTelemetry();
                 t.addData("Speed", vel);
                 t.addData("Target", targetSpeed);
@@ -199,7 +211,7 @@ public class AutoTeleOp extends BasicOpmode {
                     hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.IDLE_INTAKE);
                 }
 
-                if(gamepad2.right_bumper){
+                if(gamepad1.dpad_down){
                     if(!stateMachine.logicStateActive("Load Shooter")){
                         stateMachine.activateLogic("Load Shooter");
                     }
@@ -228,6 +240,22 @@ public class AutoTeleOp extends BasicOpmode {
                 //hardwareData.setShooterTilt(tiltLevel);
                 telemetry.addData("Servo", "Shooter");
                 frameTime = System.currentTimeMillis();
+            }
+        });
+
+        eventSystem.onStart("Adjust Angle", new LogicState(stateMachine) {
+            boolean lastRight = false, lastLeft = false;
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(gamepad2.left_bumper && !lastLeft){
+                    rotOffset += 2;
+                }
+                if(gamepad2.right_bumper && !lastRight){
+                    rotOffset -= 2;
+                }
+                lastRight = gamepad2.right_bumper;
+                lastLeft = gamepad2.left_bumper;
+                telemetry.addData("Rot Offset", rotOffset);
             }
         });
 
@@ -333,7 +361,7 @@ public class AutoTeleOp extends BasicOpmode {
                 }
                 if(state == 3){
                     if(System.currentTimeMillis() >= timer){
-                        if(gamepad2.right_bumper) {
+                        if(gamepad1.dpad_down) {
                             state = 0;
                         }else if(shot){
                             state = 0;
