@@ -1,7 +1,6 @@
 package OpModes.TeleOp;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -9,30 +8,33 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
 
-import Hardware.*;
+import Hardware.CustomClasses.SingletonVariables;
+import Hardware.Hardware;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
+import Hardware.UltimateGoalHardware;
 import MathSystems.MathUtils;
 import MathSystems.PIDFSystem;
-import MathSystems.PIDSystem;
+import MathSystems.Vector2;
 import MathSystems.Vector3;
 import MathSystems.Vector4;
 import Odometry.ConstantVOdometer;
 import OpModes.BasicOpmode;
-import State.DriveState;
-import State.GamepadDriveState;
 import State.LogicState;
 import State.VelocityDriveState;
 
 @TeleOp
-public class MainTeleOp extends BasicOpmode {
+public class AutoTeleOp extends BasicOpmode {
     ConstantVOdometer odometer;
     Vector3 position, velocity;
     boolean holdShoot = true;
-    public static Vector4 PIDF = new Vector4(1, 0, 0, 1);
-    public MainTeleOp() {
+    boolean shot = false;
+    int timer = 0;
+    double rotOffset;
+    public static Vector4 PIDF = new Vector4(1, 0, 0, 0.15);
+    public AutoTeleOp() {
         super(new UltimateGoalHardware());
     }
 
@@ -50,6 +52,8 @@ public class MainTeleOp extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 telemetry.addLine("Hit start to start");
+                telemetry.addData("Singleton", SingletonVariables.getInstance().getPosition());
+                odometer.set(SingletonVariables.getInstance().getPosition());
                 if(isStarted()){
                     deactivateThis();
                 }
@@ -66,13 +70,6 @@ public class MainTeleOp extends BasicOpmode {
                     hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     return new Vector3(gamepad1.left_stick_x * speedMod, gamepad1.left_stick_y * speedMod, -gamepad1.right_stick_x * speedMod);
-                }else if(gamepad1.left_trigger > 0.1){
-                    double speedMod = (gamepad1.left_trigger != 0) ? 0.6 : 1;
-                    hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    return new Vector3(gamepad1.left_stick_x * 1, gamepad1.left_stick_y * 1, -gamepad1.right_stick_x * speedMod);
                 }else{
                     hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                     hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -124,16 +121,55 @@ public class MainTeleOp extends BasicOpmode {
             }
         });
 
+        stateMachine.appendDriveState("Rotate To Target", new VelocityDriveState(stateMachine) {
+            private final Vector2 targetPosition = new Vector2(10, 144);
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                timer=0;
+            }
+
+            @Override
+            public Vector3 getVelocities() {
+                double deltaX = targetPosition.getA()-position.getA();
+                double deltaY = targetPosition.getB()-position.getB();
+                double angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)) + Math.toRadians(rotOffset);
+
+                double maxSpeed = Math.sqrt(2 * RobotConstants.UltimateGoal.MAX_R_ACCEL * Math.abs(angDelta));
+                maxSpeed = maxSpeed/RobotConstants.UltimateGoal.MAX_ROTATION_SPEED;
+                maxSpeed = Math.max(maxSpeed, RobotConstants.UltimateGoal.KF);
+                shot = timer > 10;
+                if(Math.abs(angDelta) > Math.toRadians(1)){
+                    timer = 0;
+                    return new Vector3(0, 0, maxSpeed * MathUtils.sign(angDelta));
+                }else {
+                    timer += 1;
+                    return Vector3.ZERO();
+                }
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+
+            }
+        });
+
         eventSystem.onStart("Powershot Manager", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(gamepad1.x){
                     stateMachine.setActiveDriveState("LinearMove");
                 }
+                if(gamepad1.left_trigger > 0.25){
+                    stateMachine.setActiveDriveState("Rotate To Target");
+                }else{
+                    shot = false;
+                    timer=0;
+                }
                 if(Math.abs(gamepad1.left_stick_x) > 0.2 || Math.abs(gamepad1.right_stick_x) > 0.2 || Math.abs(gamepad1.left_stick_y) > 0.2){
                     stateMachine.setActiveDriveState("GamepadDrive");
-                    if(stateMachine.logicStateActive("LinearMove")){
-                        stateMachine.deactivateState("LinearMove");
+                    if(stateMachine.logicStateActive("Rotate To Target")){
+                        stateMachine.deactivateState("Rotate To Target");
                     }
                 }
                 telemetry.addData("States", stateMachine.getActiveStates());
@@ -157,14 +193,10 @@ public class MainTeleOp extends BasicOpmode {
             final double targetSpeed = 4.6875;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                double reqSpeed = (gamepad2.right_trigger > 0.2) ? 0.75 : 0;
+                double reqSpeed = (gamepad2.right_trigger < 0.2) ? 0.75 : 0;
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 telemetry.addData("Shooter Velocity", vel);
-                if(gamepad2.right_trigger > 0.1) {
-                    hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad2.right_bumper ? 1 : 0)));
-                }else{
-                    hardwareData.setShooter(0.2);
-                }
+                hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad1.dpad_down ? 1 : 0)));
                 Telemetry t = FtcDashboard.getInstance().getTelemetry();
                 t.addData("Speed", vel);
                 t.addData("Target", targetSpeed);
@@ -179,7 +211,7 @@ public class MainTeleOp extends BasicOpmode {
                     hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.IDLE_INTAKE);
                 }
 
-                if(gamepad2.right_bumper){
+                if(gamepad1.dpad_down){
                     if(!stateMachine.logicStateActive("Load Shooter")){
                         stateMachine.activateLogic("Load Shooter");
                     }
@@ -208,6 +240,22 @@ public class MainTeleOp extends BasicOpmode {
                 //hardwareData.setShooterTilt(tiltLevel);
                 telemetry.addData("Servo", "Shooter");
                 frameTime = System.currentTimeMillis();
+            }
+        });
+
+        eventSystem.onStart("Adjust Angle", new LogicState(stateMachine) {
+            boolean lastRight = false, lastLeft = false;
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(gamepad2.left_bumper && !lastLeft){
+                    rotOffset += 2;
+                }
+                if(gamepad2.right_bumper && !lastRight){
+                    rotOffset -= 2;
+                }
+                lastRight = gamepad2.right_bumper;
+                lastLeft = gamepad2.left_bumper;
+                telemetry.addData("Rot Offset", rotOffset);
             }
         });
 
@@ -313,8 +361,11 @@ public class MainTeleOp extends BasicOpmode {
                 }
                 if(state == 3){
                     if(System.currentTimeMillis() >= timer){
-                        if(gamepad2.right_bumper) {
+                        if(gamepad1.dpad_down) {
                             state = 0;
+                        }else if(shot){
+                            state = 0;
+                            shot = false;
                         }
                     }
                 }

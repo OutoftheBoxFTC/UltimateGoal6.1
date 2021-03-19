@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.HashMap;
 
+import Hardware.CustomClasses.SingletonVariables;
 import Hardware.Hardware;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
@@ -246,6 +247,7 @@ public class RedAutonomous2 extends BasicOpmode {
                 telemetry.addData("FPS", fps);
                 telemetry.addData("Pods", new Vector3(sensorData.getOdometryLeft(), sensorData.getOdometryRight(), sensorData.getOdometryAux()));
                 telemetry.addData("State", stateMachine.getActiveStates());
+                SingletonVariables.getInstance().setPosition(position);
             }
         });
     }
