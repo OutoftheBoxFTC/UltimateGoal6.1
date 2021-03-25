@@ -10,7 +10,6 @@ import Hardware.Robots.RobotConstants;
 import OpModes.BasicOpmode;
 import State.LogicState;
 @TeleOp
-@Disabled
 public class ShooterLoadTiming extends BasicOpmode {
     long timeCoeff = 3000;
     public ShooterLoadTiming() {
@@ -27,7 +26,7 @@ public class ShooterLoadTiming extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
-                    hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_HOLD);
+                    hardwareData.setShooterLoadArm(0.875);
                     timer = System.currentTimeMillis() + timeCoeff;
                     state = 1;
                 }
@@ -37,7 +36,7 @@ public class ShooterLoadTiming extends BasicOpmode {
                     }
                 }
                 if(state == 2){
-                    hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
+                    hardwareData.setShooterLoadArm(0.7);
                     timer = System.currentTimeMillis() + timeCoeff;
                     state = 3;
                 }

@@ -31,9 +31,10 @@ public class AutoTeleOp extends BasicOpmode {
     Vector3 position, velocity;
     boolean holdShoot = true;
     boolean shot = false;
+    boolean stopShooter = false;
     int timer = 0;
     double rotOffset;
-    public static Vector4 PIDF = new Vector4(1, 0, 0, 0.15);
+    public static Vector4 PIDF = new Vector4(0.8, 0, 0, 0.15);
     public AutoTeleOp() {
         super(new UltimateGoalHardware());
     }
@@ -71,10 +72,12 @@ public class AutoTeleOp extends BasicOpmode {
                     hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     return new Vector3(gamepad1.left_stick_x * speedMod, gamepad1.left_stick_y * speedMod, -gamepad1.right_stick_x * speedMod);
                 }else{
-                    hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                    hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                    if(gamepad1.left_trigger < 0.1) {
+                        hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                        hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                        hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                        hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                    }
                     return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
                 }
             }
@@ -88,14 +91,14 @@ public class AutoTeleOp extends BasicOpmode {
             long shot1, shot2, shot3;
             @Override
             public Vector3 getVelocities() {
-                return new Vector3(0.6, 0, 0);
+                return new Vector3(0, 0, 0.15);
             }
 
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
-                shot1 = System.currentTimeMillis() + 750;
-                shot2 = shot1 + 400;
-                shot3 = shot2 + 400;
+                shot1 = System.currentTimeMillis() - 10;
+                shot2 = shot1 + 800;
+                shot3 = shot2 + 800;
                 //stateMachine.activateLogic("Load Shooter Turn");
             }
 
@@ -121,8 +124,28 @@ public class AutoTeleOp extends BasicOpmode {
             }
         });
 
+        stateMachine.appendDriveState("Rotate", new VelocityDriveState(stateMachine) {
+            long timer = 0;
+            @Override
+            public Vector3 getVelocities() {
+                return new Vector3(0, 0, 0.2);
+            }
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                timer = System.currentTimeMillis() + 300;
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(System.currentTimeMillis() > timer){
+                    stateMachine.setActiveDriveState("GamepadDrive");
+                }
+            }
+        });
+
         stateMachine.appendDriveState("Rotate To Target", new VelocityDriveState(stateMachine) {
-            private final Vector2 targetPosition = new Vector2(10, 144);
+            private final Vector2 targetPosition = new Vector2(5, 144);
 
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
@@ -131,6 +154,11 @@ public class AutoTeleOp extends BasicOpmode {
 
             @Override
             public Vector3 getVelocities() {
+                hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
                 double deltaX = targetPosition.getA()-position.getA();
                 double deltaY = targetPosition.getB()-position.getB();
                 double angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)) + Math.toRadians(rotOffset);
@@ -159,6 +187,15 @@ public class AutoTeleOp extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(gamepad1.x){
                     stateMachine.setActiveDriveState("LinearMove");
+                }
+                if(gamepad1.y){
+                    if(stateMachine.driveStateActive("GamepadDrive")){
+                        if(!stateMachine.logicStateActive("Load Shooter Turn")){
+                            stateMachine.deactivateState("Load Shooter");
+                            odometer.reset();
+                            stateMachine.activateLogic("Load Shooter Turn");
+                        }
+                    }
                 }
                 if(gamepad1.left_trigger > 0.25){
                     stateMachine.setActiveDriveState("Rotate To Target");
@@ -194,9 +231,13 @@ public class AutoTeleOp extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 double reqSpeed = (gamepad2.right_trigger < 0.2) ? 0.75 : 0;
+                double targetSpeed = (gamepad2.right_trigger < 0.2) ? this.targetSpeed : 0;
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 telemetry.addData("Shooter Velocity", vel);
                 hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad1.dpad_down ? 1 : 0)));
+                if(stopShooter){
+                    hardwareData.setShooter(0);
+                }
                 Telemetry t = FtcDashboard.getInstance().getTelemetry();
                 t.addData("Speed", vel);
                 t.addData("Target", targetSpeed);
@@ -220,7 +261,7 @@ public class AutoTeleOp extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.345 + tiltLevel);
+                    hardwareData.setShooterTilt(0.34 + tiltLevel);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
@@ -228,11 +269,19 @@ public class AutoTeleOp extends BasicOpmode {
                 if(Math.abs(gamepad2.left_stick_y) > 0.2){
                     hardwareData.setShooterTilt(0.49);
                     hardwareData.setShooter(0);
+                    stopShooter = true;
                     holdShoot = false;
                 }else if(gamepad2.right_stick_y < -0.2){
                     holdShoot = true;
                 }else if(gamepad2.right_stick_y > 0.2){
                     hardwareData.setShooterTilt(0.36 + tiltLevel);
+                }
+
+                if(Math.abs(gamepad2.left_trigger) > 0.2){
+                    stopShooter = true;
+                    hardwareData.setShooterTilt(0.49);
+                }else if(Math.abs(gamepad2.left_stick_y) < 0.2){
+                    stopShooter = false;
                 }
 
                 telemetry.addData("Tilt", tiltLevel);
@@ -248,10 +297,10 @@ public class AutoTeleOp extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(gamepad2.left_bumper && !lastLeft){
-                    rotOffset += 2;
+                    rotOffset += 1;
                 }
                 if(gamepad2.right_bumper && !lastRight){
-                    rotOffset -= 2;
+                    rotOffset -= 1;
                 }
                 lastRight = gamepad2.right_bumper;
                 lastLeft = gamepad2.left_bumper;
@@ -339,8 +388,8 @@ public class AutoTeleOp extends BasicOpmode {
         });
 
         HashMap<String, LogicState> logicStates = new HashMap<>();
-        logicStates.put("Load Shooter", new LogicState(stateMachine) {
-            int state = 0;
+        eventSystem.onStart("Load Shooter", new LogicState(stateMachine) {
+            int state = 3;
             long timer = 0;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
@@ -375,18 +424,11 @@ public class AutoTeleOp extends BasicOpmode {
         logicStates.put("Load Shooter Turn", new LogicState(stateMachine) {
             int state = 0;
             long timer = 0;
-
-            @Override
-            public void init(SensorData sensorData, HardwareData hardwareData) {
-                state = 0;
-                timer = 0;
-            }
-
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
-                    hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 70;
+                    //hardwareData.setShooterLoadArm(0.7);
+                    timer = System.currentTimeMillis() + 140;
                     state = 1;
                 }
                 if(state == 1){
@@ -395,12 +437,13 @@ public class AutoTeleOp extends BasicOpmode {
                     }
                 }
                 if(state == 2){
-                    hardwareData.setShooterLoadArm(0.875);
-                    timer = System.currentTimeMillis() + 70;
+                    //hardwareData.setShooterLoadArm(0.875);
+                    timer = System.currentTimeMillis() + 140;
                     state = 3;
                 }
                 if(state == 3){
                     if(System.currentTimeMillis() >= timer){
+                        stateMachine.setActiveDriveState("Rotate");
                         deactivateThis();
                     }
                 }

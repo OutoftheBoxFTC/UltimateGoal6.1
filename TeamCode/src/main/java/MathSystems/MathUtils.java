@@ -162,8 +162,8 @@ public class MathUtils {
         return secToNano((long)millisToSec(time));
     }
 
-    public static long nanoToMillis(long time){
-        return secToMillis(nanoToSec(time));
+    public static double nanoToMillis(long time){
+        return time/1e+6;
     }
 
     public static long nanoToSec(long time){
