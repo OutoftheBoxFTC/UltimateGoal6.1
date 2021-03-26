@@ -133,7 +133,11 @@ public class AutoTeleOp extends BasicOpmode {
 
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
-                timer = System.currentTimeMillis() + 300;
+                if(gamepad1.y) {
+                    timer = System.currentTimeMillis() + 300;
+                }else{
+                    timer = System.currentTimeMillis() + 200;
+                }
             }
 
             @Override
@@ -166,7 +170,7 @@ public class AutoTeleOp extends BasicOpmode {
                 double maxSpeed = Math.sqrt(2 * RobotConstants.UltimateGoal.MAX_R_ACCEL * Math.abs(angDelta));
                 maxSpeed = maxSpeed/RobotConstants.UltimateGoal.MAX_ROTATION_SPEED;
                 maxSpeed = Math.max(maxSpeed, RobotConstants.UltimateGoal.KF);
-                shot = timer > 10;
+                shot = timer > 10 && !gamepad1.dpad_up;
                 if(Math.abs(angDelta) > Math.toRadians(1)){
                     timer = 0;
                     return new Vector3(0, 0, maxSpeed * MathUtils.sign(angDelta));
@@ -188,7 +192,7 @@ public class AutoTeleOp extends BasicOpmode {
                 if(gamepad1.x){
                     stateMachine.setActiveDriveState("LinearMove");
                 }
-                if(gamepad1.y){
+                if(gamepad1.y || gamepad1.a){
                     if(stateMachine.driveStateActive("GamepadDrive")){
                         if(!stateMachine.logicStateActive("Load Shooter Turn")){
                             stateMachine.deactivateState("Load Shooter");
@@ -227,7 +231,7 @@ public class AutoTeleOp extends BasicOpmode {
             double tiltLevel = 0;
             long frameTime = System.currentTimeMillis();
             PIDFSystem system = new PIDFSystem(PIDF);
-            final double targetSpeed = 4.6875;
+            final double targetSpeed = 4.75;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 double reqSpeed = (gamepad2.right_trigger < 0.2) ? 0.75 : 0;
@@ -261,7 +265,7 @@ public class AutoTeleOp extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.34 + tiltLevel);
+                    hardwareData.setShooterTilt(0.33 + tiltLevel);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
@@ -274,7 +278,7 @@ public class AutoTeleOp extends BasicOpmode {
                 }else if(gamepad2.right_stick_y < -0.2){
                     holdShoot = true;
                 }else if(gamepad2.right_stick_y > 0.2){
-                    hardwareData.setShooterTilt(0.36 + tiltLevel);
+                    hardwareData.setShooterTilt(0.34 + tiltLevel);
                 }
 
                 if(Math.abs(gamepad2.left_trigger) > 0.2){
@@ -395,7 +399,7 @@ public class AutoTeleOp extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
                     hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 70;
+                    timer = System.currentTimeMillis() + 100;
                     state = 1;
                 }
                 if(state == 1){
@@ -405,7 +409,7 @@ public class AutoTeleOp extends BasicOpmode {
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.875);
-                    timer = System.currentTimeMillis() + 70;
+                    timer = System.currentTimeMillis() + 100;
                     state = 3;
                 }
                 if(state == 3){

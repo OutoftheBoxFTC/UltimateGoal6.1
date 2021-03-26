@@ -26,6 +26,12 @@ public class PathBuilder {
 		this.startPoint = new Vector3(x, y, angle.radians());
 		lines.add(startPoint);
 	}
+
+	public PathBuilder(Vector2 linPos, Angle angle){
+		lines = new ArrayList<>();
+		this.startPoint = linPos.toVector3(angle.radians());
+		lines.add(startPoint);
+	}
 	
 	public PathBuilder lineTo(Vector2 point, Angle angle) {
 		lines.add(point.toVector3(angle.radians()));
