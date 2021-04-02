@@ -265,7 +265,7 @@ public class AutoTeleOp extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.33 + tiltLevel);
+                    hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
@@ -278,7 +278,7 @@ public class AutoTeleOp extends BasicOpmode {
                 }else if(gamepad2.right_stick_y < -0.2){
                     holdShoot = true;
                 }else if(gamepad2.right_stick_y > 0.2){
-                    hardwareData.setShooterTilt(0.34 + tiltLevel);
+                    hardwareData.setShooterTilt(0.36 + tiltLevel);
                 }
 
                 if(Math.abs(gamepad2.left_trigger) > 0.2){
@@ -408,8 +408,8 @@ public class AutoTeleOp extends BasicOpmode {
                     }
                 }
                 if(state == 2){
-                    hardwareData.setShooterLoadArm(0.875);
-                    timer = System.currentTimeMillis() + 100;
+                    hardwareData.setShooterLoadArm(0.925);
+                    timer = System.currentTimeMillis() + 120;
                     state = 3;
                 }
                 if(state == 3){

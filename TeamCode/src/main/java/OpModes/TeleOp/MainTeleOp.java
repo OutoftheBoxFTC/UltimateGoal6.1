@@ -143,10 +143,11 @@ public class MainTeleOp extends BasicOpmode {
         eventSystem.onStart("Intake", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setIntakePower((gamepad1.right_bumper ? 1 : (gamepad1.left_bumper ? -1 : 0)));
-
+                //hardwareData.setIntakePower((gamepad1.right_bumper ? 1 : (gamepad1.left_bumper ? -1 : 0)));
+                hardwareData.setIntakePower(gamepad1.right_trigger - gamepad1.left_trigger);
                 telemetry.addData("Position", position);
                 telemetry.addData("Velocity", velocity);
+                telemetry.addData("Intake", gamepad1.right_trigger - gamepad1.left_trigger);
             }
         });
 
@@ -161,9 +162,9 @@ public class MainTeleOp extends BasicOpmode {
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 telemetry.addData("Shooter Velocity", vel);
                 if(gamepad2.right_trigger > 0.1) {
-                    hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad2.right_bumper ? 1 : 0)));
+                    //hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad2.right_bumper ? 1 : 0)));
                 }else{
-                    hardwareData.setShooter(0.2);
+                    //hardwareData.setShooter(0.2);
                 }
                 Telemetry t = FtcDashboard.getInstance().getTelemetry();
                 t.addData("Speed", vel);
@@ -195,7 +196,7 @@ public class MainTeleOp extends BasicOpmode {
 
                 if(Math.abs(gamepad2.left_stick_y) > 0.2){
                     hardwareData.setShooterTilt(0.49);
-                    hardwareData.setShooter(0);
+                    //hardwareData.setShooter(0);
                     holdShoot = false;
                 }else if(gamepad2.right_stick_y < -0.2){
                     holdShoot = true;
@@ -290,6 +291,19 @@ public class MainTeleOp extends BasicOpmode {
             }
         });
 
+        eventSystem.onStart("SpinShooter", new LogicState(stateMachine) {
+            PIDSystem system = new PIDSystem(0.8, 0, 0);
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
+                hardwareData.setShooter(0.7 + system.getCorrection(4.25 - vel)); //0.75 | 4.5
+                hardwareData.setShooterTilt(0.3675);
+                if(stateMachine.logicStateActive("SpinShooter2")){
+                    deactivateThis();
+                }
+            }
+        });
+
         HashMap<String, LogicState> logicStates = new HashMap<>();
         logicStates.put("Load Shooter", new LogicState(stateMachine) {
             int state = 0;
@@ -307,7 +321,7 @@ public class MainTeleOp extends BasicOpmode {
                     }
                 }
                 if(state == 2){
-                    hardwareData.setShooterLoadArm(0.875);
+                    hardwareData.setShooterLoadArm(0.925);
                     timer = System.currentTimeMillis() + 70;
                     state = 3;
                 }

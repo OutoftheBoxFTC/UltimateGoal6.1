@@ -38,7 +38,7 @@ public class CrosstrackPathFollower extends VelocityDriveState {
     }
 
     public CrosstrackPathFollower(StateMachine stateMachine, Vector3 position, Path path){
-        this(stateMachine, position, path, 0, 1, 0.5);
+        this(stateMachine, position, path, 0, 1, 0.15);
     }
 
     @Override

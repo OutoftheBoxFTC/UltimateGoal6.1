@@ -37,6 +37,7 @@ public class UltimateGoalHardware extends Hardware {
         }
         if(registeredDevices.contains(HardwareDevices.INTAKE)){
             smartDevices.put("Intake", new SmartMotor(map.dcMotor.get("intake"), new SmartMotorConfiguration()));
+            smartDevices.put("Intake Top", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().reverseDirection()));
             smartDevices.put("Intake Release", new SmartServo(map.servo.get("intakeRelease"), new SmartServoConfiguration()));
         }
         if(registeredDevices.contains(HardwareDevices.GYRO)){
@@ -52,7 +53,7 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.put("Wobble Oneuse Right", new SmartServo(map.servo.get("wobbleR"), new SmartServoConfiguration().setInitPos(0.5)));
             smartDevices.put("Wobble Lift Right", new SmartServo(map.servo.get("wobbleLR"), new SmartServoConfiguration().setInitPos(0.5)));
             smartDevices.put("Wobble Lift Left", new SmartServo(map.servo.get("wobbleLL"), new SmartServoConfiguration().setInitPos(0.5)));
-            smartDevices.put("Wobble Lift", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().readPosition()));
+            //smartDevices.put("Wobble Lift", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().readPosition()));
         }
         if(registeredDevices.contains(HardwareDevices.WEBCAM)){
             smartDevices.put("Ring Detector", new SmartCV(map.get(WebcamName.class, "Webcam 1"), map));
@@ -71,10 +72,11 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.get("Wobble Oneuse Right", SmartServo.class).setPosition(hardware.getWobbleOneuseRight());
             smartDevices.get("Wobble Lift Right", SmartServo.class).setPosition(hardware.getWobbleLiftRight());
             smartDevices.get("Wobble Lift Left", SmartServo.class).setPosition(hardware.getWobbleLiftLeft());
-            smartDevices.get("Wobble Lift", SmartMotor.class).setPower(hardware.getWobbleLift());
+            //smartDevices.get("Wobble Lift", SmartMotor.class).setPower(hardware.getWobbleLift());
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             smartDevices.get("Intake", SmartMotor.class).setPower(hardware.getIntake());
+            smartDevices.get("Intake Top", SmartMotor.class).setPower(hardware.getIntake());
             smartDevices.get("Intake Release", SmartServo.class).setPosition(hardware.getIntakeRelease());
         }
         if(enabledDevices.contains(HardwareDevices.SHOOTER)){
@@ -99,7 +101,7 @@ public class UltimateGoalHardware extends Hardware {
             sensorData.setRings(smartDevices.get("Ring Detector", SmartCV.class).getRings());
         }
         if(enabledDevices.contains(HardwareDevices.WOBBLE)){
-            sensorData.setWobbleLift(smartDevices.get("Back Left", SmartMotor.class).getPosition());
+            //sensorData.setWobbleLift(smartDevices.get("Back Left", SmartMotor.class).getPosition());
         }
         sensorData.setFps(1/(MathSystems.MathUtils.nanoToDSec(System.nanoTime()-prevTime)));
         prevTime = System.nanoTime();
