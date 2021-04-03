@@ -9,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.SmartDevices.SmartCV.SmartCV;
+import Hardware.SmartDevices.SmartCV.TowerCV;
 import Hardware.SmartDevices.SmartEncoder.SmartEncoder;
 import Hardware.SmartDevices.SmartEncoder.SmartEncoderConfiguration;
 import Hardware.SmartDevices.SmartIMU.SmartIMU;
@@ -56,7 +57,11 @@ public class UltimateGoalHardware extends Hardware {
             //smartDevices.put("Wobble Lift", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().readPosition()));
         }
         if(registeredDevices.contains(HardwareDevices.WEBCAM)){
-            smartDevices.put("Ring Detector", new SmartCV(map.get(WebcamName.class, "Webcam 1"), map));
+            //smartDevices.put("Ring Detector", new SmartCV(map.get(WebcamName.class, "Webcam 1"), map));
+            smartDevices.put("TowerCam", new TowerCV(map.get(WebcamName.class, "Webcam 1"), map));
+        }
+        if(registeredDevices.contains(HardwareDevices.TURRET)){
+            smartDevices.put("Turret", new SmartServo(map.servo.get("turret"), new SmartServoConfiguration().setInitPos(0.5)));
         }
     }
 
@@ -85,6 +90,9 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.get("Shooter Tilt", SmartServo.class).setPosition(hardware.getShooterTilt());
             smartDevices.get("Shooter Indexer", SmartServo.class).setPosition(hardware.getShooterLoadArm());
         }
+        if(enabledDevices.contains(HardwareDevices.TURRET)){
+            smartDevices.get("Turret", SmartServo.class).setPosition(hardware.getTurret());
+        }
     }
 
     @Override
@@ -98,7 +106,7 @@ public class UltimateGoalHardware extends Hardware {
             //sensorData.setGyro(smartDevices.get("gyro", SmartNavXMicro.class).getHeading());
         }
         if(enabledDevices.contains(HardwareDevices.WEBCAM)){
-            sensorData.setRings(smartDevices.get("Ring Detector", SmartCV.class).getRings());
+            //sensorData.setRings(smartDevices.get("Ring Detector", SmartCV.class).getRings());
         }
         if(enabledDevices.contains(HardwareDevices.WOBBLE)){
             //sensorData.setWobbleLift(smartDevices.get("Back Left", SmartMotor.class).getPosition());
