@@ -60,6 +60,8 @@ public class AutoTeleOp2 extends BasicOpmode {
                 telemetry.addLine("Hit start to start");
                 telemetry.addData("Singleton", SingletonVariables.getInstance().getPosition());
                 odometer.set(SingletonVariables.getInstance().getPosition());
+
+
                 if(isStarted()){
                     deactivateThis();
                 }
@@ -182,13 +184,14 @@ public class AutoTeleOp2 extends BasicOpmode {
                 maxSpeed = Math.max(maxSpeed, RobotConstants.UltimateGoal.KF);
                 shot = timer > 10 && !gamepad1.dpad_up;
 
-                if(Math.abs(angDelta) > Math.toRadians(15) && turretTimer < 0){
+                if(!UGUtils.inRange(Math.toDegrees(angDelta))){
                     timer = 0;
-                    return new Vector3(0, 0, maxSpeed * MathUtils.sign(angDelta));
                 }else {
-                    timer += 1;
-                    return Vector3.ZERO();
+                    if(turretTimer < 0) {
+                        timer += 1;
+                    }
                 }
+                return Vector3.ZERO();
             }
 
             @Override
@@ -225,7 +228,7 @@ public class AutoTeleOp2 extends BasicOpmode {
 
                 double dtheta = angDelta - prevAng;
                 double dt = ProgramClock.getFrameTimeMillis();
-                turretTimer += Math.toDegrees(dtheta) * 3000;
+                turretTimer += Math.toDegrees(dtheta) * (1200/270);
                 turretTimer -= dt;
                 if(turretTimer < -1){
                     turretTimer = -1;
@@ -234,13 +237,13 @@ public class AutoTeleOp2 extends BasicOpmode {
 
                 double[] powershots = hardware.getSmartDevices().get("TowerCam", TowerCV.class).getPowershots();
                 if(gamepad1.b){
-                    //angDelta = Math.toRadians(powershots[0]) - 5;
+                    angDelta = Math.toRadians(powershots[0]) - 5;
                 }
                 if(gamepad1.y){
-                    //angDelta = Math.toRadians(powershots[1]) - 5;
+                    angDelta = Math.toRadians(powershots[1]) - 5;
                 }
                 if(gamepad1.x){
-                    //angDelta = Math.toRadians(powershots[2]) - 5;
+                    angDelta = Math.toRadians(powershots[2]) - 5;
                 }
 
                 hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));

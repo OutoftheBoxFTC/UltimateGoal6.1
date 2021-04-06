@@ -24,8 +24,9 @@ public class BetterTowerGoalUtils {
         //Imgproc.cvtColor(inMat, inMat, Imgproc.COLOR_RGB2GRAY);
         Imgproc.resize(hsv, hsv, new Size(inMat.width(), inMat.height())); //[112.0, 113.0, 132.0, 0.0] [122.0, 255.0, 255.0, 0.0]
         //[114.0, 134.0, 144.0, 0.0] [119.0, 255.0, 255.0, 0.0]
-        Scalar min = new Scalar(112, 113, 132);
-        Scalar max = new Scalar(122, 255, 255);
+        Scalar min = new Scalar(106, 80, 100);
+        //Scalar max = new Scalar(122, 255, 255);
+        Scalar max = new Scalar(128, 255, 255);
         Mat outMat = new Mat();
         Core.inRange(hsv, min, max, outMat);
 
@@ -43,8 +44,10 @@ public class BetterTowerGoalUtils {
         //Imgproc.cvtColor(inMat, inMat, Imgproc.COLOR_RGB2GRAY);
         //Imgproc.resize(hsv, hsv, new Size(inMat.width(), inMat.height())); //[112.0, 113.0, 132.0, 0.0] [122.0, 255.0, 255.0, 0.0]
         //[114.0, 134.0, 144.0, 0.0] [119.0, 255.0, 255.0, 0.0]
-        Scalar min = new Scalar(112, 113, 132);
-        Scalar max = new Scalar(122, 255, 255);
+        //Scalar min = new Scalar(112, 113, 132);
+        Scalar min = new Scalar(106, 80, 100);
+        //Scalar max = new Scalar(122, 255, 255);
+        Scalar max = new Scalar(128, 255, 255);
         Mat outMat = new Mat();
         Core.inRange(hsv, min, max, outMat);
 
@@ -216,13 +219,8 @@ public class BetterTowerGoalUtils {
     public static MatOfPoint getMatchRect(MatOfPoint refContour, Mat inMat){
         //Mat resized = new Mat();
         //Imgproc.resize(inMat, resized, new Size(640, 480));
-        Mat hsv = new Mat();
-        Imgproc.cvtColor(inMat, hsv, Imgproc.COLOR_RGB2HSV);
-        Scalar min = new Scalar(112, 113, 132);
-        Scalar max = new Scalar(122, 255, 255);
 
-        Mat outMat = new Mat();
-        Core.inRange(hsv, min, max, outMat);
+        Mat outMat = cropInRange(inMat);
 
         Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(10, 10));
         Imgproc.morphologyEx(outMat, outMat, Imgproc.MORPH_OPEN, kernel);
@@ -290,7 +288,6 @@ public class BetterTowerGoalUtils {
             refContour2f.release();
         }
 
-        hsv.release();
         outMat.release();
         kernel.release();
         contours.clear();
@@ -364,6 +361,11 @@ public class BetterTowerGoalUtils {
             scl.push_back(new MatOfPoint(tmp));
         }
 
+        Mat test = inMat.clone();
+        test = normCropInRange(test);
+        //test.copyTo(outMat);
+        test.release();
+
         inClone.release();
         cropped.release();
         extracted.release();
@@ -381,8 +383,8 @@ public class BetterTowerGoalUtils {
     }
 
     public static double[] approxPowershotAngles(double yaw, double goalWallDist){
-        double goalOffset = 16.5;
-        double powershotOffset = 7.5;
+        double goalOffset = -16.5;
+        double powershotOffset = -7.5;
 
         double dist = Math.tan(Math.toRadians(yaw)) * goalWallDist;
 

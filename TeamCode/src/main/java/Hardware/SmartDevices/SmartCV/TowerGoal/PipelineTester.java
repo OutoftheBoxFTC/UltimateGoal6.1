@@ -52,7 +52,7 @@ public class PipelineTester extends OpenCvPipeline {
 
         input.copyTo(cropCopy);
         boundingRect = Imgproc.boundingRect(m);
-        m = BetterTowerGoalUtils.refineEstimation(resized, boundingRect, test);
+        m = BetterTowerGoalUtils.refineEstimation(resized, boundingRect, cropCopy);
 
         MatOfPoint scl = new MatOfPoint(), scl2 = new MatOfPoint();
         for(Point p : m.toArray()){

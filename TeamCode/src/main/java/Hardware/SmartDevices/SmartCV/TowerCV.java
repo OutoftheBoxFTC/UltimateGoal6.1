@@ -1,5 +1,6 @@
 package Hardware.SmartDevices.SmartCV;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -39,7 +40,7 @@ public class TowerCV extends SmartDevice {
     }
 
     public double getHeading(){
-        return ringPipeline.getHeading() - 15;
+        return ringPipeline.getHeading() - 25;
     }
 
     public double getRange(){
