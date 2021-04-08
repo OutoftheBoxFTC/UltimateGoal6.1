@@ -40,7 +40,7 @@ public class TowerCV extends SmartDevice {
     }
 
     public double getHeading(){
-        return ringPipeline.getHeading() - 25;
+        return ringPipeline.getHeading()-10;
     }
 
     public double getRange(){

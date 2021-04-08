@@ -383,8 +383,8 @@ public class BetterTowerGoalUtils {
     }
 
     public static double[] approxPowershotAngles(double yaw, double goalWallDist){
-        double goalOffset = -16.5;
-        double powershotOffset = -7.5;
+        double goalOffset = 16.5;
+        double powershotOffset = 7.5;
 
         double dist = Math.tan(Math.toRadians(yaw)) * goalWallDist;
 

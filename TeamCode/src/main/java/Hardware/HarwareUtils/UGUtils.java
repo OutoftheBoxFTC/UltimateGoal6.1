@@ -4,11 +4,11 @@ import MathSystems.MathUtils;
 
 public class UGUtils {
     public static double getTurretValue(double angle){
-        angle = MathUtils.clamp(angle, -26, 20);
-        return (((angle + 26.0) / 46.0) * 0.85) + 0.05;
+        angle = MathUtils.clamp(angle, -24, 20);
+        return (((angle + 24.0) / 48.0) * 0.95) + 0.05;
     }
 
     public static boolean inRange(double angle){
-        return (angle < 20) && (angle > -31);
+        return (angle < 20) && (angle > -24);
     }
 }

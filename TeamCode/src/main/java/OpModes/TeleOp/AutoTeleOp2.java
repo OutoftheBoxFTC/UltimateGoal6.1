@@ -77,7 +77,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                     hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                    return new Vector3(gamepad1.left_stick_x * speedMod, gamepad1.left_stick_y * speedMod, -gamepad1.right_stick_x * speedMod);
+                    return new Vector3(gamepad1.left_stick_x * speedMod, gamepad1.left_stick_y * speedMod, -gamepad1.right_stick_x * 0.6);
                 }else{
                     if(gamepad1.left_trigger < 0.1) {
                         hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -182,7 +182,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 double maxSpeed = Math.sqrt(2 * RobotConstants.UltimateGoal.MAX_R_ACCEL * Math.abs(angDelta));
                 maxSpeed = maxSpeed/RobotConstants.UltimateGoal.MAX_ROTATION_SPEED;
                 maxSpeed = Math.max(maxSpeed, RobotConstants.UltimateGoal.KF);
-                shot = timer > 10 && !gamepad1.dpad_up;
+                shot = timer > 2 && !gamepad1.dpad_up;
 
                 if(!UGUtils.inRange(Math.toDegrees(angDelta))){
                     timer = 0;
@@ -220,7 +220,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY));
                 if(hardware.getSmartDevices().get("TowerCam", TowerCV.class).getTrack() && !gamepad1.y){
                     double tmp = Math.toRadians(hardware.getSmartDevices().get("TowerCam", TowerCV.class).getHeading());
-                    rotOffset = Math.toDegrees(tmp - angDelta);
+                    //rotOffset = Math.toDegrees(tmp - angDelta);
                     angDelta = tmp;
                 }else{
                     angDelta = angDelta + Math.toRadians(rotOffset);
@@ -237,13 +237,13 @@ public class AutoTeleOp2 extends BasicOpmode {
 
                 double[] powershots = hardware.getSmartDevices().get("TowerCam", TowerCV.class).getPowershots();
                 if(gamepad1.b){
-                    angDelta = Math.toRadians(powershots[0]) - 5;
+                    angDelta = Math.toRadians(powershots[0]) - Math.toRadians(rotOffset);
                 }
                 if(gamepad1.y){
-                    angDelta = Math.toRadians(powershots[1]) - 5;
+                    angDelta = Math.toRadians(powershots[1]) - Math.toRadians(rotOffset);
                 }
                 if(gamepad1.x){
-                    angDelta = Math.toRadians(powershots[2]) - 5;
+                    angDelta = Math.toRadians(powershots[2]) - Math.toRadians(rotOffset);
                 }
 
                 hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
@@ -272,7 +272,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                         }
                     }
                 }
-                if(gamepad1.left_trigger > 0.25){
+                if(gamepad1.left_trigger > 0.25 || gamepad2.left_trigger > 0.25){
                     stateMachine.setActiveDriveState("Rotate To Target");
                 }else{
                     shot = false;
@@ -349,12 +349,12 @@ public class AutoTeleOp2 extends BasicOpmode {
                 }else if(gamepad2.right_stick_y < -0.2){
                     holdShoot = true;
                 }else if(gamepad2.right_stick_y > 0.2 || gamepad1.y || gamepad1.b || gamepad1.x){
-                    hardwareData.setShooterTilt(0.375 + tiltLevel);
+                    hardwareData.setShooterTilt(0.37 + tiltLevel);
                 }
 
                 if(Math.abs(gamepad2.left_trigger) > 0.2){
-                    stopShooter = true;
-                    hardwareData.setShooterTilt(0.49);
+                    //stopShooter = true;
+                    //hardwareData.setShooterTilt(0.49);
                 }else if(Math.abs(gamepad2.left_stick_y) < 0.2){
                     stopShooter = false;
                 }

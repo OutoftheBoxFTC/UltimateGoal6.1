@@ -77,8 +77,8 @@ public class PipelineTester extends OpenCvPipeline {
 
             double goalWallDist = (horDist + verDist)/2;
 
-            double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(14, firingSolution[0] + 30);
-            powershots = BetterTowerGoalUtils.approxPowershotAngles(firingSolution[1], goalWallDist2);
+            double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(14, firingSolution[0] + 17.7367548);
+            powershots = BetterTowerGoalUtils.approxPowershotAngles(-firingSolution[1], goalWallDist2);
 
             firingSolution[0] = goalWallDist2;
 
