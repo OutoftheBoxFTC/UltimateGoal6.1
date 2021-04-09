@@ -52,7 +52,8 @@ public class TowerCV extends SmartDevice {
     }
 
     public double[] getPowershots(){
-        return ringPipeline.getPowershots();
+        double[] arr = ringPipeline.getPowershots();
+        return new double[]{arr[0]-12, arr[1]-11, arr[2]-10};
     }
 
     public void shutdown(){

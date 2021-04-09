@@ -36,7 +36,7 @@ public class LinearEventSystem{
                 }
             }
             if (terminators.get(currentIndex).shouldTerminate(sensorData, hardwareData)) {
-                if (currentIndex >= logicStates.size()) {
+                if (currentIndex >= (logicStates.size()-1)) {
                     if (endtype == ENDTYPE.CONTINUE_LAST) {
                         return;
                     }

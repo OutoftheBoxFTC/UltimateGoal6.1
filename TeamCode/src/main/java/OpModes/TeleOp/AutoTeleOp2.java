@@ -237,13 +237,13 @@ public class AutoTeleOp2 extends BasicOpmode {
 
                 double[] powershots = hardware.getSmartDevices().get("TowerCam", TowerCV.class).getPowershots();
                 if(gamepad1.b){
-                    angDelta = Math.toRadians(powershots[0]) - Math.toRadians(rotOffset);
+                    angDelta = Math.toRadians(powershots[0]);
                 }
                 if(gamepad1.y){
-                    angDelta = Math.toRadians(powershots[1]) - Math.toRadians(rotOffset);
+                    angDelta = Math.toRadians(powershots[1]);
                 }
                 if(gamepad1.x){
-                    angDelta = Math.toRadians(powershots[2]) - Math.toRadians(rotOffset);
+                    angDelta = Math.toRadians(powershots[2]);
                 }
 
                 hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
@@ -349,7 +349,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 }else if(gamepad2.right_stick_y < -0.2){
                     holdShoot = true;
                 }else if(gamepad2.right_stick_y > 0.2 || gamepad1.y || gamepad1.b || gamepad1.x){
-                    hardwareData.setShooterTilt(0.37 + tiltLevel);
+                    hardwareData.setShooterTilt(0.365 + tiltLevel);
                 }
 
                 if(Math.abs(gamepad2.left_trigger) > 0.2){

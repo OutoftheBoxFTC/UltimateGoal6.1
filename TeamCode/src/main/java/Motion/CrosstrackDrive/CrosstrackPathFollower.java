@@ -103,11 +103,11 @@ public class CrosstrackPathFollower extends VelocityDriveState {
         RobotLog.ii("Vel", rotatedVels.toString() + " | " + mainVel + " | " + tang + " | " + closestPoint);
 
         if(Math.abs(rotatedVels.getA()) < RobotConstants.UltimateGoal.KF){
-            rotatedVels.setA(RobotConstants.UltimateGoal.KF * Math.sin(rotatedVels.getA()));
+            rotatedVels.setA(RobotConstants.UltimateGoal.KF * MathUtils.sign(rotatedVels.getA()));
         }
 
         if(Math.abs(rotatedVels.getB()) < RobotConstants.UltimateGoal.KF){
-            rotatedVels.setB(RobotConstants.UltimateGoal.KF * Math.sin(rotatedVels.getB()));
+            rotatedVels.setB(RobotConstants.UltimateGoal.KF * MathUtils.sign(rotatedVels.getB()));
         }
 
         double rotSpeed = Math.min(maxRotSpeed, RobotConstants.UltimateGoal.KF) * MathUtils.sign(MathUtils.getRadRotDist(position.getC(), rotTarget));
