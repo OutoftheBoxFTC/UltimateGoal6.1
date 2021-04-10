@@ -56,6 +56,10 @@ public class TowerCV extends SmartDevice {
         return new double[]{arr[0]-12, arr[1]-11, arr[2]-10};
     }
 
+    public double calibratePitch(){
+        return ringPipeline.calibratePitch();
+    }
+
     public void shutdown(){
         //openCvCamera.stopStreaming();
         //openCvCamera.closeCameraDevice();

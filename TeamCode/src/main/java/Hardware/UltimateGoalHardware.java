@@ -57,8 +57,9 @@ public class UltimateGoalHardware extends Hardware {
             //smartDevices.put("Wobble Lift", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().readPosition()));
         }
         if(registeredDevices.contains(HardwareDevices.WEBCAM)){
-            //smartDevices.put("Ring Detector", new SmartCV(map.get(WebcamName.class, "Webcam 1"), map));
-            smartDevices.put("TowerCam", new TowerCV(map.get(WebcamName.class, "Webcam 1"), map));
+            //smartDevices.put("Ring Detector", new SmartCV(map.get(WebcamName.class, "Webcam 2"), map));
+            //smartDevices.put("TowerCam", new TowerCV(map.get(WebcamName.class, "Webcam 1"), map));
+            smartDevices.put("SmartCV", new SmartCV(map.get(WebcamName.class, "Webcam 2"), map.get(WebcamName.class, "Webcam 1"), map));
         }
         if(registeredDevices.contains(HardwareDevices.TURRET)){
             smartDevices.put("Turret", new SmartServo(map.servo.get("turret"), new SmartServoConfiguration().setInitPos(0.5)));
@@ -106,7 +107,13 @@ public class UltimateGoalHardware extends Hardware {
             //sensorData.setGyro(smartDevices.get("gyro", SmartNavXMicro.class).getHeading());
         }
         if(enabledDevices.contains(HardwareDevices.WEBCAM)){
-            //sensorData.setRings(smartDevices.get("Ring Detector", SmartCV.class).getRings());
+            SmartCV smartCV = smartDevices.get("SmartCV", SmartCV.class);
+            sensorData.setRings(smartCV.getRings());
+            sensorData.setTrack(smartCV.getTrack());
+            sensorData.setHeading(smartCV.getHeading());
+            sensorData.setRange(smartCV.getRange());
+            sensorData.setPitch(smartCV.getPitch());
+            sensorData.setPowershots(smartCV.getPowershots());
         }
         if(enabledDevices.contains(HardwareDevices.WOBBLE)){
             //sensorData.setWobbleLift(smartDevices.get("Back Left", SmartMotor.class).getPosition());

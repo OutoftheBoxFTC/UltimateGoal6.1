@@ -15,6 +15,7 @@ import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
+import Hardware.SmartDevices.SmartCV.SmartCV;
 import Hardware.SmartDevices.SmartCV.TowerCV;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.UltimateGoalHardware;
@@ -61,6 +62,8 @@ public class AutoTeleOp2 extends BasicOpmode {
                 telemetry.addData("Singleton", SingletonVariables.getInstance().getPosition());
                 odometer.set(SingletonVariables.getInstance().getPosition());
 
+                hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
+                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(SingletonVariables.getInstance().getPitchOffset());
 
                 if(isStarted()){
                     deactivateThis();
@@ -170,13 +173,19 @@ public class AutoTeleOp2 extends BasicOpmode {
                 hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                return Vector3.ZERO();
+            }
 
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                //hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
+                telemetry.addData("Turning", hardwareData.getTurret());
                 double deltaX = targetPosition.getA()-position.getA();
                 double deltaY = targetPosition.getB()-position.getB();
                 angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)) + Math.toRadians(rotOffset);
 
-                if(hardware.getSmartDevices().get("TowerCam", TowerCV.class).getTrack()){
-                    angDelta = Math.toRadians(hardware.getSmartDevices().get("TowerCam", TowerCV.class).getHeading());
+                if(sensorData.getTrack()){
+                    angDelta = Math.toRadians(sensorData.getHeading());
                 }
 
                 double maxSpeed = Math.sqrt(2 * RobotConstants.UltimateGoal.MAX_R_ACCEL * Math.abs(angDelta));
@@ -187,17 +196,12 @@ public class AutoTeleOp2 extends BasicOpmode {
                 if(!UGUtils.inRange(Math.toDegrees(angDelta))){
                     timer = 0;
                 }else {
-                    if(turretTimer < 0) {
-                        timer += 1;
+                    if(turretTimer < 0 || true) {
+                        if(Math.abs(gamepad1.left_stick_x) < 0.1 && Math.abs(gamepad1.left_stick_y) < 0.1 && Math.abs(gamepad1.right_stick_x) < 0.1) {
+                            timer += 1;
+                        }
                     }
                 }
-                return Vector3.ZERO();
-            }
-
-            @Override
-            public void update(SensorData sensorData, HardwareData hardwareData) {
-                //hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
-                //telemetry.addData("Turning", hardwareData.getTurret());
             }
         });
 
@@ -218,24 +222,27 @@ public class AutoTeleOp2 extends BasicOpmode {
                 double deltaX = targetPosition.getA()-position.getA();
                 double deltaY = targetPosition.getB()-position.getB();
                 angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY));
-                if(hardware.getSmartDevices().get("TowerCam", TowerCV.class).getTrack() && !gamepad1.y){
-                    double tmp = Math.toRadians(hardware.getSmartDevices().get("TowerCam", TowerCV.class).getHeading());
+                if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack() && !gamepad1.y){
                     //rotOffset = Math.toDegrees(tmp - angDelta);
-                    angDelta = tmp;
+                    angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
                 }else{
                     angDelta = angDelta + Math.toRadians(rotOffset);
                 }
 
                 double dtheta = angDelta - prevAng;
                 double dt = ProgramClock.getFrameTimeMillis();
-                turretTimer += Math.toDegrees(dtheta) * (1200/270);
+                turretTimer += Math.toDegrees(Math.toDegrees(dtheta)) * (750/270);
+                if(turretTimer > 1000){
+                    turretTimer = 1000;
+                }
                 turretTimer -= dt;
                 if(turretTimer < -1){
                     turretTimer = -1;
                 }
+                FtcDashboard.getInstance().getTelemetry().addData("Turret Timer", turretTimer); //126
                 prevAng = angDelta;
 
-                double[] powershots = hardware.getSmartDevices().get("TowerCam", TowerCV.class).getPowershots();
+                double[] powershots = sensorData.getPowershots();
                 if(gamepad1.b){
                     angDelta = Math.toRadians(powershots[0]);
                 }
@@ -253,7 +260,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 telemetry.addData("Powershots", format.format(powershots[0]) + " " + format.format(powershots[1]) + " " + format.format(powershots[2]));
                 telemetry.addData("Turning", hardwareData.getTurret());
                 telemetry.addData("Heading", Math.toDegrees(angDelta));
-                telemetry.addData("Range", hardware.getSmartDevices().get("TowerCam", TowerCV.class).getRange());
+                telemetry.addData("Range", sensorData.getRange());
             }
         });
 
@@ -272,7 +279,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                         }
                     }
                 }
-                if(gamepad1.left_trigger > 0.25 || gamepad2.left_trigger > 0.25){
+                if(gamepad1.left_trigger > 0.25 || gamepad2.right_trigger > 0.25){
                     stateMachine.setActiveDriveState("Rotate To Target");
                 }else{
                     shot = false;
@@ -302,11 +309,11 @@ public class AutoTeleOp2 extends BasicOpmode {
             double tiltLevel = 0;
             long frameTime = System.currentTimeMillis();
             PIDFSystem system = new PIDFSystem(PIDF);
-            final double targetSpeed = 4.75;
+            final double targetSpeed = 4;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                double reqSpeed = (gamepad2.right_trigger < 0.2) ? 0.75 : 0;
-                double targetSpeed = (gamepad2.right_trigger < 0.2) ? this.targetSpeed : 0;
+                double reqSpeed = (gamepad2.left_trigger < 0.2) ? 0.75 : 0;
+                double targetSpeed = (gamepad2.left_trigger < 0.2) ? this.targetSpeed : 0;
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 //telemetry.addData("Shooter Velocity", vel);
                 hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad1.dpad_down ? 1 : 0)));
@@ -336,7 +343,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.35 + tiltLevel);
+                    hardwareData.setShooterTilt(0.335 + tiltLevel);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }

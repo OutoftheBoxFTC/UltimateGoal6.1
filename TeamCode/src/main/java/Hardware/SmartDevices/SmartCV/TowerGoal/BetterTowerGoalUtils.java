@@ -382,6 +382,11 @@ public class BetterTowerGoalUtils {
         return (40.625 - cameraHeight) / Math.tan(Math.toRadians(pitch));
     }
 
+    public static double approximateCameraAngle(double cameraHeight, double dist, double pitch){
+        double ang = Math.atan2((40.625 - cameraHeight), dist);
+        return Math.toDegrees(ang) - pitch;
+    }
+
     public static double[] approxPowershotAngles(double yaw, double goalWallDist){
         double goalOffset = 16.5;
         double powershotOffset = 7.5;

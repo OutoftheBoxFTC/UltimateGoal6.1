@@ -22,7 +22,7 @@ public class PipelineTester extends OpenCvPipeline {
     private MatOfPoint refContour;
     private Rect boundingRect;
     private double[] firingSolution = new double[]{0, 0}, powershots = new double[]{0, 0, 0};
-    private double fov;
+    private double fov, pitch, pitchOffset;
     private AtomicBoolean track = new AtomicBoolean(false);
 
     public PipelineTester(Context context, double fov){
@@ -37,6 +37,7 @@ public class PipelineTester extends OpenCvPipeline {
         }
 
         this.fov = fov;
+        this.pitchOffset = 17.5893;
 
         refContour = BetterTowerGoalUtils.getReference(refMat);
         refMat.release();
@@ -75,9 +76,11 @@ public class PipelineTester extends OpenCvPipeline {
 
             firingSolution = PnPUtils.getPitchAndYaw(input, boundingRect, cropCopy, fov);
 
+            pitch = firingSolution[0];
+
             double goalWallDist = (horDist + verDist)/2;
 
-            double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(14, firingSolution[0] + 17.7367548);
+            double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(14, firingSolution[0] + pitchOffset);
             powershots = BetterTowerGoalUtils.approxPowershotAngles(-firingSolution[1], goalWallDist2);
 
             firingSolution[0] = goalWallDist2;
@@ -98,8 +101,16 @@ public class PipelineTester extends OpenCvPipeline {
         return cropCopy;
     }
 
+    public void setPitchOffset(double pitchOffset) {
+        this.pitchOffset = pitchOffset;
+    }
+
     public double getHeading(){
         return -firingSolution[1];
+    }
+
+    public double getPitch(){
+        return pitch + pitchOffset;
     }
 
     public double getRange(){
@@ -112,6 +123,11 @@ public class PipelineTester extends OpenCvPipeline {
 
     public double[] getPowershots() {
         return powershots;
+    }
+
+    public double calibratePitch(){
+        double ang = BetterTowerGoalUtils.approximateCameraAngle(14, 126, pitch);
+        return ang;
     }
 
     public Rect getBoundingRect() {

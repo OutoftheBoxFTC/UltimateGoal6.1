@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
+import Hardware.SmartDevices.SmartCV.SmartCV;
 import Hardware.SmartDevices.SmartCV.TowerCV;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.UltimateGoalHardware;
@@ -54,8 +55,9 @@ public class AutoTurretTest extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 telemetry.addData("Position", position);
                 telemetry.addData("Active States", stateMachine.getActiveStates());
+                //hardware.getSmartDevices().get("SmartCV", SmartCV.class).enableTowerTrack();
 
-                double[] powershots = hardware.getSmartDevices().get("TowerCam", TowerCV.class).getPowershots();
+                double[] powershots = hardware.getSmartDevices().get("SmartCV", SmartCV.class).getPowershots();
                 DecimalFormat format = new DecimalFormat("#.##");
 
                 telemetry.addData("Powershots", format.format(powershots[0]) + " " + format.format(powershots[1]) + " " + format.format(powershots[2]));
@@ -114,7 +116,7 @@ public class AutoTurretTest extends BasicOpmode {
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                if(!stateMachine.logicStateActive("Turret") && hardware.getSmartDevices().get("TowerCam", TowerCV.class).getTrack()){
+                if(!stateMachine.logicStateActive("Turret") && hardware.getSmartDevices().get("SmartCV", SmartCV.class).getTrack()){
                     stateMachine.activateLogic("Turret");
                 }
             }
@@ -151,7 +153,7 @@ public class AutoTurretTest extends BasicOpmode {
         eventSystem.onInit("Get Pos", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                powershots = hardware.getSmartDevices().get("TowerCam", TowerCV.class).getPowershots();
+                powershots = hardware.getSmartDevices().get("SmartCV", SmartCV.class).getPowershots();
                 //powershots = new double[]{2, 8, 13};
             }
         });

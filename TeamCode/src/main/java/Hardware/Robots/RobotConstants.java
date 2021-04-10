@@ -21,7 +21,7 @@ public class RobotConstants {
         public static final double MAX_ROTATION_SPEED = 3.75;
         public static final double MAX_SPEED = 30;
 
-        public static final double MAX_LIN_ACCEL = 3;
+        public static final double MAX_LIN_ACCEL = 7;
         public static final double MAX_R_ACCEL = 2;
 
         public static final double KF = 0.1;

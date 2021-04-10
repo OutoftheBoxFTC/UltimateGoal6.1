@@ -52,10 +52,10 @@ public class RingPipeline extends OpenCvPipeline {
             Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(largestIndex).toArray()), matchCurve, 0.005 * Imgproc.arcLength(new MatOfPoint2f(contours.get(largestIndex).toArray()), true), true);
 
             Rect matchRect = Imgproc.boundingRect(matchCurve);
-
-            if (matchRect.area() < 1000) {
+            RobotLog.ii("Area", matchRect.area() + "");
+            if (matchRect.area() < 100) {
                 numRings = 0;
-            } else if (matchRect.area() < 27000) {
+            } else if (matchRect.area() < 2200) {
                 numRings = 1;
             } else {
                 numRings = 4;
