@@ -130,45 +130,7 @@ public class TurretTest extends BasicOpmode {
                         }
                     }
                 }
-                if(gamepad1.a){
-                    if(!stateMachine.logicStateActive("Drive"))
-                        stateMachine.activateLogic("Drive");
-                }
                 telemetry.addData("state", state);
-            }
-        });
-
-        stateMachine.appendDriveState("Stop", new VelocityDriveState(stateMachine) {
-            @Override
-            public Vector3 getVelocities() {
-                return Vector3.ZERO();
-            }
-
-            @Override
-            public void update(SensorData sensorData, HardwareData hardwareData) {
-
-            }
-        });
-
-        stateMachine.appendLogicState("Drive", new LogicState(stateMachine) {
-            OrientationTerminator orientationTerminator;
-            @Override
-            public void init(SensorData sensorData, HardwareData hardwareData) {
-                Path path = new PathBuilder(0, 0, Angle.degrees(0))
-                        .lineTo(0, 50)
-                        .complete();
-                CrosstrackBuilder builder = new CrosstrackBuilder(stateMachine, position);
-                stateMachine.appendDriveState("DriveState", builder.follow(path, 0, 0.4, 0.15));
-                stateMachine.setActiveDriveState("DriveState");
-                orientationTerminator = new OrientationTerminator(position, path.getEndpoint(), 1, 1, 3);
-            }
-
-            @Override
-            public void update(SensorData sensorData, HardwareData hardwareData) {
-                if(orientationTerminator.shouldTerminate(sensorData, hardwareData)){
-                    stateMachine.setActiveDriveState("Stop");
-                    deactivateThis();
-                }
             }
         });
     }

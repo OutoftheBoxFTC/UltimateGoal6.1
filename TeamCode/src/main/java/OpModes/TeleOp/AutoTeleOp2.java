@@ -1,6 +1,7 @@
 package OpModes.TeleOp;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -31,6 +32,7 @@ import State.LogicState;
 import State.VelocityDriveState;
 
 @TeleOp
+@Config
 public class AutoTeleOp2 extends BasicOpmode {
     ConstantVOdometer odometer;
     Vector3 position, velocity;
@@ -40,7 +42,7 @@ public class AutoTeleOp2 extends BasicOpmode {
     int timer = 0;
     long turretTimer = 0;
     double rotOffset;
-    public static Vector4 PIDF = new Vector4(0.8, 0, 0, 0.15);
+    public static double p = 0.8, i = 0, d = 0, f = 0.1;
     public AutoTeleOp2() {
         super(new UltimateGoalHardware());
     }
@@ -182,7 +184,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 telemetry.addData("Turning", hardwareData.getTurret());
                 double deltaX = targetPosition.getA()-position.getA();
                 double deltaY = targetPosition.getB()-position.getB();
-                angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)) + Math.toRadians(rotOffset);
+                //angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)) + Math.toRadians(rotOffset);
 
                 if(sensorData.getTrack()){
                     angDelta = Math.toRadians(sensorData.getHeading());
@@ -226,7 +228,8 @@ public class AutoTeleOp2 extends BasicOpmode {
                     //rotOffset = Math.toDegrees(tmp - angDelta);
                     angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
                 }else{
-                    angDelta = angDelta + Math.toRadians(rotOffset);
+                    //angDelta = angDelta + Math.toRadians(rotOffset);
+                    angDelta = prevAng;
                 }
 
                 double dtheta = angDelta - prevAng;
@@ -239,7 +242,6 @@ public class AutoTeleOp2 extends BasicOpmode {
                 if(turretTimer < -1){
                     turretTimer = -1;
                 }
-                FtcDashboard.getInstance().getTelemetry().addData("Turret Timer", turretTimer); //126
                 prevAng = angDelta;
 
                 double[] powershots = sensorData.getPowershots();
@@ -308,13 +310,14 @@ public class AutoTeleOp2 extends BasicOpmode {
         eventSystem.onStart("Shoot", new LogicState(stateMachine) {
             double tiltLevel = 0;
             long frameTime = System.currentTimeMillis();
-            PIDFSystem system = new PIDFSystem(PIDF);
-            final double targetSpeed = 4;
+            PIDFSystem system = new PIDFSystem(p, i, d, f);
+            final double targetSpeed = 3.75;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 double reqSpeed = (gamepad2.left_trigger < 0.2) ? 0.75 : 0;
                 double targetSpeed = (gamepad2.left_trigger < 0.2) ? this.targetSpeed : 0;
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
+                system.setCoef(new Vector4(p, i, d, f));
                 //telemetry.addData("Shooter Velocity", vel);
                 hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad1.dpad_down ? 1 : 0)));
                 if(stopShooter){
@@ -343,7 +346,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.335 + tiltLevel);
+                    hardwareData.setShooterTilt(0.3275 + tiltLevel);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }

@@ -83,6 +83,10 @@ public class PIDFSystem {
         return target;
     }
 
+    public void setCoef(Vector4 coef) {
+        this.coef = coef;
+    }
+
     public void reset(){
         error = 0;
         previousError = 0;

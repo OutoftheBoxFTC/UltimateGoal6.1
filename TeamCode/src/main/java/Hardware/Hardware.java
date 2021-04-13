@@ -108,6 +108,7 @@ public abstract class Hardware implements Runnable {
                 }
             }
             setHardware(hardwarePacket);
+            RobotLog.ii("Delay", "" + (System.currentTimeMillis() - hardwarePacket.getTimestamp()));
             for (String device : smartDevices.keySet()) {
                 smartDevices.get(device).update();
             }

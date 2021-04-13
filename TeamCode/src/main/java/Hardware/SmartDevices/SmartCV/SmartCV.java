@@ -42,13 +42,14 @@ public class SmartCV extends SmartDevice {
                 ring.setPipeline(ringPipeline);
             }
         });
-
         tower.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
                 tower.openCameraDevice();
-                tower.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+                tower.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
                 tower.setPipeline(highgoalPipeline);
+                //FtcDashboard.getInstance().startCameraStream(tower, 30);
+
             }
         });
     }
@@ -81,7 +82,7 @@ public class SmartCV extends SmartDevice {
     }
 
     public double getHeading(){
-        return highgoalPipeline.getHeading()-10;
+        return highgoalPipeline.getHeading()-12;
     }
 
     public double getRange(){
@@ -98,7 +99,7 @@ public class SmartCV extends SmartDevice {
 
     public double[] getPowershots(){
         double[] arr = highgoalPipeline.getPowershots();
-        return new double[]{arr[0]-12, arr[1]-10, arr[2]-10};
+        return new double[]{arr[0]-12, arr[1]-12, arr[2]-10};
     }
 
     public double calibratePitch(){

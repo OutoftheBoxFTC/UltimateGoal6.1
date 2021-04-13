@@ -1,14 +1,17 @@
 package Hardware.HarwareUtils;
 
-import MathSystems.MathUtils;
+import com.acmerobotics.dashboard.config.Config;
 
+import MathSystems.MathUtils;
+@Config
 public class UGUtils {
+    public static double minAngle = -21, maxAngle = 24;
     public static double getTurretValue(double angle){
-        angle = MathUtils.clamp(angle, -21, 24);
-        return (((angle + 21.0) / 45.0) * 0.95) + 0.05;
+        angle = MathUtils.clamp(angle, minAngle, maxAngle);
+        return (((angle + Math.abs(minAngle)) / (maxAngle + Math.abs(minAngle))) * 0.95) + 0.05;
     }
 
     public static boolean inRange(double angle){
-        return (angle < 24) && (angle > -21);
+        return (angle < maxAngle) && (angle > minAngle);
     }
 }

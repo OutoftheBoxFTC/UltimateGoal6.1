@@ -111,8 +111,9 @@ public class RedAutonomous3 extends BasicOpmode {
 
                 //stateMachine.appendDriveState("Drive To Left Powershot", builder.follow(powershotPath, 0, 0.55, 0.15));
                 linearSystem.put("Activate Powershots", new OrientationTerminator(position, path.getEndpoint().getVector2().toVector3(0), 2, 2));
-                linearSystem.put("Zero Out", new OrientationTerminator(position, path.getEndpoint().getVector2().toVector3(0), 10, 0.5, 5));
-                linearSystem.put("End", new TrueTimeTerminator(500));
+                linearSystem.put("Zero Out", new OrientationTerminator(position, path.getEndpoint().getVector2().toVector3(-1.5), 10, 1, 5));
+                linearSystem.put("End", new TrueTimeTerminator(50));
+                linearSystem.put("Get Pos", new TimeTerminator(3));
                 linearSystem.put("Shoot First", new TrueTimeTerminator(500));
                 linearSystem.put("Load Shooter", new TrueTimeTerminator(550));
                 linearSystem.put("Shoot Second", new TrueTimeTerminator(500));
@@ -134,11 +135,7 @@ public class RedAutonomous3 extends BasicOpmode {
         stateMachine.appendDriveState("Rotate To Zero", new VelocityDriveState(stateMachine) {
             @Override
             public Vector3 getVelocities() {
-                if(Math.toDegrees(position.getC()) > 180) {
-                    return new Vector3(0, 0, 0.1);
-                }else{
-                    return new Vector3(0, 0, -0.1);
-                }
+                return new Vector3(0, 0, 0.1 * MathUtils.sign(MathUtils.getRadRotDist(position.getC(), Math.toRadians(-1.5))));
             }
 
             @Override
@@ -189,10 +186,17 @@ public class RedAutonomous3 extends BasicOpmode {
                 .complete()); //Rotate To Left Powershot
 
         eventSystem.onInit("Get Pos", new LogicState(stateMachine) {
+            double powershotDist = -8;
+            Vector2 psht1 = new Vector2(-8, 142);
+            Vector2 psht2 = new Vector2(psht1.getA()+powershotDist, 142);
+            Vector2 psht3 = new Vector2(psht2.getA()+powershotDist, 142);
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                powershots = hardware.getSmartDevices().get("SmartCV", SmartCV.class).getPowershots();
-                //powershots = new double[]{2, 8, 13};
+                //powershots = hardware.getSmartDevices().get("SmartCV", SmartCV.class).getPowershots();
+                double ang1 = -Math.atan2(psht1.getA() - position.getA(), psht1.getB() - position.getB());
+                double ang2 = -Math.atan2(psht2.getA() - position.getA(), psht2.getB() - position.getB());
+                double ang3 = -Math.atan2(psht3.getA() - position.getA(), psht3.getB() - position.getB());
+                powershots = new double[]{Math.toDegrees(MathUtils.getRadRotDist(ang1, position.getC())), Math.toDegrees(MathUtils.getRadRotDist(ang2, position.getC())), Math.toDegrees(MathUtils.getRadRotDist(ang3, position.getC()))};
             }
         });
 
@@ -344,8 +348,8 @@ public class RedAutonomous3 extends BasicOpmode {
                 .lineTo(10, 110, Angle.degrees(-45))
                 .lineTo(wobble1pos.getVector2(), Angle.degrees(0))
                 .complete();
-        Path wobble2Path = new PathBuilder(32, 65, Angle.degrees(0))
-                .lineTo(31, 45)
+        Path wobble2Path = new PathBuilder(35, 65, Angle.degrees(0))
+                .lineTo(35, 45)
                 .complete();
 
         linearSystem.put("Drop And Outtake", new TimeTerminator(10));

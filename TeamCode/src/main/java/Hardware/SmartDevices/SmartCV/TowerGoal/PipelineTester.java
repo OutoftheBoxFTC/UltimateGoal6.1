@@ -45,8 +45,7 @@ public class PipelineTester extends OpenCvPipeline {
     @Override
     public Mat processFrame(Mat input) {
 
-        Mat resized = new Mat();
-        Imgproc.resize(input, resized, new Size(640, 480));
+        Mat resized = input.clone();
         Imgproc.cvtColor(resized, resized, Imgproc.COLOR_RGB2BGR);
         //resized = input.clone();
         MatOfPoint m = BetterTowerGoalUtils.getMatchRect(refContour, resized);
