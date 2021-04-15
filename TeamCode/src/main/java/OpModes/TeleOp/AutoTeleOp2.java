@@ -85,10 +85,10 @@ public class AutoTeleOp2 extends BasicOpmode {
                     return new Vector3(gamepad1.left_stick_x * speedMod, gamepad1.left_stick_y * speedMod, -gamepad1.right_stick_x * 0.6);
                 }else{
                     if(gamepad1.left_trigger < 0.1) {
-                        hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                        hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                        hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                        hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+                        hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                        hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                        hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                        hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     }
                     return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
                 }
@@ -300,7 +300,8 @@ public class AutoTeleOp2 extends BasicOpmode {
         eventSystem.onStart("Intake", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setIntakePower((gamepad1.right_bumper ? 1 : (gamepad1.left_bumper ? -1 : 0)));
+                hardwareData.setIntakePower((gamepad1.right_bumper ? 1 : (gamepad1.left_bumper ? -0.7 : 0.6875)));
+                hardwareData.setIntakePower((gamepad2.left_trigger > 0.1 ? 0 : hardwareData.getIntake()));
 
                 telemetry.addData("Position", position);
                 telemetry.addData("Velocity", velocity);
@@ -314,8 +315,8 @@ public class AutoTeleOp2 extends BasicOpmode {
             final double targetSpeed = 3.75;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                double reqSpeed = (gamepad2.left_trigger < 0.2) ? 0.75 : 0;
-                double targetSpeed = (gamepad2.left_trigger < 0.2) ? this.targetSpeed : 0;
+                double reqSpeed = (!gamepad2.left_bumper) ? 0.75 : 0;
+                double targetSpeed = (!gamepad2.left_bumper) ? this.targetSpeed : 0;
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 system.setCoef(new Vector4(p, i, d, f));
                 //telemetry.addData("Shooter Velocity", vel);
@@ -362,7 +363,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                     hardwareData.setShooterTilt(0.365 + tiltLevel);
                 }
 
-                if(Math.abs(gamepad2.left_trigger) > 0.2){
+                if(gamepad2.a){
                     //stopShooter = true;
                     //hardwareData.setShooterTilt(0.49);
                 }else if(Math.abs(gamepad2.left_stick_y) < 0.2){
@@ -398,8 +399,8 @@ public class AutoTeleOp2 extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                  if(gamepad2.a){
-                     hardwareData.setWobbleLiftRight(0.43622);
-                     hardwareData.setWobbleLiftLeft(0.5208);
+                     //hardwareData.setWobbleLiftRight(0.43622);
+                     //hardwareData.setWobbleLiftLeft(0.5208);
                  }
                  if(gamepad2.x){
                      hardwareData.setWobbleLiftRight(0.49055);

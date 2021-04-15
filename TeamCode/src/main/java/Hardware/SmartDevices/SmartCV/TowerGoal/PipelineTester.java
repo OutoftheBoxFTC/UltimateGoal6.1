@@ -24,6 +24,7 @@ public class PipelineTester extends OpenCvPipeline {
     private double[] firingSolution = new double[]{0, 0}, powershots = new double[]{0, 0, 0};
     private double fov, pitch, pitchOffset;
     private AtomicBoolean track = new AtomicBoolean(false);
+    private int idx = 1;
 
     public PipelineTester(Context context, double fov){
         boundingRect = new Rect(0, 0, 0, 0);
@@ -96,6 +97,9 @@ public class PipelineTester extends OpenCvPipeline {
         }
 
         m.release();
+
+        //saveMatToDisk(cropCopy, "out" + idx);
+        //idx ++;
 
         return cropCopy;
     }

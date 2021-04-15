@@ -48,6 +48,14 @@ public class SmartCV extends SmartDevice {
                 tower.openCameraDevice();
                 tower.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
                 tower.setPipeline(highgoalPipeline);
+                /**tower.startRecordingPipeline(new PipelineRecordingParameters.Builder()
+                .setPath("/sdcard/tower" + System.currentTimeMillis() + ".mp4")
+                .setFrameRate(24)
+                .setOutputFormat(PipelineRecordingParameters.OutputFormat.MPEG_4)
+                .setEncoder(PipelineRecordingParameters.Encoder.H263)
+                .setBitrate(3, PipelineRecordingParameters.BitrateUnits.Mbps)
+                .build());
+                 */
                 //FtcDashboard.getInstance().startCameraStream(tower, 30);
 
             }
@@ -99,7 +107,7 @@ public class SmartCV extends SmartDevice {
 
     public double[] getPowershots(){
         double[] arr = highgoalPipeline.getPowershots();
-        return new double[]{arr[0]-12, arr[1]-12, arr[2]-10};
+        return new double[]{arr[0]-10, arr[1]-10, arr[2]-10};
     }
 
     public double calibratePitch(){
