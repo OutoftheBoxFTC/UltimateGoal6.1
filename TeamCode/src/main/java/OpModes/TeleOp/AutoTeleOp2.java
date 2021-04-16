@@ -300,7 +300,7 @@ public class AutoTeleOp2 extends BasicOpmode {
         eventSystem.onStart("Intake", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setIntakePower((gamepad1.right_bumper ? 1 : (gamepad1.left_bumper ? -0.7 : 0.6875)));
+                hardwareData.setIntakePower((gamepad1.right_bumper ? 1 : (gamepad1.left_bumper ? -0.7 : 0)));
                 hardwareData.setIntakePower((gamepad2.left_trigger > 0.1 ? 0 : hardwareData.getIntake()));
 
                 telemetry.addData("Position", position);
@@ -312,7 +312,7 @@ public class AutoTeleOp2 extends BasicOpmode {
             double tiltLevel = 0;
             long frameTime = System.currentTimeMillis();
             PIDFSystem system = new PIDFSystem(p, i, d, f);
-            final double targetSpeed = 3.75;
+            final double targetSpeed = 4.25;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 double reqSpeed = (!gamepad2.left_bumper) ? 0.75 : 0;
@@ -347,7 +347,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.3275 + tiltLevel);
+                    hardwareData.setShooterTilt(0.345 + tiltLevel);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
@@ -364,8 +364,8 @@ public class AutoTeleOp2 extends BasicOpmode {
                 }
 
                 if(gamepad2.a){
-                    //stopShooter = true;
-                    //hardwareData.setShooterTilt(0.49);
+                    stopShooter = true;
+                    hardwareData.setShooterTilt(0.49);
                 }else if(Math.abs(gamepad2.left_stick_y) < 0.2){
                     stopShooter = false;
                 }
@@ -424,9 +424,9 @@ public class AutoTeleOp2 extends BasicOpmode {
                  }
                  maxVal = 0.2;
                  //telemetry.addData("Wobble", sensorData.getWobbleLift() + " | " + minVal + " | " + maxVal);
-                hardwareData.setWobbleLift(-MathUtils.clamp(gamepad2.left_stick_y * 1, minVal, maxVal));
+                //hardwareData.setWobbleLift(-MathUtils.clamp(gamepad2.left_stick_y * 1, minVal, maxVal));
                 if(Math.abs(gamepad2.left_stick_y) < 0.1){
-                     hardwareData.setWobbleLift(0.1);
+                     //hardwareData.setWobbleLift(0.1);
                  }
                  /**
                  if(gamepad2.left_stick_y < -0.1){
@@ -481,7 +481,7 @@ public class AutoTeleOp2 extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
                     hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 100;
+                    timer = System.currentTimeMillis() + 175;
                     state = 1;
                 }
                 if(state == 1){
@@ -491,7 +491,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.925);
-                    timer = System.currentTimeMillis() + 120;
+                    timer = System.currentTimeMillis() + 175;
                     state = 3;
                 }
                 if(state == 3){
@@ -514,7 +514,7 @@ public class AutoTeleOp2 extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
                     //hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 140;
+                    timer = System.currentTimeMillis() + 175;
                     state = 1;
                 }
                 if(state == 1){
@@ -524,7 +524,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 }
                 if(state == 2){
                     //hardwareData.setShooterLoadArm(0.875);
-                    timer = System.currentTimeMillis() + 140;
+                    timer = System.currentTimeMillis() + 175;
                     state = 3;
                 }
                 if(state == 3){

@@ -90,7 +90,7 @@ public class SmartCV extends SmartDevice {
     }
 
     public double getHeading(){
-        return highgoalPipeline.getHeading()-12;
+        return highgoalPipeline.getHeading()-10;
     }
 
     public double getRange(){
