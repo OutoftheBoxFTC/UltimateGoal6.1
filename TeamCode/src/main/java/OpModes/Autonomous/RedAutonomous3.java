@@ -3,6 +3,7 @@ package OpModes.Autonomous;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -47,6 +48,7 @@ import State.SingleLogicState;
 import State.VelocityDriveState;
 
 @Autonomous
+@Disabled
 public class RedAutonomous3 extends BasicOpmode {
     Vector3 position, velocity;
     Vector3 wobble1pos, wobble2pos;
@@ -868,11 +870,11 @@ public class RedAutonomous3 extends BasicOpmode {
         CrosstrackBuilder builder = new CrosstrackBuilder(stateMachine, position);
         Path wobble1Path = new PathBuilder(0, 55, Angle.degrees(14)).lineTo(wobble1pos.getVector2(), Angle.degrees(45)).complete();
         Path bouncebackPath = new PathBuilder(wobble1Path.getEndpoint())
-                .lineTo(-16, 116, Angle.degrees(0))
-                .lineTo(-20, 116, Angle.degrees(0))
+                .lineTo(-16, 112, Angle.degrees(0))
+                .lineTo(-20, 112, Angle.degrees(0))
                 .complete();
         Path wobble2Path = new PathBuilder(wobble1Path.getEndpoint())
-                .lineTo(35, 60, Angle.degrees(0))
+                .lineTo(33, 60, Angle.degrees(0))
                 .lineTo(36, 45, Angle.degrees(0)).complete();
         Path collectWobble2Path = new PathBuilder(wobble2Path.getEndpoint())
                 .lineTo(39, 26, Angle.degrees(0))
@@ -888,10 +890,10 @@ public class RedAutonomous3 extends BasicOpmode {
         linearSystem.put("Collect Wobble 2 Activator", new OrientationTerminator(position, collectWobble2Path.getEndpoint(), 5, 1));
         linearSystem.put("Raise Forks", new TimeTerminator(10));
         linearSystem.put("Outtake", new TimeTerminator(3));
-        linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(27, 18, 5), 3, 2.5));
+        linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(23, 18, 5), 3, 2.5));
         linearSystem.put("Intake", new TimeTerminator(2));
         linearSystem.put("Flick Shooter", new TimeTerminator(2));
-        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(28, 31, 0), 5, 2));
+        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(23, 31, 0), 5, 2));
         //linearSystem.put("End", new TimeTerminator(30));
         //linearSystem.put("Shoot", new TimeTerminator(30));
         //linearSystem.put("ShootMain", new TimeTerminator(20));
@@ -900,7 +902,7 @@ public class RedAutonomous3 extends BasicOpmode {
         linearSystem.put("Drop And Outtake", new TimeTerminator(20));
         linearSystem.put("Auto Aim", new TrueTimeTerminator(10));
         linearSystem.put("Repeat Shoot", new TimeTerminator(2));
-        linearSystem.put("Intake Stack 2 Activator", new OrientationTerminator(position, new Vector3(26, 58, 0), 3, 2));
+        linearSystem.put("Intake Stack 2 Activator", new OrientationTerminator(position, new Vector3(23, 58, 0), 3, 2));
         linearSystem.put("End", new TimeTerminator(2));
         linearSystem.put("Flick Shooter", new TimeTerminator(2));
         //linearSystem.put("Shoot", new TimeTerminator(30));
@@ -945,7 +947,7 @@ public class RedAutonomous3 extends BasicOpmode {
         driveStates.put("Collect Wobble 2", builder.follow(collectWobble2Path, 0, 0.25, 0.5));
 
         driveStates.put("Intake Stack 1", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(new Vector2(28, 31))
+                .setTarget(new Vector2(23, 31))
                 .setSpeed(0.75)
                 .setRot(0)
                 .setRotPrec(1)
@@ -953,7 +955,7 @@ public class RedAutonomous3 extends BasicOpmode {
         );
 
         driveStates.put("Intake Stack 2", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(new Vector2(26, 58))
+                .setTarget(new Vector2(23, 58))
                 .setSpeed(0.3)
                 .setRot(0)
                 .setRotPrec(1)
@@ -1036,7 +1038,7 @@ public class RedAutonomous3 extends BasicOpmode {
         stateMachine.appendDriveState("Drive To Wobble 2", builder.follow(wobble2Path, 0, 1, 0.1));
 
         stateMachine.appendDriveState("Drive To Ring Stack", new PIDDriveToPointBuilder(stateMachine, position, velocity)
-                .setTarget(new Vector2(27, 18))
+                .setTarget(new Vector2(23, 18))
                 .setSpeed(0.3)
                 .setRot(5)
                 .setSlowdownDistance(1)

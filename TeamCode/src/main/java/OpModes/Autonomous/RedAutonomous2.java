@@ -7,10 +7,12 @@ import com.qualcomm.robotcore.hardware.HardwareDeviceCloseOnTearDown;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 
 import Hardware.CustomClasses.SingletonVariables;
 import Hardware.Hardware;
+import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.RobotSystems.MecanumSystem;
@@ -50,6 +52,8 @@ public class RedAutonomous2 extends BasicOpmode {
     Vector3 wobble1pos, wobble2pos;
     Odometer odometer;
     int stackHeight = 4;
+    double[] powershots = new double[]{0, 0, 0};
+    public static double powershot1 = 2.5, powershot2 = -2, powershot3 = -7.5;
     public RedAutonomous2() {
         super(new UltimateGoalHardware());
     }
@@ -72,12 +76,13 @@ public class RedAutonomous2 extends BasicOpmode {
                 hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                telemetry.addData("Calibration Pitch", hardware.getSmartDevices().get("SmartCV", SmartCV.class).calibratePitch());
+                telemetry.addData("Calibration Range", sensorData.getRange());
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_HOLD);
                 hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.HOLD_INTAKE);
                 hardwareData.setShooterLoadArm(0.875);
                 if(isStarted()){
-                    hardware.disableDevice(Hardware.HardwareDevices.WEBCAM);
-                    hardware.smartDevices.get("Ring Detector", SmartCV.class).shutdown();
+                    hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
                     deactivateThis();
                 }
                 telemetry.addData("Init", "true");
@@ -98,24 +103,26 @@ public class RedAutonomous2 extends BasicOpmode {
                 hardwareData.setShooterTilt(0.36);
                 hardwareData.setShooterLoadArm(0.925);
 
-                CrosstrackBuilder builder = new CrosstrackBuilder(stateMachine, position);
-                Path powershotPath = new PathBuilder(Vector2.ZERO(), Angle.degrees(0))
-                        .lineTo(0, 55, Angle.degrees(0))
+                Path path = new PathBuilder(0, 0, Angle.degrees(0))
+                        .lineTo(-7, 50)
                         .complete();
+                CrosstrackBuilder builder = new CrosstrackBuilder(stateMachine, position);
+                stateMachine.appendDriveState("Drive To Powershots", builder.follow(path, 0, 0.5, 0.15));
+                stateMachine.appendLogicState("Activate Powershots", new DriveStateActivator(stateMachine, "Drive To Powershots"));
+                stateMachine.appendLogicState("Zero Out", new DriveStateActivator(stateMachine, "Rotate To Zero"));
 
                 //stateMachine.appendDriveState("Drive To Left Powershot", builder.follow(powershotPath, 0, 0.55, 0.15));
+                linearSystem.put("Activate Powershots", new OrientationTerminator(position, path.getEndpoint().getVector2().toVector3(0), 2, 2));
+                linearSystem.put("Zero Out", new OrientationTerminator(position, path.getEndpoint().getVector2().toVector3(-1.5), 10, 1, 5));
+                linearSystem.put("End", new TrueTimeTerminator(50));
+                linearSystem.put("Get Pos", new TimeTerminator(3));
+                linearSystem.put("Shoot First", new TrueTimeTerminator(500));
+                linearSystem.put("Load Shooter", new TrueTimeTerminator(550));
+                linearSystem.put("Shoot Second", new TrueTimeTerminator(500));
+                linearSystem.put("Load Shooter", new TrueTimeTerminator(400));
+                linearSystem.put("Shoot Third", new TrueTimeTerminator(500));
+                linearSystem.put("Load Shooter", new TrueTimeTerminator(400));
 
-                linearSystem.put("Left Powershot", new OrientationTerminator(position, new Vector3(0, 55, 0), 1, 1.5, 10));
-                linearSystem.put("End", new TrueTimeTerminator(100));
-                linearSystem.put("Rot To Left", new OrientationTerminator(position, new Vector3(0, 60, 2), 25, 1));
-                linearSystem.put("Shoot", new TrueTimeTerminator(600));
-                //linearSystem.put("Shoot", new OrientationTerminator(position, new Vector3(-4.5, 60, -25), 5, 2.5));
-                linearSystem.put("Centre Powershot", new OrientationTerminator(position, new Vector3(0, 60, 6.5), 25, 1));
-                linearSystem.put("Shoot", new TrueTimeTerminator(600));
-                linearSystem.put("Right Powershot", new OrientationTerminator(position, new Vector3(0, 60, 13), 25, 1));
-                linearSystem.put("Shoot", new TrueTimeTerminator(600));
-                linearSystem.put("Stop Shooter", new TimeTerminator(10));
-                //linearSystem.put("End", new TrueTimeTerminator(1000000000));
                 if(stackHeight == 0){
                     setStackHeight0(linearSystem);
                 }else if(stackHeight == 1){
@@ -127,7 +134,47 @@ public class RedAutonomous2 extends BasicOpmode {
             }
         });
 
-        stateMachine.appendLogicState("Rot To Left", new DriveStateActivator(stateMachine, "Rotate To Left Powershot"));
+        stateMachine.appendDriveState("Rotate To Zero", new VelocityDriveState(stateMachine) {
+            @Override
+            public Vector3 getVelocities() {
+                return new Vector3(0, 0, 0.15 * MathUtils.sign(MathUtils.getRadRotDist(position.getC(), Math.toRadians(-1.5))));
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+
+            }
+        });
+
+        eventSystem.onStart("Load Shooter", new LogicState(stateMachine) {
+            int state = 0;
+            long timer = 0;
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(state == 0){
+                    hardwareData.setShooterLoadArm(0.7);
+                    timer = System.currentTimeMillis() + 100;
+                    state = 1;
+                }
+                if(state == 1){
+                    if(System.currentTimeMillis() >= timer){
+                        state = 2;
+                    }
+                }
+                if(state == 2){
+                    hardwareData.setShooterLoadArm(0.925);
+                    timer = System.currentTimeMillis() + 120;
+                    state = 3;
+                }
+                if(state == 3){
+                    if(System.currentTimeMillis() >= timer){
+                        state = 0;
+                        deactivateThis();
+                    }
+                }
+                telemetry.addData("state", state);
+            }
+        });
 
         stateMachine.appendDriveState("Drive To Left Powershot", new DriveToPointBuilder(stateMachine, position)
                 .setTarget(new Vector2(0, 55)) //b should be 60
@@ -140,38 +187,59 @@ public class RedAutonomous2 extends BasicOpmode {
                 .setMinimums(0.15)
                 .complete()); //Rotate To Left Powershot
 
-        stateMachine.appendDriveState("Rotate To Left Powershot", new VelocityDriveState(stateMachine) {
-            @Override
-            public Vector3 getVelocities() {
-                return new Vector3(0, 0, 0.125 * MathUtils.sign(MathUtils.getRadRotDist(position.getC(), Math.toRadians(2))));
-            }
-
+        eventSystem.onInit("Get Pos", new LogicState(stateMachine) {
+            double powershotDist = -8;
+            Vector2 psht1 = new Vector2(-8, 142);
+            Vector2 psht2 = new Vector2(psht1.getA()+powershotDist, 142);
+            Vector2 psht3 = new Vector2(psht2.getA()+powershotDist, 142);
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-
+                //powershots = hardware.getSmartDevices().get("SmartCV", SmartCV.class).getPowershots();
+                double ang1 = -Math.atan2(psht1.getA() - position.getA(), psht1.getB() - position.getB());
+                double ang2 = -Math.atan2(psht2.getA() - position.getA(), psht2.getB() - position.getB());
+                double ang3 = -Math.atan2(psht3.getA() - position.getA(), psht3.getB() - position.getB());
+                //powershots = new double[]{Math.toDegrees(MathUtils.getRadRotDist(ang1, position.getC())), Math.toDegrees(MathUtils.getRadRotDist(ang2, position.getC())), Math.toDegrees(MathUtils.getRadRotDist(ang3, position.getC()))};
+                powershots = new double[]{powershot1, powershot2, powershot3};
             }
         });
 
-        stateMachine.appendDriveState("Drive To Centre Powershot", new VelocityDriveState(stateMachine) {
+        eventSystem.onInit("Shoot First", new LogicState(stateMachine) {
+
             @Override
-            public Vector3 getVelocities() {
-                return new Vector3(0, 0, 0.15 * MathUtils.sign(MathUtils.getRadRotDist(position.getC(), Math.toRadians(6.5))));
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+
             }
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-
+                hardwareData.setTurret(UGUtils.getTurretValue(powershots[0]));
+                hardwareData.setShooterTilt(0.34);
             }
         });
-        stateMachine.appendDriveState("Drive to Right Powershot", new VelocityDriveState(stateMachine) {
+
+        stateMachine.appendLogicState("Shoot Second", new LogicState(stateMachine) {
+
             @Override
-            public Vector3 getVelocities() {
-                return new Vector3(0, 0, 0.15 * MathUtils.sign(MathUtils.getRadRotDist(position.getC(), Math.toRadians(13))));
+            public void init(SensorData sensorData, HardwareData hardwareData) {
             }
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
+                hardwareData.setTurret(UGUtils.getTurretValue(powershots[1]));
+                hardwareData.setShooterTilt(0.35);
+            }
+        });
 
+        stateMachine.appendLogicState("Shoot Third", new LogicState(stateMachine) {
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                hardwareData.setTurret(UGUtils.getTurretValue(powershots[2]));
+                hardwareData.setShooterTilt(0.34);
             }
         });
 
@@ -230,11 +298,15 @@ public class RedAutonomous2 extends BasicOpmode {
 
         eventSystem.onStart("SpinShooter", new LogicState(stateMachine) {
             PIDSystem system = new PIDSystem(0.8, 0, 0);
+            double target = 3.75, tilt = 0.34;
+            boolean lastLeft = false, lastRight = false, lastdown = false, lastup = false;
+
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
-                hardwareData.setShooter(0.7 + system.getCorrection(3.5 - vel)); //0.75 | 4.5
-                hardwareData.setShooterTilt(0.33);
+                hardwareData.setShooter(0.7 + system.getCorrection(target - vel)); //0.75 | 4.5
+                //hardwareData.setShooter(1);
+                telemetry.addData("Vel", target);
                 if(stateMachine.logicStateActive("SpinShooter2")){
                     deactivateThis();
                 }
@@ -246,8 +318,8 @@ public class RedAutonomous2 extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
-                hardwareData.setShooter(0.75 + system.getCorrection(5 - vel));
-                hardwareData.setShooterTilt(0.35);
+                hardwareData.setShooter(0.75 + system.getCorrection(4 - vel));
+                hardwareData.setShooterTilt(0.335);
             }
         });
 
@@ -258,19 +330,23 @@ public class RedAutonomous2 extends BasicOpmode {
                 telemetry.addData("FPS", fps);
                 telemetry.addData("Pods", new Vector3(sensorData.getOdometryLeft(), sensorData.getOdometryRight(), sensorData.getOdometryAux()));
                 telemetry.addData("State", stateMachine.getActiveStates());
+                DecimalFormat format = new DecimalFormat("#.##");
+
+                telemetry.addData("Powershots", format.format(powershots[0]) + " " + format.format(powershots[1]) + " " + format.format(powershots[2]));
                 SingletonVariables.getInstance().setPosition(position);
             }
         });
     }
 
     public void setStackHeight1(LinearEventSystem linearSystem){
-        wobble1pos.set(new Vector3(7, 105, 0));
+        wobble1pos.set(new Vector3(7, 100, 0));
         wobble2pos.set(new Vector3(12, 85, 0));
 
         CrosstrackBuilder builder = new CrosstrackBuilder(stateMachine, position);
-        Path bouncebackPath = new PathBuilder(-6, 60, Angle.degrees(355))
-                .lineTo(0, 110, Angle.degrees(0))
-                .lineTo(wobble1pos.getVector2())
+        Path wobble1Path = new PathBuilder(0, 55, Angle.degrees(14)).lineTo(wobble1pos.getVector2(), Angle.degrees(0)).complete();
+        Path bouncebackPath = new PathBuilder(wobble1pos)
+                .lineTo(-16, 114, Angle.degrees(45))
+                .lineTo(-30, 114, Angle.degrees(90))
                 .complete();
         Path wobble2Path = new PathBuilder(32, 65, Angle.degrees(0))
                 .lineTo(32, 45)
@@ -278,20 +354,21 @@ public class RedAutonomous2 extends BasicOpmode {
 
         linearSystem.put("Drop And Outtake", new TimeTerminator(10));
         linearSystem.put("Drive To Wobble 1 Activator", new OrientationTerminator(position, wobble1pos, 5, 3));
-        linearSystem.put("Release Wobble 1", new TimeTerminator(5));
-        linearSystem.put("Release Forks", new TimeTerminator(10));
+        linearSystem.put("Release Wobble 1", new TimeTerminator(15));
+        //linearSystem.put("Bounceback", new OrientationTerminator(position, bouncebackPath.getEndpoint().getVector2().toVector3(90), 5, 3));
         linearSystem.put("Clear Wobble 1 Activator", new OrientationTerminator(position, new Vector3(7, 65, 0), 5, 10));
+        linearSystem.put("Release Forks", new TimeTerminator(10));
         //linearSystem.put("Clear Ring Stack Activator", new OrientationTerminator(position, new Vector3(32, 65, 0), 2.5, 10));
         linearSystem.put("Drive Wobble 2 Activator", new OrientationTerminator(position, new Vector3(32, 45, 0), 5, 1));
         linearSystem.put("Move Forks Down", new TimeTerminator(5));
-        linearSystem.put("Collect Wobble 2 Activator", new OrientationTerminator(position, new Vector3(35, 25, 0), 3, 1));
+        linearSystem.put("Collect Wobble 2 Activator", new OrientationTerminator(position, new Vector3(35, 27, 0), 3, 1));
         linearSystem.put("Raise Forks", new TimeTerminator(50));
         linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(18, 20, 4), 2, 2));
-        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(17, 36.5, 4.0000001), 2, 1));
+        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(17, 38, 4.0000001), 2, 1));
         linearSystem.put("End", new TimeTerminator(50));
-        linearSystem.put("ShootMain", new TimeTerminator(30));
-        linearSystem.put("ShootMain", new TimeTerminator(50));
-        linearSystem.put("ShootMain", new TimeTerminator(50));
+        linearSystem.put("Flick Shooter", new TrueTimeTerminator(3000));
+        linearSystem.put("Auto Aim", new TimeTerminator(2));
+        linearSystem.put("Repeat Shoot", new TimeTerminator(2));
         linearSystem.put("Dump Wobble 2 Activator", new OrientationTerminator(position, wobble2pos, 5, 5));
         linearSystem.put("Rotate 180 Activator", new OrientationTerminator(position, new Vector3(0, 0, 190), 500, 10));
         linearSystem.put("End", new TimeTerminator(50));
@@ -302,8 +379,8 @@ public class RedAutonomous2 extends BasicOpmode {
         HashMap<String, DriveState> driveStates = new HashMap<>();
 
         driveStates.put("Collect Wobble 2", new PIDDriveToPointBuilder(stateMachine, position, velocity)
-                .setTarget(new Vector2(35, 25))
-                .setSpeed(0.2)
+                .setTarget(new Vector2(35, 27))
+                .setSpeed(0.3)
                 .setSlowdownDistance(2)
                 .setRotationSlowdown(0.1)
                 .setDriveGain(new Vector4(0.1, 0.095, 0, 0))
@@ -312,7 +389,7 @@ public class RedAutonomous2 extends BasicOpmode {
         );
 
         driveStates.put("Intake Stack 1", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(new Vector2(19, 36.5))
+                .setTarget(new Vector2(19, 368))
                 .setSpeed(0.5)
                 .setRot(4)
                 .setRotPrec(1)
@@ -361,7 +438,8 @@ public class RedAutonomous2 extends BasicOpmode {
                 .setRotPrec(2.5)
                 .complete());
          */
-        stateMachine.appendDriveState("Drive To Wobble 1", builder.follow(bouncebackPath, 0, 0.9, 0.15));
+        stateMachine.appendDriveState("Drive To Wobble 1", builder.follow(wobble1Path, 0, 0.9, 0.15));
+        stateMachine.appendDriveState("Grab Bouncebacks", builder.follow(bouncebackPath, 0, 1, 0.05));
         stateMachine.appendDriveState("Drive To Dump Wobble 2", new DriveToPointBuilder(stateMachine, position)
                 .setTarget(wobble2pos.getVector2())
                 .setSpeed(0.5)
@@ -386,7 +464,7 @@ public class RedAutonomous2 extends BasicOpmode {
                 .setMinimums(0.15)
                 .complete());
          */
-        stateMachine.appendDriveState("Drive To Wobble 2", builder.follow(wobble2Path, 0, 0.75, 0.15));
+        stateMachine.appendDriveState("Drive To Wobble 2", builder.follow(wobble2Path, 0, 1, 0.15));
 
         stateMachine.appendDriveState("Drive To Ring Stack", new PIDDriveToPointBuilder(stateMachine, position, velocity)
                 .setTarget(new Vector2(20, 20))
@@ -399,7 +477,7 @@ public class RedAutonomous2 extends BasicOpmode {
                 .complete());
         stateMachine.appendDriveState("Park", new DriveToPointBuilder(stateMachine, position)
                 .setTarget(new Vector2(wobble2pos.getA(), 67))
-                .setSpeed(0.3)
+                .setSpeed(0.6)
                 .setR2(5)
                 .setRotPrec(50)
                 .setRot(170)
@@ -431,6 +509,7 @@ public class RedAutonomous2 extends BasicOpmode {
                 telemetry.addData("Dropping", "The wobble Goal");
             }
         });
+        autoStates.put("Bounceback", new DriveStateActivator(stateMachine, "Grab Bouncebacks"));
         autoStates.put("Clear Wobble 1 Activator", new DriveStateActivator(stateMachine, "Drive To Clear Wobble 1"));
         autoStates.put("Clear Ring Stack Activator", new DriveStateActivator(stateMachine, "Drive To Clear Ring Stack"));
         autoStates.put("Drive Wobble 2 Activator", new DriveStateActivator(stateMachine, "Drive To Wobble 2"));
@@ -440,6 +519,60 @@ public class RedAutonomous2 extends BasicOpmode {
         autoStates.put("Dump Wobble 2 Activator", new DriveStateActivator(stateMachine, "Drive To Dump Wobble 2"));
         autoStates.put("Rotate 180 Activator", new DriveStateActivator(stateMachine, "Rotate 180"));
         autoStates.put("Park Activator", new DriveStateActivator(stateMachine, "Park"));
+        autoStates.put("Flick Shooter", new LogicState(stateMachine) {
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                stateMachine.activateLogic("Auto Aim");
+            }
+        });
+        autoStates.put("Auto Aim", new LogicState(stateMachine) {
+            long timer = 0;
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                timer = System.currentTimeMillis() + 250;
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()){
+                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
+                    hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
+                }
+                if(System.currentTimeMillis() > timer){
+                    stateMachine.activateLogic("Repeat Shoot");
+                }
+            }
+        });
+        autoStates.put("Repeat Shoot", new LogicState(stateMachine) {
+            int state = 0;
+            long timer = 0;
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(state == 0){
+                    //hardwareData.setShooterLoadArm(0.7);
+                    hardwareData.setShooterLoadArm(0.7);
+                    timer = System.currentTimeMillis() + 250;
+                    state = 1;
+                }
+                if(state == 1){
+                    if(System.currentTimeMillis() >= timer){
+                        state = 2;
+                    }
+                }
+                if(state == 2){
+                    hardwareData.setShooterLoadArm(0.925);
+                    timer = System.currentTimeMillis() + 250;
+                    state = 3;
+                }
+                if(state == 3){
+                    if(System.currentTimeMillis() >= timer){
+                        state = 0;
+                    }
+                }
+                telemetry.addData("state", state);
+            }
+        });
         autoStates.put("ShootMain", new LogicState(stateMachine) {
             int state = 0;
             long timer = 0;
@@ -527,7 +660,7 @@ public class RedAutonomous2 extends BasicOpmode {
 
     public void setStackHeight0(LinearEventSystem linearSystem){
         wobble1pos.set(new Vector3(35, 86, 0));
-        wobble2pos.set(new Vector3(22, 81, 0));
+        wobble2pos.set(new Vector3(22, 79, 0));
         CrosstrackBuilder builder = new CrosstrackBuilder(stateMachine, position);
         Path parkPath = new PathBuilder(wobble2pos.getVector2(), Angle.degrees(90))
                 .lineTo(10, 81, Angle.degrees(90))
@@ -763,47 +896,53 @@ public class RedAutonomous2 extends BasicOpmode {
 
     public void setStackHeight4(LinearEventSystem linearSystem){
         wobble1pos.set(new Vector3(30, 120, 0));
-        wobble2pos.set(new Vector3(28, 120, 0));
+        wobble2pos.set(new Vector3(28, 112, 0));
 
         CrosstrackBuilder builder = new CrosstrackBuilder(stateMachine, position);
         Path wobble1Path = new PathBuilder(0, 55, Angle.degrees(14)).lineTo(wobble1pos.getVector2(), Angle.degrees(45)).complete();
         Path bouncebackPath = new PathBuilder(wobble1Path.getEndpoint())
-                .lineTo(-16, 120, Angle.degrees(45))
-                .lineTo(-25, 122, Angle.degrees(90))
+                .lineTo(-16, 114, Angle.degrees(45))
+                .lineTo(-32, 114, Angle.degrees(90))
                 .complete();
         Path wobble2Path = new PathBuilder(bouncebackPath.getEndpoint())
-                .lineTo(35, 60, Angle.degrees(41))
-                .lineTo(37, 45, Angle.degrees(0)).complete();
+                .lineTo(27, 60, Angle.degrees(41))
+                .lineTo(32, 45, Angle.degrees(0)).complete();
         Path collectWobble2Path = new PathBuilder(wobble2Path.getEndpoint())
-                .lineTo(35, 22, Angle.degrees(0))
+                .lineTo(32, 22, Angle.degrees(0))
+                .complete();
+        Path dumpWobble2Path = new PathBuilder(22, 58, Angle.degrees(6))
+                .lineTo(wobble2pos.getA(), wobble2pos.getB() - 15, Angle.degrees(0))
+                .lineTo(wobble2pos.getVector2(), Angle.degrees(90))
                 .complete();
 
-        linearSystem.put("Drop And Outtake", new TimeTerminator(20));
+        linearSystem.put("Drop And Outtake", new TimeTerminator(5));
         linearSystem.put("Drive To Wobble 1 Activator", new OrientationTerminator(position, wobble1pos.getVector2().toVector3(45), 5, 3));
-        linearSystem.put("Release Wobble 1", new TimeTerminator(10));
+        linearSystem.put("Release Wobble 1", new TimeTerminator(2));
         linearSystem.put("Drive To Bounceback", new OrientationTerminator(position, bouncebackPath.getEndpoint().getVector2().toVector3(90), 5, 3));
+        linearSystem.put("Drive Wobble 2 Activator", new OrientationTerminator(position, new Vector3(34, 45, 0), 5, 1));
         linearSystem.put("Release Forks", new TimeTerminator(10));
-        linearSystem.put("Drive Wobble 2 Activator", new OrientationTerminator(position, new Vector3(43, 45, 0), 5, 1));
-        linearSystem.put("Move Forks Down", new TimeTerminator(5));
+        linearSystem.put("Move Forks Down", new TimeTerminator(2));
         linearSystem.put("Collect Wobble 2 Activator", new OrientationTerminator(position, collectWobble2Path.getEndpoint(), 5, 1));
-        linearSystem.put("Raise Forks", new TimeTerminator(10));
-        linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(25, 18, 5), 3, 2.5));
-        linearSystem.put("Flick Shooter", new TimeTerminator(10));
-        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(25, 31, 6), 5, 2));
+        linearSystem.put("Raise Forks", new TimeTerminator(2));
+        linearSystem.put("Drive To Ring Stack Activator", new OrientationTerminator(position, new Vector3(22, 18, 5), 3, 2.5));
+        linearSystem.put("Flick Shooter", new TimeTerminator(2));
+        linearSystem.put("Intake Stack 1 Activator", new OrientationTerminator(position, new Vector3(22, 31, 6), 5, 2));
         //linearSystem.put("End", new TimeTerminator(30));
         //linearSystem.put("Shoot", new TimeTerminator(30));
         //linearSystem.put("ShootMain", new TimeTerminator(20));
         linearSystem.put("Back Up Activator", new TimeTerminator(10));
-        linearSystem.put("Intake Stack 2 Activator", new OrientationTerminator(position, new Vector3(22, 58, 6), 3, 2));
+        linearSystem.put("Intake Stack 2 Activator", new OrientationTerminator(position, new Vector3(22, 56, 6), 3, 2));
         linearSystem.put("End", new TimeTerminator(2));
         //linearSystem.put("Shoot", new TimeTerminator(30));
         //linearSystem.put("ShootMain", new TimeTerminator(30));
         //linearSystem.put("ShootMain", new TimeTerminator(30));
-        linearSystem.put("Repeat Shoot", new TimeTerminator(70));
-        linearSystem.put("Dump Wobble 2 Activator", new OrientationTerminator(position, wobble2pos, 5, 5));
+        linearSystem.put("Auto Aim", new TimeTerminator(2));
+        linearSystem.put("Repeat Shoot", new TimeTerminator(30));
+        linearSystem.put("Dump Wobble 2 Activator", new OrientationTerminator(position, dumpWobble2Path.getEndpoint().getVector2().toVector3(90), 5, 5));
         linearSystem.put("Rotate 180 Activator", new OrientationTerminator(position, new Vector3(0, 0, 90), 500, 10));
         linearSystem.put("End", new TimeTerminator(5));
-        linearSystem.put("Move Forks Down", new TimeTerminator(50));
+        linearSystem.put("Move Forks Down", new TimeTerminator(5));
+        linearSystem.put("Stick", new TimeTerminator(2));
         linearSystem.put("Park Activator", new TimeTerminator(1000));
         linearSystem.put("End", new TimeTerminator(3000));
 
@@ -820,7 +959,7 @@ public class RedAutonomous2 extends BasicOpmode {
                 .complete());
          */
 
-        driveStates.put("Bounceback", builder.follow(bouncebackPath, 0, 1, 0.15));
+        driveStates.put("Bounceback", builder.follow(bouncebackPath, 0, 1, 0.05));
 
 
         /**
@@ -837,7 +976,7 @@ public class RedAutonomous2 extends BasicOpmode {
         driveStates.put("Collect Wobble 2", builder.follow(collectWobble2Path, 0, 0.25, 0.5));
 
         driveStates.put("Intake Stack 1", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(new Vector2(25, 31))
+                .setTarget(new Vector2(22, 31))
                 .setSpeed(0.75)
                 .setRot(5)
                 .setRotPrec(1)
@@ -845,7 +984,7 @@ public class RedAutonomous2 extends BasicOpmode {
         );
 
         driveStates.put("Intake Stack 2", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(new Vector2(22, 58))
+                .setTarget(new Vector2(22, 56))
                 .setSpeed(0.3)
                 .setRot(6)
                 .setRotPrec(1)
@@ -907,15 +1046,8 @@ public class RedAutonomous2 extends BasicOpmode {
                 .setRotPrec(2.5)
                 .complete());
          */
-        stateMachine.appendDriveState("Drive To Wobble 1", builder.follow(wobble1Path, 0, 0.8, 0.1));
-        stateMachine.appendDriveState("Drive To Dump Wobble 2", new DriveToPointBuilder(stateMachine, position)
-                .setTarget(wobble2pos.getVector2())
-                .setSpeed(0.8)
-                .setR1(15)
-                .setMinimums(0.2)
-                .setRotPrec(5)
-                .setRot(wobble2pos.getC())
-                .complete());
+        stateMachine.appendDriveState("Drive To Wobble 1", builder.follow(wobble1Path, 0, 1, 0.1));
+        stateMachine.appendDriveState("Drive To Dump Wobble 2", builder.follow(dumpWobble2Path, 0, 1, 0.1));
         /**
         stateMachine.appendDriveState("Drive To Wobble 2", new DriveToPointBuilder(stateMachine, position)
                 .setTarget(new Vector2(43, 45))
@@ -928,7 +1060,7 @@ public class RedAutonomous2 extends BasicOpmode {
         stateMachine.appendDriveState("Drive To Wobble 2", builder.follow(wobble2Path, 0, 1, 0.1));
 
         stateMachine.appendDriveState("Drive To Ring Stack", new PIDDriveToPointBuilder(stateMachine, position, velocity)
-                .setTarget(new Vector2(25, 18))
+                .setTarget(new Vector2(22, 18))
                 .setSpeed(0.3)
                 .setRot(5)
                 .setSlowdownDistance(1)
@@ -1016,6 +1148,12 @@ public class RedAutonomous2 extends BasicOpmode {
                 //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
             }
         });
+        autoStates.put("Stick", new LogicState(stateMachine) {
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
+            }
+        });
         autoStates.put("Raise Forks", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
@@ -1041,7 +1179,26 @@ public class RedAutonomous2 extends BasicOpmode {
         autoStates.put("Flick Shooter", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                stateMachine.activateLogic("Repeat Shoot");
+                stateMachine.activateLogic("Auto Aim");
+            }
+        });
+        autoStates.put("Auto Aim", new LogicState(stateMachine) {
+            long timer = 0;
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                timer = System.currentTimeMillis() + 250;
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()){
+                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
+                    hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
+                }
+                if(System.currentTimeMillis() > timer){
+                    stateMachine.activateLogic("Repeat Shoot");
+                }
             }
         });
         autoStates.put("Repeat Shoot", new LogicState(stateMachine) {

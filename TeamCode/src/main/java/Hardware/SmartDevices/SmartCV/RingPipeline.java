@@ -52,7 +52,6 @@ public class RingPipeline extends OpenCvPipeline {
             Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(largestIndex).toArray()), matchCurve, 0.005 * Imgproc.arcLength(new MatOfPoint2f(contours.get(largestIndex).toArray()), true), true);
 
             Rect matchRect = Imgproc.boundingRect(matchCurve);
-            RobotLog.ii("Area", matchRect.area() + "");
             if (matchRect.area() < 100) {
                 numRings = 0;
             } else if (matchRect.area() < 2200) {
@@ -63,17 +62,19 @@ public class RingPipeline extends OpenCvPipeline {
 
             area = matchRect.area();
 
-            Mat edited = new Mat();
-            Core.copyTo(input, edited, new Mat());
+            Imgproc.rectangle(input, matchRect, new Scalar(255, 0, 0), 3);
 
-            Imgproc.rectangle(edited, matchRect, new Scalar(255, 0, 0), 3);
-
-            return edited;
+            processed.release();
+            mask.release();
+            for(MatOfPoint contour : contours){
+                contour.release();
+            }
+            matchCurve.release();
         }else{
             numRings = 0;
             area = 0;
-            return input;
         }
+        return input;
     }
 
     public int getNumRings() {
