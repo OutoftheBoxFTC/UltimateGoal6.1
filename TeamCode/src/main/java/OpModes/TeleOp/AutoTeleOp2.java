@@ -224,12 +224,12 @@ public class AutoTeleOp2 extends BasicOpmode {
                 double deltaX = targetPosition.getA()-position.getA();
                 double deltaY = targetPosition.getB()-position.getB();
                 angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY));
-                if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack() && !gamepad1.y){
+                if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack() && !gamepad1.a){
                     //rotOffset = Math.toDegrees(tmp - angDelta);
                     angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
                 }else{
                     //angDelta = angDelta + Math.toRadians(rotOffset);
-                    angDelta = prevAng;
+                    angDelta = 0;
                 }
 
                 double dtheta = angDelta - prevAng;
@@ -253,6 +253,10 @@ public class AutoTeleOp2 extends BasicOpmode {
                 }
                 if(gamepad1.x){
                     angDelta = Math.toRadians(powershots[2]);
+                }
+
+                if(gamepad2.right_bumper){
+                    hardware.smartDevices.get("SmartCV", SmartCV.class).calibratePitch();
                 }
 
                 hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
