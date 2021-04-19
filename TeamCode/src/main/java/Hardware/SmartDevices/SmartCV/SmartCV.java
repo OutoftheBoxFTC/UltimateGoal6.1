@@ -116,6 +116,10 @@ public class SmartCV extends SmartDevice {
         return pitchOffset;
     }
 
+    public double[] getPosition(){
+        return highgoalPipeline.getPosition();
+    }
+
     public void setPitchOffset(double pitchOffset){
         highgoalPipeline.setPitchOffset(pitchOffset);
     }

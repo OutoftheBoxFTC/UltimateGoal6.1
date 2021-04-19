@@ -419,4 +419,8 @@ public class BetterTowerGoalUtils {
 
         return dists;
     }
+
+    public static double approximateGoalX(double goalWallDist, double yaw){
+        return goalWallDist * Math.tan(yaw);
+    }
 }

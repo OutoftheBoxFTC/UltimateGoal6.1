@@ -21,7 +21,7 @@ public class PipelineTester extends OpenCvPipeline {
     private Mat cropCopy, test;
     private MatOfPoint refContour;
     private Rect boundingRect;
-    private double[] firingSolution = new double[]{0, 0}, powershots = new double[]{0, 0, 0};
+    private double[] firingSolution = new double[]{0, 0}, powershots = new double[]{0, 0, 0}, position = new double[]{0, 0};
     private double fov, pitch, pitchOffset;
     private AtomicBoolean track = new AtomicBoolean(false);
     private int idx = 1;
@@ -88,9 +88,12 @@ public class PipelineTester extends OpenCvPipeline {
             DecimalFormat format = new DecimalFormat("#.##");
             Imgproc.putText(cropCopy, "Firing Solution: ", new Point(2, input.height() - 170), 1, 2, new Scalar(0, 0, 0));
             //Imgproc.putText(cropCopy, "Pitch " + format.format(tmp[0]), new Point(2, input.height() - 100), 1, 3, new Scalar(0, 0, 0));
-            Imgproc.putText(cropCopy, "Range " + format.format((goalWallDist)), new Point(2, input.height() - 100), 1, 3, new Scalar(0, 0, 0));
+            Imgproc.putText(cropCopy, "Range " + format.format((goalWallDist2)), new Point(2, input.height() - 100), 1, 3, new Scalar(0, 0, 0));
             Imgproc.putText(cropCopy, "Heading " + format.format(firingSolution[1]), new Point(2, input.height() - 10), 1, 2.75, new Scalar(0, 0, 0));
             //Imgproc.putText(cropCopy, "Err " + format.format(horDist-verDist), new Point(2, input.height() - 10), 1, 3, new Scalar(0, 0, 0));
+
+            double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, firingSolution[1]);
+            position = new double[]{xDist, goalWallDist2};
             track.set(true);
         }else{
             track.set(false);
@@ -129,8 +132,11 @@ public class PipelineTester extends OpenCvPipeline {
     }
 
     public double calibratePitch(){
-        double ang = BetterTowerGoalUtils.approximateCameraAngle(14, 126, pitch);
-        return ang;
+        return BetterTowerGoalUtils.approximateCameraAngle(14, 126, pitch);
+    }
+
+    public double[] getPosition() {
+        return position;
     }
 
     public Rect getBoundingRect() {
