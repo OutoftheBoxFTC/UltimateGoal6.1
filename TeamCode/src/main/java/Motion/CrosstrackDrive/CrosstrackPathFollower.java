@@ -76,6 +76,7 @@ public class CrosstrackPathFollower extends VelocityDriveState {
 
         double maxVel = Math.sqrt(2 * RobotConstants.UltimateGoal.MAX_LIN_ACCEL * MathUtils.arcLength(pathLntArr));
 
+
         maxVel = MathUtils.clamp(maxVel, 0, RobotConstants.UltimateGoal.MAX_SPEED * speed);
 
         mainVel = mainVel.scale(maxVel);
@@ -100,7 +101,7 @@ public class CrosstrackPathFollower extends VelocityDriveState {
         rotatedVels.setB(rotatedVels.getB() * -1);
         rotatedVels.set(rotatedVels.scale(1/RobotConstants.UltimateGoal.MAX_SPEED));
         maxRotSpeed *= 1/RobotConstants.UltimateGoal.MAX_ROTATION_SPEED;
-        RobotLog.ii("Vel", rotatedVels.toString() + " | " + mainVel + " | " + tang + " | " + closestPoint);
+        RobotLog.ii("Vel", rotatedVels.toString() + " | " + mainVel + " | " + tang + " | " + closestPoint + " | " + target);
 
         if(Math.abs(rotatedVels.getA()) < RobotConstants.UltimateGoal.KF){
             rotatedVels.setA(RobotConstants.UltimateGoal.KF * MathUtils.sign(rotatedVels.getA()));
@@ -120,6 +121,8 @@ public class CrosstrackPathFollower extends VelocityDriveState {
         if(closestPoint.distanceTo(position.getVector2()) < 0.1) {
             tang = target.subtract(position).getVector2().normalize();
         }
+        tang = target.subtract(position).getVector2().normalize();
+
         Vector2 norm = closestPoint.subtract(position.getVector2()).normalize();
 
         double weight = closestPoint.distanceTo(position.getVector2()) * kf;
