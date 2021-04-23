@@ -62,4 +62,8 @@ public class VFile {
     public String getFileName(){
         return fileName;
     }
+
+    public File getFile() {
+        return file;
+    }
 }
