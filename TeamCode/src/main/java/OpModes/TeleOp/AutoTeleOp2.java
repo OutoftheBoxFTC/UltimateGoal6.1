@@ -42,7 +42,7 @@ public class AutoTeleOp2 extends BasicOpmode {
     int timer = 0;
     long turretTimer = 0;
     double rotOffset;
-    public static double p = 0.8, i = 0, d = 0, f = 0.1;
+    public static double p = 1.5, i = 0, d = 0, f = 0.1;
     public AutoTeleOp2() {
         super(new UltimateGoalHardware());
     }
@@ -324,7 +324,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 system.setCoef(new Vector4(p, i, d, f));
                 //telemetry.addData("Shooter Velocity", vel);
-                hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad1.dpad_down ? 1 : 0)));
+                hardwareData.setShooter(reqSpeed + system.getCorrection(targetSpeed - vel, (gamepad1.right_trigger > 0.2 ? 1 : 0)));
                 if(stopShooter){
                     hardwareData.setShooter(0);
                 }
@@ -351,7 +351,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.3425 + tiltLevel);
+                    hardwareData.setShooterTilt(0.335 + tiltLevel);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
@@ -485,7 +485,7 @@ public class AutoTeleOp2 extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
                     hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 100;
+                    timer = System.currentTimeMillis() + 80;
                     state = 1;
                 }
                 if(state == 1){

@@ -14,11 +14,15 @@ public class DriveStateActivator extends LogicState {
     @Override
     public void init(SensorData sensorData, HardwareData hardwareData) {
         stateMachine.setActiveDriveState(driveState);
-        deactivateThis();
     }
 
     @Override
     public void update(SensorData sensorData, HardwareData hardwareData) {
 
+    }
+
+    @Override
+    public void onStop(SensorData sensorData, HardwareData hardwareData) {
+        stateMachine.deactivateState(driveState);
     }
 }
