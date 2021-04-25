@@ -25,6 +25,7 @@ public class RobotConstants {
         public static final double MAX_R_ACCEL = 1.5;
 
         public static final double KF = 0.1;
+        public static final double rotFF = 0.1;
 
         public static final double INDEXER_IN_POSITION = 0;
         public static final double INDEXER_OUT_POSITION = 0;

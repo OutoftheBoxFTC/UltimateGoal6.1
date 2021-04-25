@@ -80,7 +80,6 @@ public class CrosstrackPathFollower extends VelocityDriveState {
 
         mainVel = mainVel.scale(maxVel);
 
-        Vector2 rotatedVels = mainVel.rotate(Angle.radians(-position.getC()));
 
         ArrayList<Vector2> pathList = new ArrayList<>();
         pathList.addAll(path.getPathLines().subList(idx, path.getPathLines().size()));
@@ -93,6 +92,8 @@ public class CrosstrackPathFollower extends VelocityDriveState {
         maxRotSpeed = MathUtils.clamp(maxRotSpeed, 0, RobotConstants.UltimateGoal.MAX_ROTATION_SPEED * speed);
 
         double rSign = MathUtils.sign(MathUtils.getRadRotDist(position.getC(), rotTarget));
+
+        Vector2 rotatedVels = mainVel.rotate(Angle.radians(-(position.getC() + (maxRotSpeed * rSign * RobotConstants.UltimateGoal.rotFF))));
 
         if(mainVel.length() == 0) {
             rSign = 0;
