@@ -20,7 +20,7 @@ public class CrosstrackBuilder {
         return new CrosstrackPathFollower(stateMachine, position, path, rotTarget);
     }
 
-    public CrosstrackPathFollower follow(Path path, double rotTarget, double speed, double kf){
-        return new CrosstrackPathFollower(stateMachine, position, path, rotTarget, speed, kf);
+    public CrosstrackPathFollower follow(Path path, double rotTol, double speed, double kf){
+        return new CrosstrackPathFollower(stateMachine, position, path, rotTol, speed, kf);
     }
 }

@@ -19,13 +19,13 @@ public class CrosstrackPathFollower extends VelocityDriveState {
     private Path path;
     private Vector3 position, velocity;
     private ArrayList<Vector2> pathLines = new ArrayList<>();
-    private double rotTarget, speed, kf, pathLength;
+    private double rotTol, speed, kf, pathLength;
 
-    public CrosstrackPathFollower(StateMachine stateMachine, Vector3 position, Path path, double rotTarget, double speed, double kf) {
+    public CrosstrackPathFollower(StateMachine stateMachine, Vector3 position, Path path, double rotTol, double speed, double kf) {
         super(stateMachine);
         this.position = position;
         this.path = path;
-        this.rotTarget = rotTarget;
+        this.rotTol = rotTol;
         this.speed = speed;
         this.kf = kf;
         this.pathLines = path.getPathLines();
@@ -113,7 +113,9 @@ public class CrosstrackPathFollower extends VelocityDriveState {
         }
 
         double rotSpeed = Math.max(maxRotSpeed, RobotConstants.UltimateGoal.KF) * MathUtils.sign(MathUtils.getRadRotDist(position.getC(), rotTarget));
-
+        if(Math.abs(MathUtils.getRadRotDist(position.getC(), rotTarget)) < rotTol){
+            rotSpeed = 0;
+        }
         velocity.set(rotatedVels, rotSpeed);
     }
 

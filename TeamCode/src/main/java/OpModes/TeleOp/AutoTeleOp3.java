@@ -42,7 +42,7 @@ public class AutoTeleOp3 extends BasicOpmode {
     int timer = 0;
     long turretTimer = 0;
     double rotOffset;
-    public static double p = 0.8, i = 0, d = 0, f = 0.1;
+    public static double p = 1.5, i = 0, d = 0, f = 0.1;
     public AutoTeleOp3() {
         super(new UltimateGoalHardware());
     }
