@@ -1,5 +1,6 @@
 package Hardware;
 
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.*;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -21,8 +22,9 @@ public abstract class Hardware implements Runnable {
     public ArrayList<HardwareDevices> registeredDevices, enabledDevices;
     public LinearOpMode opMode;
     private final ArrayList<HardwareData> hardwarePackets;
-    private ArrayList<SensorData> sensorPackets;
+    private final ArrayList<SensorData> sensorPackets;
     private AtomicBoolean end, available;
+    private ArrayList<LynxModule> revHubs;
 
     public Hardware(){
         smartDevices = new SmartDeviceMap();
@@ -35,6 +37,7 @@ public abstract class Hardware implements Runnable {
         enabledDevices = new ArrayList<>();
         end = new AtomicBoolean(false);
         available = new AtomicBoolean(false);
+        revHubs = new ArrayList<>();
     }
 
     public void attachOpmode(LinearOpMode opMode){
@@ -48,6 +51,10 @@ public abstract class Hardware implements Runnable {
     public abstract void registerDevices(HardwareMap map);
 
     public void init(){
+        revHubs.addAll(opMode.hardwareMap.getAll(LynxModule.class));
+        for(LynxModule m : revHubs){
+            m.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
         registerDevices(opMode.hardwareMap);
         for(String s : smartDevices.keySet()){
             smartDevices.get(s).setName(s);
@@ -108,7 +115,6 @@ public abstract class Hardware implements Runnable {
                 }
             }
             setHardware(hardwarePacket);
-            RobotLog.ii("Delay", "" + (System.currentTimeMillis() - hardwarePacket.getTimestamp()));
             for (String device : smartDevices.keySet()) {
                 smartDevices.get(device).update();
             }
@@ -117,6 +123,9 @@ public abstract class Hardware implements Runnable {
             synchronized (sensorPackets) {
                 sensorData.setBacklog(hardwarePackets.size());
                 sensorPackets.add(sensorData);
+            }
+            for(LynxModule m : revHubs){
+                m.clearBulkCache();
             }
             available.set(true);
         }
