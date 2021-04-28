@@ -54,6 +54,7 @@ public abstract class Hardware implements Runnable {
         revHubs.addAll(opMode.hardwareMap.getAll(LynxModule.class));
         for(LynxModule m : revHubs){
             m.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            m.clearBulkCache();
         }
         registerDevices(opMode.hardwareMap);
         for(String s : smartDevices.keySet()){
