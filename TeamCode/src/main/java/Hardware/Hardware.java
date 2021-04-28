@@ -109,6 +109,9 @@ public abstract class Hardware implements Runnable {
     public void run(){
         while(!end.get()) {
             HardwareData hardwarePacket;
+            for(LynxModule m : revHubs){
+                m.clearBulkCache();
+            }
             synchronized (hardwarePackets) {
                 hardwarePacket = hardwarePackets.get(0);
                 if (hardwarePackets.size() > 1) {
@@ -124,9 +127,6 @@ public abstract class Hardware implements Runnable {
             synchronized (sensorPackets) {
                 sensorData.setBacklog(hardwarePackets.size());
                 sensorPackets.add(sensorData);
-            }
-            for(LynxModule m : revHubs){
-                m.clearBulkCache();
             }
             available.set(true);
         }
