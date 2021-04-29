@@ -26,9 +26,12 @@ import MathSystems.ProgramClock;
 import MathSystems.Vector2;
 import MathSystems.Vector3;
 import MathSystems.Vector4;
+import Motion.Terminators.TrueTimeTerminator;
 import Odometry.ConstantVOdometer;
 import OpModes.BasicOpmode;
+import State.EventSystem.LinearEventSystem;
 import State.LogicState;
+import State.SingleLogicState;
 import State.VelocityDriveState;
 
 @TeleOp
@@ -38,6 +41,7 @@ public class AutoTeleOp2 extends BasicOpmode {
     Vector3 position, velocity;
     boolean holdShoot = true;
     boolean shot = false;
+    boolean shoot1 = false, shoot2 = false, shoot3 = false;
     boolean stopShooter = false;
     int timer = 0;
     long turretTimer = 0;
@@ -193,7 +197,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 double maxSpeed = Math.sqrt(2 * RobotConstants.UltimateGoal.MAX_R_ACCEL * Math.abs(angDelta));
                 maxSpeed = maxSpeed/RobotConstants.UltimateGoal.MAX_ROTATION_SPEED;
                 maxSpeed = Math.max(maxSpeed, RobotConstants.UltimateGoal.KF);
-                shot = timer > 2 && !gamepad1.dpad_up;
+                shot = timer > 2;
 
                 if(!UGUtils.inRange(Math.toDegrees(angDelta))){
                     timer = 0;
@@ -210,11 +214,47 @@ public class AutoTeleOp2 extends BasicOpmode {
         eventSystem.onStart("Turret", new LogicState(stateMachine) {
             private final Vector2 targetPosition = new Vector2(5, 144);
             double angDelta, prevAng;
+            LinearEventSystem system;
 
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
                 prevAng = 0;
                 angDelta = 0;
+                system = new LinearEventSystem(stateMachine, LinearEventSystem.ENDTYPE.LOOP);
+                stateMachine.appendLogicState("Move One", new LogicState(stateMachine) {
+                    @Override
+                    public void update(SensorData sensorData, HardwareData hardwareData) {
+                        shoot1 = true;
+                        shoot3 = false;
+                    }
+                });
+                stateMachine.appendLogicState("Move Two", new LogicState(stateMachine) {
+                    @Override
+                    public void update(SensorData sensorData, HardwareData hardwareData) {
+                        shoot2 = true;
+                        shoot1 = false;
+                    }
+                });
+                stateMachine.appendLogicState("Move Three", new LogicState(stateMachine) {
+                    @Override
+                    public void update(SensorData sensorData, HardwareData hardwareData) {
+                        shoot3 = true;
+                        shoot2 = false;
+                    }
+                });
+                stateMachine.appendLogicState("Trigger Shooter", new SingleLogicState(stateMachine) {
+
+                    @Override
+                    public void main(SensorData sensorData, HardwareData hardwareData) {
+                        shot = true;
+                    }
+                });
+                system.put("Move One", new TrueTimeTerminator(500));
+                system.put("Trigger Shooter", new TrueTimeTerminator(100));
+                system.put("Move Two", new TrueTimeTerminator(130));
+                system.put("Trigger Shooter", new TrueTimeTerminator(100));
+                system.put("Move Three", new TrueTimeTerminator(130));
+                system.put("Trigger Shooter", new TrueTimeTerminator(200));
             }
 
             @Override
@@ -245,14 +285,22 @@ public class AutoTeleOp2 extends BasicOpmode {
                 prevAng = angDelta;
 
                 double[] powershots = sensorData.getPowershots();
-                if(gamepad1.b){
+                if(gamepad1.b || shoot3){
                     angDelta = Math.toRadians(powershots[0]);
                 }
-                if(gamepad1.y){
+                if(gamepad1.y || shoot2){
                     angDelta = Math.toRadians(powershots[1]);
                 }
-                if(gamepad1.x){
+                if(gamepad1.x || shoot1){
                     angDelta = Math.toRadians(powershots[2]);
+                }
+                if(gamepad1.dpad_up){
+                    system.update(sensorData, hardwareData);
+                }else{
+                    shoot1 = false;
+                    shoot2 = false;
+                    shoot3 = false;
+                    system.reset();
                 }
 
                 if(gamepad2.right_bumper){
@@ -267,6 +315,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 telemetry.addData("Turning", hardwareData.getTurret());
                 telemetry.addData("Heading", Math.toDegrees(angDelta));
                 telemetry.addData("Range", sensorData.getRange());
+                telemetry.addData("FPS", fps);
             }
         });
 
@@ -288,7 +337,6 @@ public class AutoTeleOp2 extends BasicOpmode {
                 if(gamepad1.left_trigger > 0.25 || gamepad2.right_trigger > 0.25){
                     stateMachine.setActiveDriveState("Rotate To Target");
                 }else{
-                    shot = false;
                     timer=0;
                 }
                 if(Math.abs(gamepad1.left_stick_x) > 0.2 || Math.abs(gamepad1.right_stick_x) > 0.2 || Math.abs(gamepad1.left_stick_y) > 0.2){
@@ -363,8 +411,8 @@ public class AutoTeleOp2 extends BasicOpmode {
                     holdShoot = false;
                 }else if(gamepad2.right_stick_y < -0.2){
                     holdShoot = true;
-                }else if(gamepad2.right_stick_y > 0.2 || gamepad1.y || gamepad1.b || gamepad1.x){
-                    hardwareData.setShooterTilt(0.36 + tiltLevel);
+                }else if(gamepad2.right_stick_y > 0.2 || gamepad1.y || gamepad1.b || gamepad1.x || gamepad1.dpad_up){
+                    hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
 
                 if(gamepad2.a){

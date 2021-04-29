@@ -18,4 +18,6 @@ public abstract class Terminator {
             }
         };
     }
+
+    public void reset(){};
 }

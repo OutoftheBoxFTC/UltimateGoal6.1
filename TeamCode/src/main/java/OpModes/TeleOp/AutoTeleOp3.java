@@ -2,6 +2,7 @@ package OpModes.TeleOp;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -32,6 +33,7 @@ import State.VelocityDriveState;
 
 @TeleOp
 @Config
+@Disabled
 public class AutoTeleOp3 extends BasicOpmode {
     AdvancedVOdometer odometer;
     Vector3 position, velocity;
@@ -50,6 +52,7 @@ public class AutoTeleOp3 extends BasicOpmode {
     @Override
     public void setup() {
         hardware.registerAll();
+        hardware.enableAll();
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
         odometer = new AdvancedVOdometer(stateMachine, position, velocity);

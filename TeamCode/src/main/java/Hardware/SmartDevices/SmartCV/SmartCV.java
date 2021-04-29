@@ -107,7 +107,7 @@ public class SmartCV extends SmartDevice {
 
     public double[] getPowershots(){
         double[] arr = highgoalPipeline.getPowershots();
-        return new double[]{arr[0]-10, arr[1]-10, arr[2]-10};
+        return new double[]{arr[0]-2, arr[1]-1, arr[2]-2};
     }
 
     public double calibratePitch(){

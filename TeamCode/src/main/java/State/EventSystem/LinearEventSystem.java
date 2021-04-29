@@ -46,15 +46,25 @@ public class LinearEventSystem{
                     }
                     if(endtype == ENDTYPE.LOOP){
                         stateMachine.deactivateState(logicStates.get(currentIndex));
+                        terminators.get(currentIndex).reset();
                         currentIndex = 0;
                         stateMachine.activateLogic(logicStates.get(currentIndex));
                     }
                 } else {
                     stateMachine.deactivateState(logicStates.get(currentIndex));
+                    terminators.get(currentIndex).reset();
                     currentIndex ++;
                     stateMachine.activateLogic(logicStates.get(currentIndex));
                 }
             }
+        }
+    }
+
+    public void reset(){
+        if(currentIndex >= 0) {
+            stateMachine.deactivateState(logicStates.get(currentIndex));
+            terminators.get(currentIndex).reset();
+            currentIndex = -1;
         }
     }
 

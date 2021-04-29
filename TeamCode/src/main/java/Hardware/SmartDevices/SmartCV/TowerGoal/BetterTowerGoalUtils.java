@@ -421,6 +421,6 @@ public class BetterTowerGoalUtils {
     }
 
     public static double approximateGoalX(double goalWallDist, double yaw){
-        return goalWallDist * Math.tan(yaw);
+        return goalWallDist * Math.tan(Math.toRadians(yaw));
     }
 }
