@@ -393,16 +393,15 @@ public class BetterTowerGoalUtils {
 
         double dist = Math.tan(Math.toRadians(yaw)) * goalWallDist;
 
-        double psht1 = goalOffset;
-        double psht2 = psht1 + powershotOffset;
+        double psht2 = goalOffset + powershotOffset;
         double psht3 = psht2 + powershotOffset;
 
         double[] dists = new double[3];
 
-        if((psht1 > Math.abs(dist) && (psht1 * dist < 0)) || yaw > 0){
-            dists[0] = Math.toDegrees(Math.atan((psht1 + dist) / goalWallDist));
+        if((goalOffset > Math.abs(dist) && (goalOffset * dist < 0)) || yaw > 0){
+            dists[0] = Math.toDegrees(Math.atan((goalOffset + dist) / goalWallDist));
         }else{
-            dists[0] = Math.toDegrees(Math.atan((psht1 - dist) / goalWallDist));
+            dists[0] = Math.toDegrees(Math.atan((goalOffset - dist) / goalWallDist));
         }
 
         if((psht2 > Math.abs(dist) && (psht2 * dist < 0)) || yaw > 0){
