@@ -92,8 +92,8 @@ public class PipelineTester extends OpenCvPipeline {
             ////Imgproc.putText(cropCopy, "Heading " + format.format(firingSolution[1]), new Point(2, input.height() - 10), 1, 2.75, new Scalar(0, 0, 0));
             //Imgproc.putText(cropCopy, "Err " + format.format(horDist-verDist), new Point(2, input.height() - 10), 1, 3, new Scalar(0, 0, 0));
 
-            double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, firingSolution[1]);
-            position = new double[]{-xDist, -goalWallDist2};
+            double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, -firingSolution[1]);
+            position = new double[]{xDist, -goalWallDist2};
             track.set(true);
         }else{
             track.set(false);

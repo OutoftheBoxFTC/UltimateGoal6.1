@@ -1,5 +1,7 @@
 package OpModes.TeleOp;
 
+import android.view.textclassifier.TextClassifierEvent;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -311,7 +313,8 @@ public class AutoTeleOp2 extends BasicOpmode {
 
                 DecimalFormat format = new DecimalFormat("#.##");
 
-                telemetry.addData("Powershots", format.format(powershots[0]) + " " + format.format(powershots[1]) + " " + format.format(powershots[2]));
+                //telemetry.addData("Powershots", format.format(powershots[0]) + " " + format.format(powershots[1]) + " " + format.format(powershots[2]));
+                telemetry.addData("Pos2", format.format(hardware.smartDevices.get("SmartCV", SmartCV.class).getPosition()[0]) + ", " + format.format(hardware.smartDevices.get("SmartCV", SmartCV.class).getPosition()[0]));
                 telemetry.addData("Turning", hardwareData.getTurret());
                 telemetry.addData("Heading", Math.toDegrees(angDelta));
                 telemetry.addData("Range", sensorData.getRange());
@@ -399,7 +402,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.335 + tiltLevel);
+                    hardwareData.setShooterTilt(0.325 + tiltLevel);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
