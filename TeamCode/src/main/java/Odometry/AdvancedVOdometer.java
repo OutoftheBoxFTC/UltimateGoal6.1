@@ -57,6 +57,7 @@ public class AdvancedVOdometer extends Odometer {
         Vector2 fieldCentric = MathUtils.toCartesian(pos.getA(), pos.getB() - rot);
         x = fieldCentric.getA();
         y = fieldCentric.getB();
+        rot = position.getC();
         rot += rotInc;
         double tau = (2 * Math.PI);
         rot = ((rot % tau) + tau) % tau;
