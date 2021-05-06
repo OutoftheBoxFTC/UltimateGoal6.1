@@ -71,7 +71,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 odometer.set(SingletonVariables.getInstance().getPosition());
 
                 hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
-                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(SingletonVariables.getInstance().getPitchOffset());
+                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(19.333113679113307);
 
                 if(isStarted()){
                     deactivateThis();
@@ -96,6 +96,10 @@ public class AutoTeleOp2 extends BasicOpmode {
                         hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                         hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     }
+                    hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                     return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
                 }
             }
@@ -306,7 +310,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 }
 
                 if(gamepad2.right_bumper){
-                    hardware.smartDevices.get("SmartCV", SmartCV.class).calibratePitch();
+                    //hardware.smartDevices.get("SmartCV", SmartCV.class).calibratePitch();
                 }
 
                 hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));

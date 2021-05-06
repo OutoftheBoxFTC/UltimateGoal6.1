@@ -53,7 +53,7 @@ public abstract class Hardware implements Runnable {
     public void init(){
         revHubs.addAll(opMode.hardwareMap.getAll(LynxModule.class));
         for(LynxModule m : revHubs){
-            m.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            m.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
             m.clearBulkCache();
         }
         registerDevices(opMode.hardwareMap);
@@ -101,6 +101,9 @@ public abstract class Hardware implements Runnable {
 
     public void addHardwarePacket(HardwareData hardware){
         synchronized (hardwarePackets) {
+            if(hardwarePackets.size() > 0){
+                hardwarePackets.clear();
+            }
             hardwarePackets.add(hardware);
         }
     }
@@ -109,9 +112,6 @@ public abstract class Hardware implements Runnable {
     public void run(){
         while(!end.get()) {
             HardwareData hardwarePacket;
-            for(LynxModule m : revHubs){
-                m.clearBulkCache();
-            }
             synchronized (hardwarePackets) {
                 hardwarePacket = hardwarePackets.get(0);
                 if (hardwarePackets.size() > 1) {
@@ -124,8 +124,12 @@ public abstract class Hardware implements Runnable {
             }
             SensorData sensorData = new SensorData();
             setSensors(sensorData);
+            sensorData.setTimestamp(System.currentTimeMillis());
             synchronized (sensorPackets) {
                 sensorData.setBacklog(hardwarePackets.size());
+                if(sensorPackets.size() > 0){
+                    sensorPackets.clear();
+                }
                 sensorPackets.add(sensorData);
             }
             available.set(true);

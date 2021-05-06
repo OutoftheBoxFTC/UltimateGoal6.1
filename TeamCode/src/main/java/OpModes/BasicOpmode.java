@@ -1,6 +1,7 @@
 package OpModes;
 
 import com.qualcomm.robotcore.eventloop.opmode.*;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import Hardware.*;
 import Hardware.Packets.*;
@@ -65,6 +66,7 @@ public abstract class BasicOpmode extends LinearOpMode {
             hardwareData.setDriveMotors(stateMachine.getDriveVelocities());
             hardwareData.setTimestamp(System.currentTimeMillis());
             hardware.addHardwarePacket(hardwareData);
+            RobotLog.ii("Test", String.valueOf(System.currentTimeMillis() - sensorData.getTimestamp()));
             telemetry.update();
             ProgramClock.update();
         }

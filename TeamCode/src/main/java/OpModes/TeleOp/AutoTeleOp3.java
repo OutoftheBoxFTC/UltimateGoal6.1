@@ -18,6 +18,7 @@ import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartCV.SmartCV;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
+import Hardware.SmartDevices.SmartServo.SmartServo;
 import Hardware.UltimateGoalHardware;
 import MathSystems.MathUtils;
 import MathSystems.PIDFSystem;
@@ -33,7 +34,6 @@ import State.VelocityDriveState;
 
 @TeleOp
 @Config
-@Disabled
 public class AutoTeleOp3 extends BasicOpmode {
     AdvancedVOdometer odometer;
     Vector3 position, velocity;
@@ -110,14 +110,14 @@ public class AutoTeleOp3 extends BasicOpmode {
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack() && !gamepad1.a){
+                if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack() && !gamepad1.a && gamepad1.left_trigger > 0.1){
                     double[] pos = hardware.smartDevices.get("SmartCV", SmartCV.class).getPosition();
                     odometer.setKinematicPosition(pos[0], pos[1], 0);
                     posSet = true;
                 }
 
-                double deltaX = -position.getA();
-                double deltaY = -position.getB();
+                double deltaX = -(position.getA());
+                double deltaY = -(position.getB());
                 angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY));
 
                 double dtheta = angDelta - prevAng;
@@ -148,6 +148,7 @@ public class AutoTeleOp3 extends BasicOpmode {
                 }
 
                 hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
+                //hardware.smartDevices.get("Turret", SmartServo.class).forceSend(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
 
                 DecimalFormat format = new DecimalFormat("#.##");
 
@@ -155,6 +156,7 @@ public class AutoTeleOp3 extends BasicOpmode {
                     telemetry.addLine("WARNING! Kinematic Position is not set: Shooting estimation will be off!");
                 }else{
                     telemetry.addData("Kinematic Position", position);
+                    telemetry.addData("Velocity", velocity);
                 }
             }
         });
@@ -223,7 +225,7 @@ public class AutoTeleOp3 extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.3425);
+                    hardwareData.setShooterTilt(0.325);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
@@ -280,7 +282,7 @@ public class AutoTeleOp3 extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
                     hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 100;
+                    timer = System.currentTimeMillis() + 80;
                     state = 1;
                 }
                 if(state == 1){
@@ -290,7 +292,7 @@ public class AutoTeleOp3 extends BasicOpmode {
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.925);
-                    timer = System.currentTimeMillis() + 100;
+                    timer = System.currentTimeMillis() + 80;
                     state = 3;
                 }
                 if(state == 3){

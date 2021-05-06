@@ -63,4 +63,8 @@ public class SmartServo extends SmartDevice {
             prevPosition = position;
         }
     }
+
+    public void forceSend(double position){
+        servo.setPosition(position);
+    }
 }

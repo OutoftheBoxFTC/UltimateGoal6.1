@@ -7,6 +7,7 @@ import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import MathSystems.ConstantVMathUtil;
 import MathSystems.MathUtils;
+import MathSystems.ProgramClock;
 import MathSystems.Vector2;
 import MathSystems.Vector3;
 import State.StateMachine;
@@ -63,7 +64,7 @@ public class AdvancedVOdometer extends Odometer {
         rot = ((rot % tau) + tau) % tau;
         position.set(position.add(x * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, -y * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, 0));
         position.setC(rot);
-        Vector3 localVel = position.subtract(prevPosition).scale(1.0/MathUtils.nanoToDSec(System.nanoTime() - prevTime));
+        Vector3 localVel = position.subtract(prevPosition).scale(1.0/MathUtils.nanoToDSec(ProgramClock.getFrameTimeNano()));
         prevTime = System.nanoTime();
         if(!Double.isNaN(localVel.getA()) && !Double.isNaN(localVel.getB()) && !Double.isNaN(localVel.getC()) && !Double.isInfinite(localVel.getA()) && !Double.isInfinite(localVel.getB()) && !Double.isInfinite(localVel.getC())) {
             velocity.set(localVel);

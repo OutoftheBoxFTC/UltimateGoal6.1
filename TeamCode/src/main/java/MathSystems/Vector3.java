@@ -59,7 +59,7 @@ public class Vector3 {
     }
 
     public Vector3 add(double a, double b, double c){
-        return new Vector3(a+a, b+b, c+c);
+        return new Vector3(this.a+a, this.b+b, this.c+c);
     }
 
     public Vector3 scale(double scalar){

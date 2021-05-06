@@ -10,6 +10,7 @@ public class SensorData {
     private double powershots[] = new double[]{0, 0, 0};
     private int odometryLeft, odometryRight, odometryAux;
     private boolean track = false;
+    private long timestamp;
     public SensorData(){
         odometryAux = 0;
         odometryLeft = 0;
@@ -134,5 +135,13 @@ public class SensorData {
 
     public void setFps(double fps) {
         this.fps = fps;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 }
