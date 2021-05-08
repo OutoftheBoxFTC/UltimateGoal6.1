@@ -1,6 +1,7 @@
 package Hardware;
 
 import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
+import Hardware.SmartDevices.SmartBlinkin.SmartBlinkin;
 import Hardware.SmartDevices.SmartCV.SmartCV;
 import Hardware.SmartDevices.SmartCV.TowerCV;
 import Hardware.SmartDevices.SmartEncoder.SmartEncoder;
@@ -40,6 +42,7 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.put("Intake", new SmartMotor(map.dcMotor.get("intake"), new SmartMotorConfiguration()));
             smartDevices.put("Intake Top", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().reverseDirection()));
             smartDevices.put("Intake Release", new SmartServo(map.servo.get("intakeRelease"), new SmartServoConfiguration()));
+            smartDevices.put("Intake Shield", new SmartServo(map.servo.get("intakeShield"), new SmartServoConfiguration()));
         }
         if(registeredDevices.contains(HardwareDevices.GYRO)){
             //smartDevices.put("gyro", new SmartNavXMicro(map.get(NavxMicroNavigationSensor.class, "gyro"), new SmartNavXConfiguration().setAngleUnit(SmartIMU.AngleUnit.RADIANS)));
@@ -64,6 +67,9 @@ public class UltimateGoalHardware extends Hardware {
         if(registeredDevices.contains(HardwareDevices.TURRET)){
             smartDevices.put("Turret", new SmartServo(map.servo.get("turret"), new SmartServoConfiguration().setInitPos(0.5)));
         }
+        if(registeredDevices.contains(HardwareDevices.LEDS)){
+            smartDevices.put("Blinkin", new SmartBlinkin(map.get(RevBlinkinLedDriver.class, "Blinkin")));
+        }
     }
 
     @Override
@@ -84,6 +90,7 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.get("Intake", SmartMotor.class).setPower(hardware.getIntake());
             smartDevices.get("Intake Top", SmartMotor.class).setPower(hardware.getIntake());
             smartDevices.get("Intake Release", SmartServo.class).setPosition(hardware.getIntakeRelease());
+            smartDevices.get("Intake Shield", SmartServo.class).setPosition(hardware.getIntakeShield());
         }
         if(enabledDevices.contains(HardwareDevices.SHOOTER)){
             smartDevices.get("Shooter Left", SmartMotor.class).setPower(hardware.getShooter());
@@ -93,6 +100,9 @@ public class UltimateGoalHardware extends Hardware {
         }
         if(enabledDevices.contains(HardwareDevices.TURRET)){
             smartDevices.get("Turret", SmartServo.class).setPosition(hardware.getTurret());
+        }
+        if(enabledDevices.contains(HardwareDevices.LEDS)){
+            smartDevices.get("Blinkin", SmartBlinkin.class).setPattern(hardware.getPattern());
         }
     }
 

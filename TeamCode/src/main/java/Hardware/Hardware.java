@@ -53,7 +53,7 @@ public abstract class Hardware implements Runnable {
     public void init(){
         revHubs.addAll(opMode.hardwareMap.getAll(LynxModule.class));
         for(LynxModule m : revHubs){
-            m.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+            m.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
             m.clearBulkCache();
         }
         registerDevices(opMode.hardwareMap);
@@ -112,6 +112,10 @@ public abstract class Hardware implements Runnable {
     public void run(){
         while(!end.get()) {
             HardwareData hardwarePacket;
+            for(LynxModule m : revHubs){
+                m.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+                m.clearBulkCache();
+            }
             synchronized (hardwarePackets) {
                 hardwarePacket = hardwarePackets.get(0);
                 if (hardwarePackets.size() > 1) {
@@ -156,6 +160,7 @@ public abstract class Hardware implements Runnable {
         registeredDevices.add(HardwareDevices.WOBBLE);
         registeredDevices.add(HardwareDevices.WEBCAM);
         registeredDevices.add(HardwareDevices.TURRET);
+        registeredDevices.add(HardwareDevices.LEDS);
     }
 
     public void enableAll(){
@@ -167,6 +172,7 @@ public abstract class Hardware implements Runnable {
         enabledDevices.add(HardwareDevices.WOBBLE);
         enabledDevices.add(HardwareDevices.WEBCAM);
         enabledDevices.add(HardwareDevices.TURRET);
+        enabledDevices.add(HardwareDevices.LEDS);
     }
 
     public void disableAll(){
@@ -193,6 +199,7 @@ public abstract class Hardware implements Runnable {
         SHOOTER,
         WOBBLE,
         WEBCAM,
-        TURRET
+        TURRET,
+        LEDS
     }
 }

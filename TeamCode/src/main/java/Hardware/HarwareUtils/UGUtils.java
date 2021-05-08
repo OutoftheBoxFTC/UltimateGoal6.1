@@ -12,6 +12,10 @@ public class UGUtils {
     }
 
     public static boolean inRange(double angle){
-        return (angle < maxAngle) && (angle > minAngle);
+        return (angle <= maxAngle) && (angle >= minAngle);
+    }
+
+    public static double PWM_TO_SERVO(double pwm){
+        return (pwm - 500) / (2000);
     }
 }

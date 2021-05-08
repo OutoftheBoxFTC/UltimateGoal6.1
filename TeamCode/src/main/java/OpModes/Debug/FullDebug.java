@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import Hardware.*;
 import Hardware.CustomClasses.SingletonVariables;
+import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.SmartDevices.SmartCV.SmartCV;
@@ -34,6 +35,7 @@ public class FullDebug extends BasicOpmode {
                 telemetry.addData("FPS", fps);
                 telemetry.addData("Hardware Overhead", sensorData.getFps());
                 telemetry.addData("Backlog", sensorData.getBacklog());
+                hardwareData.setTurret(UGUtils.getTurretValue(UGUtils.minAngle));
             }
         });
     }

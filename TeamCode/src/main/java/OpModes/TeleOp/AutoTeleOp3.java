@@ -2,6 +2,7 @@ package OpModes.TeleOp;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -44,7 +45,8 @@ public class AutoTeleOp3 extends BasicOpmode {
     int timer = 0;
     long turretTimer = 0;
     double rotOffset;
-    public static double p = 1.5, i = 0, d = 0, f = 0.1;
+    public static double p = 1, i = 0, d = 0, f = 0.1;
+    public static double ARM_IDLE = 1500;
     public AutoTeleOp3() {
         super(new UltimateGoalHardware());
     }
@@ -66,6 +68,7 @@ public class AutoTeleOp3 extends BasicOpmode {
 
                 hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
                 hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(SingletonVariables.getInstance().getPitchOffset());
+                //hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.CP1_2_TWINKLES);
 
                 if(isStarted()){
                     deactivateThis();
@@ -143,10 +146,6 @@ public class AutoTeleOp3 extends BasicOpmode {
                     angDelta = Math.toRadians(powershots[2]);
                 }
 
-                if(gamepad2.right_bumper){
-                    hardware.smartDevices.get("SmartCV", SmartCV.class).calibratePitch();
-                }
-
                 hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
                 //hardware.smartDevices.get("Turret", SmartServo.class).forceSend(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
 
@@ -154,10 +153,26 @@ public class AutoTeleOp3 extends BasicOpmode {
 
                 if(!posSet){
                     telemetry.addLine("WARNING! Kinematic Position is not set: Shooting estimation will be off!");
+                    hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED);
                 }else{
+                    if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()){
+                        double odoTrack = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY));
+                        double cameraTrack = hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading();
+                        if(Math.abs(MathUtils.getRadRotDist(odoTrack, Math.toRadians(cameraTrack))) >= Math.toRadians(5)){
+                            hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED);
+                        }else{
+                            hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.CP1_2_BEATS_PER_MINUTE);
+                        }
+                    }else{
+                        hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.CP1_2_SINELON);
+                    }
+                    if(shot){
+                        //hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.CP1_STROBE);
+                    }
                     telemetry.addData("Kinematic Position", position);
                     telemetry.addData("Velocity", velocity);
                 }
+                telemetry.addData("Pattern", hardwareData.getPattern().toString());
             }
         });
 
@@ -215,6 +230,11 @@ public class AutoTeleOp3 extends BasicOpmode {
                 }else{
                     hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.IDLE_INTAKE);
                 }
+                if(gamepad2.right_bumper){
+                    hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(1140));
+                }else{
+                    hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(ARM_IDLE));
+                }
 
                 if(gamepad1.dpad_down){
                     if(!stateMachine.logicStateActive("Load Shooter")){
@@ -225,7 +245,7 @@ public class AutoTeleOp3 extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.325);
+                    hardwareData.setShooterTilt(0.33);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }

@@ -1,5 +1,7 @@
 package Hardware.Packets;
 
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+
 import MathSystems.Vector4;
 
 /**
@@ -8,8 +10,9 @@ import MathSystems.Vector4;
  */
 
 public class HardwareData {
-    private double bl, br, fl, fr, intake, shooter, shooterTilt, shooterLoadArm, wobbleLift, wobbleOneuseRight, wobbleLiftLeft, wobbleLiftRight, intakeRelease, turret;
+    private double bl, br, fl, fr, intake, shooter, shooterTilt, shooterLoadArm, wobbleLift, wobbleOneuseRight, wobbleLiftLeft, wobbleLiftRight, intakeRelease, turret, intakeShield;
     private long timestamp;
+    private RevBlinkinLedDriver.BlinkinPattern pattern;
     public HardwareData(){
         bl = 0;
         br = 0;
@@ -25,6 +28,8 @@ public class HardwareData {
         intakeRelease = -1;
         wobbleLift = 0;
         turret = -1;
+        intakeShield = -1;
+        //pattern = RevBlinkinLedDriver.BlinkinPattern.CP1_2_TWINKLES;
     }
 
     public void setDriveMotors(Vector4 powers){
@@ -128,6 +133,22 @@ public class HardwareData {
 
     public double getTurret() {
         return turret;
+    }
+
+    public RevBlinkinLedDriver.BlinkinPattern getPattern() {
+        return pattern;
+    }
+
+    public void setPattern(RevBlinkinLedDriver.BlinkinPattern pattern) {
+        this.pattern = pattern;
+    }
+
+    public void setIntakeShield(double intakeShield) {
+        this.intakeShield = intakeShield;
+    }
+
+    public double getIntakeShield() {
+        return intakeShield;
     }
 
     public long getTimestamp() {
