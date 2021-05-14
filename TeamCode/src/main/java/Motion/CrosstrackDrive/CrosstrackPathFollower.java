@@ -113,7 +113,7 @@ public class CrosstrackPathFollower extends VelocityDriveState {
         }
 
         double rotSpeed = Math.max(maxRotSpeed, RobotConstants.UltimateGoal.KF) * MathUtils.sign(MathUtils.getRadRotDist(position.getC(), rotTarget));
-        if(Math.abs(MathUtils.getRadRotDist(position.getC(), rotTarget)) < rotTol){
+        if(Math.abs(MathUtils.getRadRotDist(position.getC(), rotTarget)) < Math.toRadians(rotTol)){
             rotSpeed = 0;
         }
         velocity.set(rotatedVels, rotSpeed);
