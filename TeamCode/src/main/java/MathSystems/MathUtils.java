@@ -33,7 +33,7 @@ public class MathUtils {
     
     public static double sign(double in){
     	if(in == 0) {
-    		return 1;
+    		return 0;
     	}
         return in/Math.abs(in);
     }
