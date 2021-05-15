@@ -46,7 +46,7 @@ public class AutoTeleOp3 extends BasicOpmode {
     long turretTimer = 0;
     double rotOffset;
     public static double p = 1, i = 0, d = 0, f = 0.1;
-    public static double ARM_IDLE = 1500;
+    public static double ARM_IDLE = 1395;
     public AutoTeleOp3() {
         super(new UltimateGoalHardware());
     }
@@ -179,7 +179,7 @@ public class AutoTeleOp3 extends BasicOpmode {
         eventSystem.onStart("Powershot Manager", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                if(gamepad1.left_trigger > 0.25 || gamepad2.right_trigger > 0.25){
+                if(gamepad1.left_trigger > 0.1){
                     shot = true;
                 }else{
                     shot = false;
@@ -206,7 +206,7 @@ public class AutoTeleOp3 extends BasicOpmode {
         eventSystem.onStart("Shoot", new LogicState(stateMachine) {
             long frameTime = System.currentTimeMillis();
             final PIDFSystem system = new PIDFSystem(p, i, d, f);
-            final double targetSpeed = 4.25;
+            final double targetSpeed = 4.5;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 double reqSpeed = (!gamepad2.left_bumper) ? 0.75 : 0;
@@ -245,7 +245,7 @@ public class AutoTeleOp3 extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.33);
+                    hardwareData.setShooterTilt(0.34);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
