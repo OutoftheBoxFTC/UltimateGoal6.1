@@ -1,5 +1,6 @@
 package OpModes.Debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import Hardware.*;
@@ -10,6 +11,7 @@ import OpModes.BasicOpmode;
 import State.LogicState;
 
 @TeleOp
+@Disabled
 public class RingVisionTest extends BasicOpmode {
     public RingVisionTest() {
         super(new UltimateGoalHardware());

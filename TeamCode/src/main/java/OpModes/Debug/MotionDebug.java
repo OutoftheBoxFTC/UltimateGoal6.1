@@ -20,6 +20,7 @@ import State.DriveStateActivator;
 import State.GamepadDriveState;
 import State.LogicState;
 @TeleOp
+@Disabled
 public class MotionDebug extends BasicOpmode {
     Vector3 position, velocity;
     Odometer odometer;

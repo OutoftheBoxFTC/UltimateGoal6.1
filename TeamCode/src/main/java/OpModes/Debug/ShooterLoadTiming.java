@@ -10,6 +10,7 @@ import Hardware.Robots.RobotConstants;
 import OpModes.BasicOpmode;
 import State.LogicState;
 @TeleOp
+@Disabled
 public class ShooterLoadTiming extends BasicOpmode {
     long timeCoeff = 3000;
     public ShooterLoadTiming() {

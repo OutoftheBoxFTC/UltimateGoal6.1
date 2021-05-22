@@ -56,7 +56,7 @@ public class SmartCV extends SmartDevice {
                 .setBitrate(3, PipelineRecordingParameters.BitrateUnits.Mbps)
                 .build());
                  */
-                //FtcDashboard.getInstance().startCameraStream(tower, 30);
+                FtcDashboard.getInstance().startCameraStream(tower, 30);
 
             }
         });

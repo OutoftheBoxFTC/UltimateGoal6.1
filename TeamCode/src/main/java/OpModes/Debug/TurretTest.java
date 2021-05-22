@@ -1,5 +1,6 @@
 package OpModes.Debug;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -24,6 +25,7 @@ import State.LogicState;
 import State.VelocityDriveState;
 
 @TeleOp
+@Disabled
 public class TurretTest extends BasicOpmode {
     Odometer odometer;
     Vector3 position, velocity;

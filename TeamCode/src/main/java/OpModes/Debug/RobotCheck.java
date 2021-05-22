@@ -11,6 +11,7 @@ import MathSystems.Vector4;
 import OpModes.BasicOpmode;
 import State.LogicState;
 @TeleOp
+@Disabled
 public class RobotCheck extends BasicOpmode {
     public RobotCheck() {
         super(new UltimateGoalHardware());
