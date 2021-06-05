@@ -12,6 +12,7 @@ import org.openftc.easyopencv.OpenCvSwitchableWebcam;
 import org.openftc.easyopencv.PipelineRecordingParameters;
 
 import Hardware.SmartDevices.SmartCV.TowerGoal.PipelineTester;
+import Hardware.SmartDevices.SmartCV.TowerGoal.TensorPipeline;
 import Hardware.SmartDevices.SmartDevice;
 
 public class SmartCV extends SmartDevice {
@@ -19,12 +20,12 @@ public class SmartCV extends SmartDevice {
     private OpenCvCamera ring, tower;
     private WebcamName ringCam, towerCam;
     private RingPipeline ringPipeline;
-    private PipelineTester highgoalPipeline;
+    private TensorPipeline highgoalPipeline;
     private boolean opened;
 
-    public SmartCV(WebcamName ringCam, WebcamName towerCam, HardwareMap hardwareMap){
+    public SmartCV(WebcamName ringCam, WebcamName towerCam, final HardwareMap hardwareMap){
         ringPipeline = new RingPipeline();
-        highgoalPipeline = new PipelineTester(hardwareMap.appContext, 60);
+        highgoalPipeline = new TensorPipeline(hardwareMap, 60);
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         ring = OpenCvCameraFactory.getInstance().createWebcam(ringCam);
         tower = OpenCvCameraFactory.getInstance().createWebcam(towerCam, cameraMonitorViewId);

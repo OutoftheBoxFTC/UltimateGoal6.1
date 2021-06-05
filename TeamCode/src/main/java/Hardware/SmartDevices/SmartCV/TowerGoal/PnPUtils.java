@@ -21,9 +21,6 @@ public class PnPUtils {
 
     public static double[] getPitchAndYaw(Mat in, Rect bounds, Mat outMat, double fov){
 
-        Mat inCopy = in.submat(bounds);
-        Mat inNorm = BetterTowerGoalUtils.normCropInRange(inCopy);
-
         double width = (in.width()/2.0) - 0.5;
         double height = (in.height()/2.0) - 0.5;
 

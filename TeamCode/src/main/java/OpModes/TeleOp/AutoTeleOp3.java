@@ -50,7 +50,7 @@ public class AutoTeleOp3 extends BasicOpmode {
     long turretTimer = 0;
     double rotOffset;
     public static double p = 1, i = 0, d = 0, f = 0.1;
-    public static double ARM_IDLE = 1395, ARM_DOWN = RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN;
+    public static double ARM_IDLE = 1400, ARM_DOWN = RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN;
     public AutoTeleOp3() {
         super(new UltimateGoalHardware());
     }
@@ -163,7 +163,7 @@ public class AutoTeleOp3 extends BasicOpmode {
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack() && !gamepad1.a && gamepad1.left_trigger > 0.1){
+                if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack() && !gamepad1.a && (gamepad1.left_trigger > 0.1 || gamepad2.left_bumper) && velocity.getVector2().length() < 4){
                     double[] pos = hardware.smartDevices.get("SmartCV", SmartCV.class).getPosition();
                     odometer.setKinematicPosition(pos[0], pos[1], 0);
                     posSet = true;
@@ -171,6 +171,13 @@ public class AutoTeleOp3 extends BasicOpmode {
 
                 double deltaX = -(position.getA());
                 double deltaY = -(position.getB());
+
+                if(velocity.getVector2().length() > 4){
+                    double dist = hardware.smartDevices.get("SmartCV", SmartCV.class).getRange();
+                    deltaX -= velocity.getA() * (dist / 120);
+                    deltaY -= velocity.getB() * (dist / 120);
+                }
+
                 angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY));
 
                 double dtheta = angDelta - prevAng;
@@ -267,8 +274,7 @@ public class AutoTeleOp3 extends BasicOpmode {
             final double targetSpeed = 4.5;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                double reqSpeed = (!gamepad2.left_bumper) ? 0.75 : 0;
-                double targetSpeed = (!gamepad2.left_bumper) ? this.targetSpeed : 0;
+                double reqSpeed = 0.75;
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 system.setCoef(new Vector4(p, i, d, f));
                 if(gamepad1.dpad_up || gamepad1.b || gamepad1.x || gamepad1.y){
@@ -307,7 +313,7 @@ public class AutoTeleOp3 extends BasicOpmode {
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
 
                 if(holdShoot){
-                    hardwareData.setShooterTilt(0.337);
+                    hardwareData.setShooterTilt(0.334);
                 }else{
                     //hardwareData.setShooterTilt(0.35 + tiltLevel);
                 }
@@ -385,7 +391,9 @@ public class AutoTeleOp3 extends BasicOpmode {
                             state = 0;
                             shot = false;
                         }
+                        hardwareData.setShooterLoadArm(0.925);
                     }
+                    hardwareData.setShooterLoadArm(0.925);
                 }
             }
         });
