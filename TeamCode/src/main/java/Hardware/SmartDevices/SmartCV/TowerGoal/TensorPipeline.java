@@ -36,7 +36,7 @@ public class TensorPipeline extends OpenCvPipeline {
 
     public TensorPipeline(HardwareMap hardwareMap, double fov){
         try {
-            det = ObjectDetector.createFromFileAndOptions(hardwareMap.appContext, "model.tflite", ObjectDetector.ObjectDetectorOptions.builder().setNumThreads(2).setScoreThreshold(0.95f).build());
+            det = ObjectDetector.createFromFileAndOptions(hardwareMap.appContext, "model1.tflite", ObjectDetector.ObjectDetectorOptions.builder().setNumThreads(2).setScoreThreshold(0.95f).build());
         } catch (IOException e) {
             e.printStackTrace();
         }
