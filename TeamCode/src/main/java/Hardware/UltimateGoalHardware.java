@@ -1,8 +1,6 @@
 package Hardware;
 
-import com.qualcomm.hardware.kauailabs.NavxMicroNavigationSensor;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -11,17 +9,12 @@ import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.SmartDevices.SmartBlinkin.SmartBlinkin;
 import Hardware.SmartDevices.SmartCV.SmartCV;
-import Hardware.SmartDevices.SmartCV.TowerCV;
 import Hardware.SmartDevices.SmartEncoder.SmartEncoder;
 import Hardware.SmartDevices.SmartEncoder.SmartEncoderConfiguration;
-import Hardware.SmartDevices.SmartIMU.SmartIMU;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.SmartDevices.SmartMotor.SmartMotorConfiguration;
-import Hardware.SmartDevices.SmartNavXMicro.SmartNavXConfiguration;
-import Hardware.SmartDevices.SmartNavXMicro.SmartNavXMicro;
 import Hardware.SmartDevices.SmartServo.SmartServo;
 import Hardware.SmartDevices.SmartServo.SmartServoConfiguration;
-import Hardware.SmartDevices.SmartTensorflow.SmartTensorflow;
 
 public class UltimateGoalHardware extends Hardware {
     private long prevTime = 0;
@@ -120,10 +113,10 @@ public class UltimateGoalHardware extends Hardware {
             SmartCV smartCV = smartDevices.get("SmartCV", SmartCV.class);
             sensorData.setRings(smartCV.getRings());
             sensorData.setTrack(smartCV.getTrack());
-            sensorData.setHeading(smartCV.getHeading());
+            sensorData.setHeading(smartCV.getRedHeading());
             sensorData.setRange(smartCV.getRange());
             sensorData.setPitch(smartCV.getPitch());
-            sensorData.setPowershots(smartCV.getPowershots());
+            sensorData.setPowershots(smartCV.getRedPowershots());
         }
         if(enabledDevices.contains(HardwareDevices.WOBBLE)){
             //sensorData.setWobbleLift(smartDevices.get("Back Left", SmartMotor.class).getPosition());

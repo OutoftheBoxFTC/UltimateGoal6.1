@@ -3,7 +3,6 @@ package OpModes.TeleOp;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -19,17 +18,14 @@ import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartCV.SmartCV;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
-import Hardware.SmartDevices.SmartServo.SmartServo;
 import Hardware.UltimateGoalHardware;
 import MathSystems.MathUtils;
 import MathSystems.PIDFSystem;
 import MathSystems.ProgramClock;
-import MathSystems.Vector2;
 import MathSystems.Vector3;
 import MathSystems.Vector4;
 import Motion.Terminators.TrueTimeTerminator;
 import Odometry.AdvancedVOdometer;
-import Odometry.ConstantVOdometer;
 import OpModes.BasicOpmode;
 import State.EventSystem.LinearEventSystem;
 import State.LogicState;
@@ -222,7 +218,7 @@ public class AutoTeleOp3 extends BasicOpmode {
                 }else{
                     if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()){
                         double odoTrack = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY));
-                        double cameraTrack = hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading();
+                        double cameraTrack = hardware.smartDevices.get("SmartCV", SmartCV.class).getRedHeading();
                         if(Math.abs(MathUtils.getRadRotDist(odoTrack, Math.toRadians(cameraTrack))) >= Math.toRadians(5)){
                             hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_RED);
                         }else{

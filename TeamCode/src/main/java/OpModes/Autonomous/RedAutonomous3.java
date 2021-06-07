@@ -1,7 +1,6 @@
 package OpModes.Autonomous;
 
 import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -12,20 +11,17 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 
 import Hardware.CustomClasses.SingletonVariables;
-import Hardware.Hardware;
 import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.RobotSystems.MecanumSystem;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartCV.SmartCV;
-import Hardware.SmartDevices.SmartCV.TowerCV;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.UltimateGoalHardware;
 import MathSystems.Angle;
 import MathSystems.MathUtils;
 import MathSystems.PIDSystem;
-import MathSystems.ProgramClock;
 import MathSystems.Vector2;
 import MathSystems.Vector3;
 import MathSystems.Vector4;
@@ -534,7 +530,7 @@ public class RedAutonomous3 extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack() && !gamepad1.y){
-                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
+                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getRedHeading());
                     hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
                     if(!stateMachine.logicStateActive("ShootRing")){
                         stateMachine.activateLogic("ShootRing");
@@ -1178,7 +1174,7 @@ public class RedAutonomous3 extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()){
-                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
+                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getRedHeading());
                     hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
                 }
                 if(System.currentTimeMillis() > timer){

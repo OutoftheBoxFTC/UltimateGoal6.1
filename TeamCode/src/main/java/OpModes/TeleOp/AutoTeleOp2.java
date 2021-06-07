@@ -1,7 +1,5 @@
 package OpModes.TeleOp;
 
-import android.view.textclassifier.TextClassifierEvent;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -13,13 +11,11 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 
 import Hardware.CustomClasses.SingletonVariables;
-import Hardware.Hardware;
 import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartCV.SmartCV;
-import Hardware.SmartDevices.SmartCV.TowerCV;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.UltimateGoalHardware;
 import MathSystems.MathUtils;
@@ -272,7 +268,7 @@ public class AutoTeleOp2 extends BasicOpmode {
                 angDelta = MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY));
                 if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack() && !gamepad1.a){
                     //rotOffset = Math.toDegrees(tmp - angDelta);
-                    angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
+                    angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getRedHeading());
                 }else{
                     //angDelta = angDelta + Math.toRadians(rotOffset);
                     angDelta = 0;

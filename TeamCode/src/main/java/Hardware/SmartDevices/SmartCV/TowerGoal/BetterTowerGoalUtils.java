@@ -386,10 +386,11 @@ public class BetterTowerGoalUtils {
         double ang = Math.atan2((40.625 - cameraHeight), dist);
         return Math.toDegrees(ang) - pitch;
     }
-
-    public static double[] approxPowershotAngles(double yaw, double goalWallDist){
+    public static int RED = 1;
+    public static int BLUE = -1;
+    public static double[] approxPowershotAngles(double yaw, double goalWallDist, int color){
         double goalOffset = 16.5;
-        double powershotOffset = 7.5;
+        double powershotOffset = 7.5 * color;
 
         double dist = Math.tan(Math.toRadians(yaw)) * goalWallDist;
 
@@ -401,19 +402,22 @@ public class BetterTowerGoalUtils {
         if((goalOffset > Math.abs(dist) && (goalOffset * dist < 0)) || yaw > 0){
             dists[0] = Math.toDegrees(Math.atan((goalOffset + dist) / goalWallDist));
         }else{
-            dists[0] = Math.toDegrees(Math.atan((goalOffset - dist) / goalWallDist));
+            //dists[0] = Math.toDegrees(Math.atan((goalOffset - dist) / goalWallDist));
+            dists[0] = Math.toDegrees(Math.atan((goalOffset + dist) / goalWallDist));
         }
 
         if((psht2 > Math.abs(dist) && (psht2 * dist < 0)) || yaw > 0){
             dists[1] = Math.toDegrees(Math.atan((psht2 + dist) / goalWallDist));
         }else{
-            dists[1] = Math.toDegrees(Math.atan((psht2 - dist) / goalWallDist));
+            //dists[1] = Math.toDegrees(Math.atan((psht2 - dist) / goalWallDist));
+            dists[1] = Math.toDegrees(Math.atan((psht2 + dist) / goalWallDist));
         }
 
         if((psht3 > Math.abs(dist) && (psht3 * dist < 0)) || yaw > 0){
             dists[2] = Math.toDegrees(Math.atan((psht3 + dist) / goalWallDist));
         }else{
-            dists[2] = Math.toDegrees(Math.atan((psht3 - dist) / goalWallDist));
+            //dists[2] = Math.toDegrees(Math.atan((psht3 - dist) / goalWallDist));
+            dists[2] = Math.toDegrees(Math.atan((psht3 + dist) / goalWallDist));
         }
 
         return dists;

@@ -3,8 +3,6 @@ package OpModes.Autonomous;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareDeviceCloseOnTearDown;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -12,7 +10,6 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 
 import Hardware.CustomClasses.SingletonVariables;
-import Hardware.Hardware;
 import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
@@ -20,7 +17,6 @@ import Hardware.RobotSystems.MecanumSystem;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartCV.SmartCV;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
-import Hardware.SmartDevices.SmartTensorflow.SmartTensorflow;
 import Hardware.UltimateGoalHardware;
 import MathSystems.Angle;
 import MathSystems.MathUtils;
@@ -33,7 +29,6 @@ import Motion.DriveToPoint.DriveToPointBuilder;
 import Motion.PIDDriveToPoint.PIDDriveToPointBuilder;
 import Motion.Path.Path;
 import Motion.Path.PathBuilder;
-import Motion.PurePursuit.PurePursuitBuilder;
 import Motion.Terminators.OrientationTerminator;
 import Motion.Terminators.TimeTerminator;
 import Motion.Terminators.TrueTimeTerminator;
@@ -213,7 +208,7 @@ public class RedAutonomous2 extends BasicOpmode {
                 hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
                 stateMachine.deactivateState("Rotate To Zero");
                 hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
-                double[] locpowershots = hardware.getSmartDevices().get("SmartCV", SmartCV.class).getPowershots();
+                double[] locpowershots = hardware.getSmartDevices().get("SmartCV", SmartCV.class).getRedPowershots();
                 sumLeft += locpowershots[0];
                 sumCenter += locpowershots[1];
                 sumRight += locpowershots[2];
@@ -588,7 +583,7 @@ public class RedAutonomous2 extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()){
-                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
+                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getRedHeading());
                     hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
                 }
                 if(System.currentTimeMillis() > timer){
@@ -939,7 +934,7 @@ public class RedAutonomous2 extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()){
-                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
+                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getRedHeading());
                     hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
                 }
                 if(System.currentTimeMillis() > timer){
@@ -1389,7 +1384,7 @@ public class RedAutonomous2 extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()){
-                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getHeading());
+                    double angDelta = Math.toRadians(hardware.smartDevices.get("SmartCV", SmartCV.class).getRedHeading());
                     hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(angDelta)));
                     if(System.currentTimeMillis() > timer && !stateMachine.logicStateActive("Repeat Shoot")){
                         stateMachine.activateLogic("Repeat Shoot");

@@ -2,16 +2,12 @@ package Hardware.SmartDevices.SmartCV;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvSwitchableWebcam;
-import org.openftc.easyopencv.PipelineRecordingParameters;
 
-import Hardware.SmartDevices.SmartCV.TowerGoal.PipelineTester;
 import Hardware.SmartDevices.SmartCV.TowerGoal.TensorPipeline;
 import Hardware.SmartDevices.SmartDevice;
 
@@ -90,8 +86,12 @@ public class SmartCV extends SmartDevice {
         return ringPipeline.getArea();
     }
 
-    public double getHeading(){
-        return highgoalPipeline.getHeading()-0;
+    public double getRedHeading(){
+        return highgoalPipeline.getRedHeading()-0;
+    }
+
+    public double getBlueHeading(){
+        return highgoalPipeline.getBlueHeading();
     }
 
     public double getRange(){
@@ -106,9 +106,13 @@ public class SmartCV extends SmartDevice {
         return highgoalPipeline.getPitch();
     }
 
-    public double[] getPowershots(){
-        double[] arr = highgoalPipeline.getPowershots();
+    public double[] getRedPowershots(){
+        double[] arr = highgoalPipeline.getRedPowershots();
         return new double[]{arr[0]-2, arr[1]-1, arr[2]-2};
+    }
+
+    public double[] getBluePowershots(){
+        return highgoalPipeline.getBluePowershots();
     }
 
     public double calibratePitch(){
@@ -123,6 +127,14 @@ public class SmartCV extends SmartDevice {
 
     public void setPitchOffset(double pitchOffset){
         highgoalPipeline.setPitchOffset(pitchOffset);
+    }
+
+    public long getTimestamp(){
+        return highgoalPipeline.getTimestamp();
+    }
+
+    public long getDataTimestamp(){
+        return highgoalPipeline.getDataTimestamp();
     }
 
     public void shutdown(){

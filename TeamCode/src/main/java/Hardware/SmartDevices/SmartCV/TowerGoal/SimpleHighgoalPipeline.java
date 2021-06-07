@@ -82,7 +82,7 @@ public class SimpleHighgoalPipeline extends OpenCvPipeline {
             double goalWallDist = (horDist + verDist)/2;
 
             double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(14, firingSolution[0] + pitchOffset);
-            powershots = BetterTowerGoalUtils.approxPowershotAngles(-firingSolution[1], goalWallDist2);
+            powershots = BetterTowerGoalUtils.approxPowershotAngles(-firingSolution[1], goalWallDist2, BetterTowerGoalUtils.RED);
 
             firingSolution[0] = goalWallDist2;
 

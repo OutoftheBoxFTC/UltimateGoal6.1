@@ -27,10 +27,6 @@ public class PnPUtils {
         Point center = CvUtils.getCenter(bounds);
         double pitch = -Math.toDegrees(Math.atan2(center.y - height, CvUtils.calcPinholeVert(fov, in.width(), in.height())));
         double yaw = Math.toDegrees(Math.atan2((center.x) - width, CvUtils.calcPinholeHor(fov, in.width(), in.height())));
-        //System.out.println("Center " + center + " | vert " + CvUtils.calcPinholeVert(fov, in.width(), in.height()) + " | hor " + CvUtils.calcPinholeHor(fov, in.width(), in.height()));
-        //System.out.println("Pitch " + pitch + " | Yaw " + yaw);
-
-        //Imgproc.rectangle(outMat, bounds, new Scalar(0, 0, 255));
 
         return new double[]{ pitch, yaw };
     }

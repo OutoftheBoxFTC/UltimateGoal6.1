@@ -4,6 +4,7 @@ import MathSystems.Vector3;
 
 public class SingletonVariables {
     private static final SingletonVariables instance = new SingletonVariables();
+    private String prevState = "";
     private Vector3 position;
     private double pitchOffset = 17;
     public SingletonVariables(){
@@ -24,6 +25,14 @@ public class SingletonVariables {
 
     public double getPitchOffset() {
         return pitchOffset;
+    }
+
+    public String getPrevState() {
+        return prevState;
+    }
+
+    public void setPrevState(String prevState) {
+        this.prevState = prevState;
     }
 
     public static SingletonVariables getInstance(){
