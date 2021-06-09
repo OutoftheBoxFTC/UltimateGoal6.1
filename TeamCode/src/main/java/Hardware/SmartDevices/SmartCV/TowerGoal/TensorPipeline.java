@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TensorPipeline extends OpenCvPipeline {
     ObjectDetector det;
-    Mat refMat;
     private Mat cropCopy, test;
     private MatOfPoint refContour;
     private Rect boundingRect;
@@ -43,11 +42,6 @@ public class TensorPipeline extends OpenCvPipeline {
     public TensorPipeline(HardwareMap hardwareMap, double fov){
         try {
             det = ObjectDetector.createFromFileAndOptions(hardwareMap.appContext, "model.tflite", ObjectDetector.ObjectDetectorOptions.builder().setNumThreads(2).setScoreThreshold(0.95f).build());
-            try {
-                refMat = Utils.loadResource(hardwareMap.appContext, R.raw.tower, Imgcodecs.IMREAD_GRAYSCALE);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         } catch (IOException e) {
             e.printStackTrace();
         }
