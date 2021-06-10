@@ -12,7 +12,6 @@ import OpModes.BasicOpmode;
 import State.GamepadDriveState;
 import State.LogicState;
 @TeleOp
-@Disabled
 public class RobotTuner extends BasicOpmode {
 
     public RobotTuner() {

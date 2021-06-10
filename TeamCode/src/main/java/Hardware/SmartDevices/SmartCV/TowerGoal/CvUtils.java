@@ -173,4 +173,34 @@ public class CvUtils {
 
         return imageHeight / (2 * Math.tan(verticalView / 2));
     }
+
+    public static Rect cleanRect(Rect in, Mat mat){
+        Point tl = in.clone().tl();
+        Point br = in.clone().br();
+        if(tl.x < 0){
+            tl.x = 0;
+        }
+        if(tl.y < 0){
+            tl.y = 0;
+        }
+        if(br.x < 0){
+            br.x = 0;
+        }
+        if(br.y < 0){
+            br.y = 0;
+        }
+        if(tl.x > mat.cols()){
+            tl.x = mat.cols();
+        }
+        if(tl.y > mat.rows()){
+            tl.y = mat.rows();
+        }
+        if(br.x > mat.cols()){
+            br.x = mat.cols();
+        }
+        if(br.y > mat.rows()){
+            br.y = mat.rows();
+        }
+        return new Rect(tl, br);
+    }
 }

@@ -2,6 +2,7 @@ package OpModes.TeleOp;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -34,6 +35,7 @@ import State.VelocityDriveState;
 
 @TeleOp
 @Config
+@Disabled
 public class AutoTeleOp2 extends BasicOpmode {
     ConstantVOdometer odometer;
     Vector3 position, velocity;

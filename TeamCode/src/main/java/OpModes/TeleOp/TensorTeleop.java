@@ -15,6 +15,7 @@ import Hardware.SmartDevices.SmartCV.SmartCV;
 import Hardware.SmartDevices.SmartCV.TowerGoal.TensorPipeline;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.UltimateGoalHardware;
+import MathSystems.MathUtils;
 import MathSystems.PIDFSystem;
 import MathSystems.Vector2;
 import MathSystems.Vector3;
@@ -35,7 +36,7 @@ public class TensorTeleop extends BasicOpmode {
     long timestamp = 0, dataTimestamp = 0;
     TARGET turretTarget = TARGET.NONE;
     COLOR color = COLOR.RED;
-    boolean shoot = false;
+    boolean shoot = false, shooterReady = false;
     public static double ARM_IDLE = 1400, ARM_DOWN = RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN;
     public TensorTeleop() {
         super(new UltimateGoalHardware());
@@ -72,6 +73,9 @@ public class TensorTeleop extends BasicOpmode {
                 }else if (color == COLOR.BLUE){
                     hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_BLUE);
                 }
+                hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
+                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(17.7);
+                hardware.smartDevices.get("SmartCV", SmartCV.class).setVelocity(velocity);
                 if(isStarted()){
                     deactivateThis();
                 }
@@ -100,6 +104,8 @@ public class TensorTeleop extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 telemetry.addData("Target", turretTarget);
                 telemetry.addData("Color", color);
+                telemetry.addData("Timestamped Pos", timestampedPosition);
+                telemetry.addData("Pos", position);
             }
         });
 
@@ -133,6 +139,9 @@ public class TensorTeleop extends BasicOpmode {
         eventSystem.onStart("Turret", new LogicState(stateMachine) {
             SmartCV smartCV;
             double angle = 0;
+            double goalOffset = 16.5;
+            double powershotOffset = 7.5;
+            double deltaX = 0, deltaY = 0;
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
                 smartCV = hardware.getSmartDevices().get("SmartCV", SmartCV.class);
@@ -142,51 +151,46 @@ public class TensorTeleop extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 switch(turretTarget){ //TODO: Ensure angle calculations still work
                     case BLUE_GOAL:
-                        //Check if we are moving faster then 2 inches per second
-                        if(velocity.getVector2().length() > 2) {
-                            //If we are moving, we need to track the high goal while keeping velocity in mind
-                            //This vector is our delta to the goal
-                            Vector2 v1 = position.getVector2().subtract(new Vector2(35, 0)).scale(-1);
-                            //Then we subtract from the position our velocity times flight time (range / 120.0 in/s)
-                            //Then we find the angle to zero to find our relative angle
-                            angle = v1.subtract(velocity.getVector2().scale(smartCV.getRange()/120.0)).angleTo(Vector2.ZERO());
-                        }else {
-                            //If we are moving less then 2 inches per second chances are the ring will just go into the goal
-                            //So we just calculate the angle to the goal
-                            angle = position.getVector2().subtract(new Vector2(35, 0)).scale(-1).angleTo(Vector2.ZERO());
-                        }
+                        deltaX = -(position.getA()+35);
+                        deltaY = -(position.getB());
                         break;
                     case RED_GOAL:
-                        //See above for more explanations
-                        if(velocity.getVector2().length() > 2){
-                            Vector2 v1 = position.getVector2().subtract(new Vector2(35, 0)).scale(-1);
-                            angle = v1.subtract(velocity.getVector2().scale(smartCV.getRange()/120.0)).angleTo(Vector2.ZERO());
-                        }else {
-                            angle = position.getVector2().add(new Vector2(35, 0)).scale(-1).angleTo(Vector2.ZERO());
-                        }
+                        deltaX = -(position.getA()-35);
+                        deltaY = -(position.getB());
                         break;
                     case RED_POWERSHOT_LEFT:
-                        angle = smartCV.getRedPowershots()[2];
+                        deltaX = -(position.getA() - (35 - goalOffset - powershotOffset - powershotOffset));
+                        deltaY = -(position.getB());
                         break;
                     case RED_POWERSHOT_CENTER:
-                        angle = smartCV.getRedPowershots()[1];
+                        deltaX = -(position.getA() - (35 - goalOffset - powershotOffset));
+                        deltaY = -(position.getB());
                         break;
                     case RED_POWERSHOT_RIGHT:
-                        angle = smartCV.getRedPowershots()[0];
+                        deltaX = -(position.getA() - (35 - goalOffset));
+                        deltaY = -(position.getB());
                         break;
                     case BLUE_POWERSHOT_LEFT:
-                        angle = smartCV.getBluePowershots()[0];
+                        deltaX = -(position.getA() + (35 - goalOffset));
+                        deltaY = -(position.getB());
                         break;
                     case BLUE_POWERSHOT_CENTER:
-                        angle = smartCV.getBluePowershots()[1];
+                        deltaX = -(position.getA() + (35 - goalOffset - powershotOffset));
+                        deltaY = -(position.getB());
                         break;
                     case BLUE_POWERSHOT_RIGHT:
-                        angle = smartCV.getBluePowershots()[2];
+                        deltaX = -(position.getA() + (35 - goalOffset - powershotOffset - powershotOffset));
+                        deltaY = -(position.getB());
                         break;
                     case NONE:
                         break;
                 }
-                hardwareData.setTurret(UGUtils.getTurretValue(angle));
+                if(velocity.getVector2().length() > 4){
+                    double dist = hardware.smartDevices.get("SmartCV", SmartCV.class).getRange();
+                    //deltaX -= velocity.getA() * (dist / 120);
+                    //deltaY -= velocity.getB() * (dist / 120);
+                }
+                hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
             }
         });
 
@@ -233,19 +237,23 @@ public class TensorTeleop extends BasicOpmode {
                     }else{
                         turretTarget = TARGET.RED_POWERSHOT_LEFT;
                     }
-                }
-                if(gamepad1.dpad_up){
+                }else if(gamepad1.dpad_up){
                     if(color == COLOR.BLUE){
                         turretTarget = TARGET.BLUE_POWERSHOT_CENTER;
                     }else{
                         turretTarget = TARGET.RED_POWERSHOT_CENTER;
                     }
-                }
-                if(gamepad1.dpad_right){
+                }else if(gamepad1.dpad_right){
                     if(color == COLOR.BLUE){
                         turretTarget = TARGET.BLUE_POWERSHOT_RIGHT;
                     }else{
                         turretTarget = TARGET.RED_POWERSHOT_RIGHT;
+                    }
+                }else{
+                    if(color == COLOR.BLUE){
+                        turretTarget = TARGET.BLUE_GOAL;
+                    }else{
+                        turretTarget = TARGET.RED_GOAL;
                     }
                 }
                 //Shooting is not on a hair trigger because it has gotten "stuck" before, constantly returning ~0.1
@@ -282,11 +290,21 @@ public class TensorTeleop extends BasicOpmode {
                 if(turretTarget == TARGET.BLUE_GOAL || turretTarget == TARGET.RED_GOAL || turretTarget == TARGET.NONE){
                     //Targeting the goal
                     hardwareData.setShooter(0.75 + system.getCorrection(4.5 - vel, shoot ? 1 : 0));
-                    hardwareData.setShooterTilt(0.334);
+                    hardwareData.setShooterTilt(0.321);
+                    if(Math.abs(vel - 4.5) < 0.1){
+                        shooterReady = true;
+                    }else{
+                        shooterReady = false;
+                    }
                 }else {
                     //Targeting the powershots
                     hardwareData.setShooter(0.7 + system.getCorrection(4.2 - vel, shoot ? 1 : 0));
-                    hardwareData.setShooterTilt(0.35);
+                    hardwareData.setShooterTilt(0.335);
+                    if(Math.abs(vel - 4.2) < 0.1){
+                        shooterReady = true;
+                    }else{
+                        //shooterReady = false;
+                    }
                 }
             }
         });
@@ -299,7 +317,7 @@ public class TensorTeleop extends BasicOpmode {
                 if(state == 0){
                     //First we move the indexer into the hopper
                     hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 100; //Wait for indexer to move and shooter to grab ring
+                    timer = System.currentTimeMillis() + 60; //Wait for indexer to move and shooter to grab ring
                     state = 1;
                 }
                 if(state == 1){
@@ -309,12 +327,12 @@ public class TensorTeleop extends BasicOpmode {
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.925);//Retract the indexer out
-                    timer = System.currentTimeMillis() + 100; //Wait for indexer to move and next ring to fall
+                    timer = System.currentTimeMillis() + 60; //Wait for indexer to move and next ring to fall
                     state = 3;
                 }
                 if(state == 3){
                     if(System.currentTimeMillis() >= timer){
-                        if(shoot){//Wait for the next shoot command
+                        if(shoot && shooterReady){//Wait for the next shoot command
                             shoot = false;//Set shoot to false since we are shooting the ring now
                             state = 0;
                         }
