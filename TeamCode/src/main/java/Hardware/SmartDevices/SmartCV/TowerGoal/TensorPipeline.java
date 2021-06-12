@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import MathSystems.Vector3;
+
 
 public class TensorPipeline extends OpenCvPipeline {
     ObjectDetector det;
@@ -33,18 +35,22 @@ public class TensorPipeline extends OpenCvPipeline {
     private double pitch;
     private double pitchOffset;
     private final AtomicBoolean track = new AtomicBoolean(false);
+    private Vector3 velocity = Vector3.ZERO();
 
     public TensorPipeline(HardwareMap hardwareMap, double fov){
         try {
-            det = ObjectDetector.createFromFileAndOptions(hardwareMap.appContext, "model.tflite", ObjectDetector.ObjectDetectorOptions.builder().setNumThreads(2).setScoreThreshold(0.95f).build());
+            det = ObjectDetector.createFromFileAndOptions(hardwareMap.appContext, "model2.tflite", ObjectDetector.ObjectDetectorOptions.builder().setNumThreads(2).setScoreThreshold(0.95f).build());
         } catch (IOException e) {
             e.printStackTrace();
         }
         this.fov = fov;
     }
-    
+
     @Override
     public Mat processFrame(Mat input) {
+        if(Math.toDegrees(Math.abs(velocity.getC())) > 5){
+            return input;
+        }
         timestamp.set(System.currentTimeMillis());
         Mat cropCopy = input.clone();
         Bitmap bmp = Bitmap.createBitmap(input.cols(), input.rows(), Bitmap.Config.ARGB_8888);
@@ -60,13 +66,17 @@ public class TensorPipeline extends OpenCvPipeline {
             track.set(false);
             if(r.area() > 0) {
 
-                Scalar means = Core.mean(input.submat(r));
+                Scalar means = Core.mean(input.submat(CvUtils.cleanRect(r, input)));
                 double distance = 20;
 
-                Imgproc.rectangle(input, r, new Scalar(0, 255, 0), 3);
-                Imgproc.putText(input, "" + distance, CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
+                Imgproc.rectangle(input, r, new Scalar(0, 255, 0), 2);
+                Imgproc.circle(input, new Point(d.getBoundingBox().right, d.getBoundingBox().top), 5, new Scalar(255, 0, 0), -1);
+                Imgproc.circle(input, new Point(d.getBoundingBox().right, d.getBoundingBox().bottom), 5, new Scalar(0, 255, 0), -1);
+                Imgproc.circle(input, new Point(d.getBoundingBox().left, d.getBoundingBox().top), 5, new Scalar(0, 0, 255), -1);
+                Imgproc.circle(input, new Point(d.getBoundingBox().left, d.getBoundingBox().bottom), 5, new Scalar(255, 255, 0), -1);
 
                 if(means.val[0] > means.val[2]){
+                    Imgproc.putText(input, "Red", CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
                     //The goal is the red goal (R > B)
                     redFiringSolution = PnPUtils.getPitchAndYaw(input, r, cropCopy, fov);
                     pitch = redFiringSolution[0];
@@ -74,8 +84,9 @@ public class TensorPipeline extends OpenCvPipeline {
                     redPowershots = BetterTowerGoalUtils.approxPowershotAngles(-redFiringSolution[1], goalWallDist2, BetterTowerGoalUtils.RED);
                     redFiringSolution[0] = goalWallDist2;
                     double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, -redFiringSolution[1]);
-                    position = new double[]{xDist - 35, -goalWallDist2}; //Subtract 35 inches so that the point 0, 0 is in the centre of the field
+                    position = new double[]{xDist + 35, -goalWallDist2}; //Subtract 35 inches so that the point 0, 0 is in the centre of the field
                 }else{
+                    Imgproc.putText(input, "Blue", CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
                     //The goal is the blue goal (R < B)
                     blueFiringSolution = PnPUtils.getPitchAndYaw(input, r, cropCopy, fov);
                     pitch = blueFiringSolution[0];
@@ -83,7 +94,7 @@ public class TensorPipeline extends OpenCvPipeline {
                     bluePowershots = BetterTowerGoalUtils.approxPowershotAngles(-blueFiringSolution[1], goalWallDist2, BetterTowerGoalUtils.BLUE);
                     blueFiringSolution[0] = goalWallDist2;
                     double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, -blueFiringSolution[1]);
-                    position = new double[]{xDist + 35, -goalWallDist2}; //Add 35 inches so that the point 0, 0 is in the centre of the field
+                    position = new double[]{xDist - 35, -goalWallDist2}; //Add 35 inches so that the point 0, 0 is in the centre of the field
                 }
                 dataTimestamp.set(System.currentTimeMillis());
                 track.set(true);
@@ -139,6 +150,10 @@ public class TensorPipeline extends OpenCvPipeline {
 
     public double[] getPosition() {
         return position;
+    }
+
+    public void setVelocity(Vector3 velocity) {
+        this.velocity = velocity;
     }
 
     public Rect getBoundingRect() {

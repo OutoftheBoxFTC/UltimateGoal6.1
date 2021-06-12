@@ -10,6 +10,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 
 import Hardware.SmartDevices.SmartCV.TowerGoal.TensorPipeline;
 import Hardware.SmartDevices.SmartDevice;
+import MathSystems.Vector3;
 
 public class SmartCV extends SmartDevice {
 
@@ -21,7 +22,7 @@ public class SmartCV extends SmartDevice {
 
     public SmartCV(WebcamName ringCam, WebcamName towerCam, final HardwareMap hardwareMap){
         ringPipeline = new RingPipeline();
-        highgoalPipeline = new TensorPipeline(hardwareMap, 60);
+        highgoalPipeline = new TensorPipeline(hardwareMap, 70);
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         ring = OpenCvCameraFactory.getInstance().createWebcam(ringCam);
         tower = OpenCvCameraFactory.getInstance().createWebcam(towerCam, cameraMonitorViewId);
@@ -135,6 +136,10 @@ public class SmartCV extends SmartDevice {
 
     public long getDataTimestamp(){
         return highgoalPipeline.getDataTimestamp();
+    }
+
+    public void setVelocity(Vector3 velocity){
+        highgoalPipeline.setVelocity(velocity);
     }
 
     public void shutdown(){
