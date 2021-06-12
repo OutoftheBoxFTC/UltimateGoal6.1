@@ -36,6 +36,7 @@ public class TensorPipeline extends OpenCvPipeline {
     private double pitchOffset;
     private final AtomicBoolean track = new AtomicBoolean(false);
     private Vector3 velocity = Vector3.ZERO();
+    private AtomicBoolean shutdown = new AtomicBoolean(false);
 
     public TensorPipeline(HardwareMap hardwareMap, double fov){
         try {
@@ -48,7 +49,7 @@ public class TensorPipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input) {
-        if(Math.toDegrees(Math.abs(velocity.getC())) > 5){
+        if(Math.toDegrees(Math.abs(velocity.getC())) > 5 || shutdown.get()){
             return input;
         }
         timestamp.set(System.currentTimeMillis());
@@ -154,6 +155,10 @@ public class TensorPipeline extends OpenCvPipeline {
 
     public void setVelocity(Vector3 velocity) {
         this.velocity = velocity;
+    }
+
+    public void shutdownTensorflow(){
+        shutdown.set(true);
     }
 
     public Rect getBoundingRect() {

@@ -79,6 +79,10 @@ public class SmartCV extends SmartDevice {
         });
     }
 
+    public void shutdownTowerTrack(){
+        highgoalPipeline.shutdownTensorflow();
+    }
+
     public int getRings(){
         return ringPipeline.getNumRings();
     }

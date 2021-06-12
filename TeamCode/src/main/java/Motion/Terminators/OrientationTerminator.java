@@ -4,6 +4,7 @@ import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import MathSystems.MathUtils;
 import MathSystems.Vector3;
+import Motion.Path.Path;
 
 /**
  * Orientation Terminator
@@ -14,6 +15,10 @@ public class OrientationTerminator extends Terminator {
     private Vector3 position, target;
     private double distance, rotation;
     private int frameCount = 0, numFrames;
+
+    public OrientationTerminator(Vector3 position, Path path){
+        this(position, path.getEndpoint().getVector2().toVector3(Math.toDegrees(path.getEndpoint().getC())), 1.5, 3);
+    }
 
     public OrientationTerminator(Vector3 position, Vector3 target, double distance, double rotation){
         this.position = position;

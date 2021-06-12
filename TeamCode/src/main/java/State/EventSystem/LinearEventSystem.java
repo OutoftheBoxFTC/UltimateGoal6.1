@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Motion.Terminators.Terminator;
+import State.DriveState;
+import State.DriveStateActivator;
 import State.LogicState;
 import State.StateMachine;
 
@@ -25,6 +27,22 @@ public class LinearEventSystem{
     public void put(String stateName, Terminator terminator){
         logicStates.add(stateName);
         terminators.add(terminator);
+    }
+
+    public void putDrive(String stateName, Terminator terminator){
+        String tmp = stateName + System.currentTimeMillis();
+        stateMachine.appendLogicState(tmp, new DriveStateActivator(stateMachine, stateName));
+        put(tmp, terminator);
+    }
+
+    public void put(String stateName, LogicState state, Terminator terminator){
+        stateMachine.appendLogicState(stateName, state);
+        put(stateName, terminator);
+    }
+
+    public void put(String stateName, DriveState state, Terminator terminator){
+        stateMachine.appendDriveState(stateName, state);
+        putDrive(stateName, terminator);
     }
 
     public void update(SensorData sensorData, HardwareData hardwareData) {

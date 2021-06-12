@@ -10,7 +10,7 @@ import MathSystems.Vector4;
  */
 
 public class HardwareData {
-    private double bl, br, fl, fr, intake, shooter, shooterTilt, shooterLoadArm, wobbleLift, wobbleOneuseRight, wobbleLiftLeft, wobbleLiftRight, intakeRelease, turret, intakeShield;
+    private double bl, br, fl, fr, intake, shooter, shooterTilt, shooterLoadArm, wobbleLift, wobbleOneuseRight, wobbleLiftLeft, wobbleLiftRight, intakeRelease, turret, intakeShield, wobbleOneuseLeft;
     private long timestamp;
     private RevBlinkinLedDriver.BlinkinPattern pattern;
     public HardwareData(){
@@ -29,6 +29,7 @@ public class HardwareData {
         wobbleLift = 0;
         turret = -1;
         intakeShield = -1;
+        wobbleOneuseLeft = -1;
         //pattern = RevBlinkinLedDriver.BlinkinPattern.CP1_2_TWINKLES;
     }
 
@@ -149,6 +150,14 @@ public class HardwareData {
 
     public double getIntakeShield() {
         return intakeShield;
+    }
+
+    public void setWobbleOneuseLeft(double wobbleOneuseLeft) {
+        this.wobbleOneuseLeft = wobbleOneuseLeft;
+    }
+
+    public double getWobbleOneuseLeft() {
+        return wobbleOneuseLeft;
     }
 
     public long getTimestamp() {

@@ -14,7 +14,10 @@ import MathSystems.*;
  */
 
 public class StateMachine {
-    HashMap<String, LogicState> queriedLogicStates, activeLogicStates, logicStates, deactivatedLogicStates;
+    final HashMap<String, LogicState> queriedLogicStates;
+    HashMap<String, LogicState> activeLogicStates;
+    HashMap<String, LogicState> logicStates;
+    HashMap<String, LogicState> deactivatedLogicStates;
     HashMap<String, Long> delayedActivations;
     ArrayList<String> driveStates;
     String activeDriveState;
@@ -32,8 +35,12 @@ public class StateMachine {
 
     public void update(SensorData sensors, HardwareData hardware){
         synchronized (queriedLogicStates) {
-            for (String state : queriedLogicStates.keySet()) {
-                queriedLogicStates.get(state).init(sensors, hardware);
+            HashMap<String, LogicState> tmp = new HashMap<>();
+            for(String state : queriedLogicStates.keySet()){
+                tmp.put(state, queriedLogicStates.get(state));
+            }
+            for (String state : tmp.keySet()) {
+                tmp.get(state).init(sensors, hardware);
             }
             activeLogicStates.putAll(queriedLogicStates);
             queriedLogicStates.clear();
@@ -69,7 +76,9 @@ public class StateMachine {
     }
 
     public boolean logicStateActive(String state){
-        return activeLogicStates.containsKey(state) || queriedLogicStates.containsKey(state);
+        synchronized (queriedLogicStates) {
+            return activeLogicStates.containsKey(state) || queriedLogicStates.containsKey(state);
+        }
     }
 
     public boolean driveStateActive(String state){
@@ -104,20 +113,24 @@ public class StateMachine {
     }
 
     public boolean activateLogic(String state){
-        if(logicStates.containsKey(state) && (!activeLogicStates.containsKey(state))){
-            queriedLogicStates.put(state, logicStates.get(state));
-            return true;
+        synchronized (queriedLogicStates) {
+            if (logicStates.containsKey(state) && (!activeLogicStates.containsKey(state))) {
+                queriedLogicStates.put(state, logicStates.get(state));
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
     public boolean setActiveDriveState(String state){
-        if(driveStates.contains(state) && (!activeDriveState.equals(state))){
-            queriedLogicStates.put(state, logicStates.get(state));
-            activeDriveState = state;
-            return true;
+        synchronized (queriedLogicStates) {
+            if (driveStates.contains(state) && (!activeDriveState.equals(state))) {
+                queriedLogicStates.put(state, logicStates.get(state));
+                activeDriveState = state;
+                return true;
+            }
+            return false;
         }
-        return false;
     }
 
     public boolean queryActivation(String state, long delay){

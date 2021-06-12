@@ -48,6 +48,7 @@ public class UltimateGoalHardware extends Hardware {
         }
         if(registeredDevices.contains(HardwareDevices.WOBBLE)){
             smartDevices.put("Wobble Oneuse Right", new SmartServo(map.servo.get("wobbleR"), new SmartServoConfiguration().setInitPos(0.5)));
+            smartDevices.put("Wobble Oneuse Left", new SmartServo(map.servo.get("wobbleL"), new SmartServoConfiguration().setInitPos(0.5)));
             smartDevices.put("Wobble Lift Right", new SmartServo(map.servo.get("wobbleLR"), new SmartServoConfiguration().setInitPos(0.5)));
             smartDevices.put("Wobble Lift Left", new SmartServo(map.servo.get("wobbleLL"), new SmartServoConfiguration().setInitPos(0.5)));
             //smartDevices.put("Wobble Lift", new SmartMotor(map.dcMotor.get("oa"), new SmartMotorConfiguration().readPosition()));
@@ -75,6 +76,7 @@ public class UltimateGoalHardware extends Hardware {
         }
         if(enabledDevices.contains(HardwareDevices.WOBBLE)){
             smartDevices.get("Wobble Oneuse Right", SmartServo.class).setPosition(hardware.getWobbleOneuseRight());
+            smartDevices.get("Wobble Oneuse Left", SmartServo.class).setPosition(hardware.getWobbleOneuseLeft());
             smartDevices.get("Wobble Lift Right", SmartServo.class).setPosition(hardware.getWobbleLiftRight());
             smartDevices.get("Wobble Lift Left", SmartServo.class).setPosition(hardware.getWobbleLiftLeft());
             //smartDevices.get("Wobble Lift", SmartMotor.class).setPower(hardware.getWobbleLift());
