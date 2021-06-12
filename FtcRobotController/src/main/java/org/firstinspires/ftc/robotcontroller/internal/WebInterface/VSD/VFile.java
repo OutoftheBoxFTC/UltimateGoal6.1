@@ -30,31 +30,6 @@ public class VFile {
         outputStream = new BufferedWriter(new FileWriter(file, true));
     }
 
-    public String read() throws IOException {
-        String total = "", tmp = "";
-        tmp = inputStream.readLine();
-        while(tmp != null){
-            total += tmp + '\n';
-            tmp = inputStream.readLine();
-        }
-        inputStream = new BufferedReader(new FileReader(file));
-        return total;
-    }
-
-    public void write(String s) throws IOException {
-        outputStream.append(s);
-        outputStream.flush();
-    }
-
-    public void writeLine(String s) throws IOException {
-        outputStream.append(s + '\n');
-        outputStream.flush();
-    }
-
-    public void clear() throws IOException {
-        new PrintWriter(file).close();
-    }
-
     public void deleteFile() throws IOException {
         file.delete();
     }

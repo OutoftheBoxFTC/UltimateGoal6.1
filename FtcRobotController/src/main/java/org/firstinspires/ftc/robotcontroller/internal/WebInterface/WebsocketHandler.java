@@ -25,13 +25,13 @@ public class WebsocketHandler extends WebSocketServer {
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		sockets.remove(conn);
 		ids.remove(conn);
-		RobotLog.i("Connection to " + conn.getRemoteSocketAddress().getAddress().getHostAddress() + " closed with code " + code);
+		InterfaceHandler.log("Connection to " + conn.getRemoteSocketAddress().getAddress().getHostAddress() + " closed with code " + code);
 	}
 
 	@Override
 	public void onError(WebSocket conn, Exception excep) {
 		if(conn != null)
-			RobotLog.i(conn.getRemoteSocketAddress().getAddress().getHostAddress() + " reported error " + excep.toString());
+			InterfaceHandler.error(conn.getRemoteSocketAddress().getAddress().getHostAddress() + " reported error " + excep.toString());
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class WebsocketHandler extends WebSocketServer {
 		sockets.add(conn);
 		String str = "" + System.currentTimeMillis() + Math.round(Math.random() * 1000);
 		ids.put(conn, str);
-		RobotLog.i("New connection from " + conn.getRemoteSocketAddress().getAddress().getHostAddress());
+		InterfaceHandler.log("New connection from " + conn.getRemoteSocketAddress().getAddress().getHostAddress());
 	}
 
 	@Override

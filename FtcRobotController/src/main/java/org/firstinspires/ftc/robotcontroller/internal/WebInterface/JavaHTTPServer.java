@@ -1,16 +1,22 @@
 package org.firstinspires.ftc.robotcontroller.internal.WebInterface;
 
 
+import android.util.Base64;
 import android.util.Log;
 
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcontroller.internal.WebInterface.JsonPackets.FileIndexPacket;
+import org.firstinspires.ftc.robotcontroller.internal.WebInterface.JsonPackets.OpmodePacket;
 import org.firstinspires.ftc.robotcontroller.internal.WebInterface.VSD.VirtualSD;
+import org.firstinspires.ftc.robotcore.internal.collections.SimpleGson;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -38,7 +45,7 @@ public class JavaHTTPServer implements Runnable {
 	static final int PORT = 4750;
 
 	// verbose mode
-	static final boolean verbose = true;
+	static final boolean verbose = false;
 
 	// Client Connection via Socket Class
 	private Socket connect;
@@ -194,8 +201,8 @@ public class JavaHTTPServer implements Runnable {
 				}else {
 					if(fileRequested.endsWith(".vfile")) {
 						fileRequested = fileRequested.replace(".vfile", "");
-						VirtualSD.getInstance().getFile(fileRequested).clear();
-						VirtualSD.getInstance().getFile(fileRequested).write(string);
+						//VirtualSD.getInstance().getFile(fileRequested).clear();
+						//VirtualSD.getInstance().getFile(fileRequested).write(string);
 					}else if (fileRequested.endsWith(".vfolder")){
 						fileRequested = fileRequested.replace(".vfolder", "");
 						VirtualSD.getInstance().addFolder(fileRequested);
@@ -264,44 +271,30 @@ public class JavaHTTPServer implements Runnable {
 			return InterfaceHandler.getInstance().getPosition().getBytes();
 		}
 		if(str.equals("/opmodes.txt")){
-			String s = "";
-			for(String key : InterfaceHandler.getInstance().getOpmodes()){
-				s += key + "&";
-			}
-			if(s.length() >= 2) {
-				s = s.substring(0, s.length()-1);
-			}else{
-				s = "";
-			}
-			return s.getBytes("UTF8");
+			String[] list = InterfaceHandler.getInstance().getOpmodes().toArray(new String[0]);
+			OpmodePacket packet = new OpmodePacket();
+			packet.opmodes = list;
+			return SimpleGson.getInstance().toJson(packet).getBytes();
 		}
-		if(str.equals("/filesindex.txt")){
+		if(str.equals("/indexfiles.txt")){
 			ArrayList<String> files = VirtualSD.getInstance().indexFiles();
-			if(files.size() > 0) {
-				String s = "";
-				for (int i = 0; i < files.size() - 1; i++) {
-					s += files.get(i) + "&";
-				}
-				s += files.get(files.size() - 1);
-				return s.getBytes();
-			}
-			return "".getBytes();
-		}
-		if(str.equals("/foldersindex.txt")){
-			ArrayList<String> files = VirtualSD.getInstance().indexFolders();
-			if(files.size() > 0) {
-				String s = "";
-				for (int i = 0; i < files.size() - 1; i++) {
-					s += files.get(i) + "&";
-				}
-				s += files.get(files.size() - 1);
-				return s.getBytes();
-			}
-			return "".getBytes();
+			ArrayList<String> folders = VirtualSD.getInstance().indexFolders();
+			FileIndexPacket packet = new FileIndexPacket();
+			packet.files = files.toArray(new String[0]);
+			packet.folders = folders.toArray(new String[0]);
+			return SimpleGson.getInstance().toJson(packet).getBytes();
 		}
 		if(str.endsWith(".vfile")){
 			String s = str.replace(".vfile", "");
-			return URLEncoder.encode(VirtualSD.getInstance().getFile(s).read(), "ASCII").getBytes();
+			File file = VirtualSD.getInstance().getFile(s).getFile();
+			FileInputStream fileInputStreamReader = new FileInputStream(file);
+			byte[] bytes = new byte[(int)file.length()];
+			fileInputStreamReader.read(bytes);
+			if(getContentType(s).equals("image/png")) {
+				return new String(Base64.encode(bytes, 0), StandardCharsets.UTF_8).getBytes();
+			}else{
+				return new String(bytes).getBytes(StandardCharsets.UTF_8);
+			}
 		}
 		InputStream inputStream = InterfaceHandler.getInstance().getInputStream(str);
 		ArrayList<Byte> byteArr = new ArrayList<>();
@@ -323,7 +316,7 @@ public class JavaHTTPServer implements Runnable {
 			return "text/html";
 		} else if (fileRequested.endsWith(".css")) {
 			return "text/css";
-		}else if(fileRequested.endsWith(".png")){
+		}else if(fileRequested.endsWith(".png") || fileRequested.endsWith(".jpg") || fileRequested.endsWith(".jpeg")){
 			return "image/png";
 		}
 		return "text/plain";

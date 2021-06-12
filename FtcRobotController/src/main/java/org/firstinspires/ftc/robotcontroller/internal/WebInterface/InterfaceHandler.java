@@ -39,7 +39,7 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class InterfaceHandler implements Runnable {
+public class InterfaceHandler implements Runnable, OpModeManagerImpl.Notifications{
     private static final int WEBSOCKET_PORT = 9000;
     private static final int VIDEO_PORT = 8500;
 
@@ -48,7 +48,8 @@ public class InterfaceHandler implements Runnable {
     private static InterfaceHandler instance = new InterfaceHandler();
     private EventLoop eventLoop;
     private OpModeManagerImpl opModeManager;
-    private ArrayList<String> opmodes, consoleCommands, telemetryPacket, telemetryStrings;
+    private ArrayList<String> opmodes, consoleCommands, telemetryPacket, telemetryStrings, logText, colors;
+    private TelemetryPacket packet;
     private String ping;
     private Thread mainThread;
     private JavaHTTPServer javaHTTPServer;
@@ -63,9 +64,11 @@ public class InterfaceHandler implements Runnable {
     private String position;
     private Gamepad vGamepad;
     private String mousePos;
+    private OpMode activeOpMode;
     private ArrayList<ArrayList<Bitmap>> cameras;
 
     public InterfaceHandler(){
+        packet = new TelemetryPacket();
         opmodes = new ArrayList<>();
         packets = new ArrayList<>();
         telemetry = new HashMap<>();
@@ -83,6 +86,8 @@ public class InterfaceHandler implements Runnable {
         telemetryTimer = 0;
         vGamepad = new Gamepad();
         cameras = new ArrayList<>();
+        logText = new ArrayList<>();
+        colors = new ArrayList<>();
         new Thread(this).start();
     }
 
@@ -108,6 +113,7 @@ public class InterfaceHandler implements Runnable {
     public void internalAttachLoop(EventLoop eventLoop){
         this.eventLoop = eventLoop;
         this.opModeManager = eventLoop.getOpModeManager();
+        opModeManager.registerListener(this);
         new Thread(new SyncOpmodes()).start();
     }
 
@@ -123,7 +129,8 @@ public class InterfaceHandler implements Runnable {
             timer = System.currentTimeMillis() + 100;
             HashMap<String, String> newMessages = handler.getNewMessages();
             for(String s : newMessages.keySet()){
-                RobotLog.ii("Request Incoming", newMessages.get(s));
+                //RobotLog.ii("Request Incoming", newMessages.get(s));
+                InterfaceHandler.log("Request " + newMessages.get(s));
                 if(Objects.equals(newMessages.get(s), "OPMODES")){
                     OpmodePacket packet = new OpmodePacket();
                     packet.opmodes = opmodes.toArray(new String[0]);
@@ -145,76 +152,52 @@ public class InterfaceHandler implements Runnable {
                 if(newMessages.get(s).startsWith("MOUSECOORDS")){
                     setMousePos(newMessages.get(s).replace("MOUSECOORDS ", ""));
                 }
-                if(newMessages.get(s).equals("VARIABLES")){
-                    /**
-                    VariablesPacket packet = new VariablesPacket();
-                    HashMap<String, UpdateableVariable> vars = classHandler.getVariables();
-                    ArrayList<String> numVarsNames = new ArrayList<>();
-                    ArrayList<Double> numVars = new ArrayList<>();
-                    ArrayList<String> boolVarsNames = new ArrayList<>();
-                    ArrayList<Boolean> boolVars = new ArrayList<>();
-                    ArrayList<String> strVarsNames = new ArrayList<>();
-                    ArrayList<String> strVars = new ArrayList<>();
-                    for(String str : vars.keySet()){
-                        UpdateableVariable updateableVariable = vars.get(str);
-                        VariableType type = updateableVariable.getType();
-                        if(type == VariableType.DOUBLE){
-                            numVarsNames.add(str);
-                            numVars.add((Double)updateableVariable.get());
-                        }else if(type == VariableType.BOOLEAN){
-                            boolVarsNames.add(str);
-                            boolVars.add((Boolean) updateableVariable.get());
-                        }else if(type == VariableType.STRING){
-                            strVarsNames.add(str);
-                            strVars.add((String) updateableVariable.get());
-                        }
+                if(newMessages.get(s).startsWith("DELETEFILE")){
+                    String str = newMessages.get(s).replace("DELETEFILE", "");
+                    try {
+                        VirtualSD.getInstance().getFile(str).deleteFile();
+                    } catch (IOException e) {
+                        error(e.getMessage());
                     }
-                    packet.numVarNames = numVarsNames.toArray(new String[0]);
-                    packet.numVars = numVars.toArray(new Double[0]);
-                    packet.boolVarsNames = boolVarsNames.toArray(new String[0]);
-                    packet.boolVars = boolVars.toArray(new Boolean[0]);
-                    packet.strVarNames = strVarsNames.toArray(new String[0]);
-                    packet.strVars = strVars.toArray(new String[0]);
-                    handler.send(s, gson.toJson(packet));
-                     */
                 }
-                if(newMessages.get(s).startsWith("SETVARIABLE")){
-                    VariableEditPacket packet = gson.fromJson(newMessages.get(s).replace("SETVARIABLE ", ""), VariableEditPacket.class);
-                    for(VariableEditPacket.DoubleValuePacket packet1 : packet.numvars){
-                        //classHandler.set(packet1.name, packet1.val);
+                if(newMessages.get(s).startsWith("CREATEFOLDER")){
+                    String str = newMessages.get(s).replace("CREATEFOLDER", "");
+                    try {
+                        VirtualSD.getInstance().addFolder(str);
+                    } catch (IOException e) {
+                        error(e.getMessage());
                     }
-                    for(VariableEditPacket.BooleanValuePacket packet1 : packet.boolvars){
-                        //classHandler.set(packet1.name, packet1.val);
-                    }
-                    for(VariableEditPacket.StringValuePacket packet1 : packet.strvars){
-                        //classHandler.set(packet1.name, packet1.val);
-                    }
+                }
+                if(newMessages.get(s).startsWith("DELETEFOLDER")){
+                    String str = newMessages.get(s).replace("DELETEFOLDER", "");
+                    VirtualSD.getInstance().deleteFolder(str);
                 }
             }
             if(sendTelemetry){
-                TelemetryPacket packet = new TelemetryPacket();
                 packet.timestamp = System.currentTimeMillis();
+                packet.console = logText.toArray(new String[0]);
+                packet.colors = colors.toArray(new String[0]);
                 synchronized (telemetry) {
                     for (String s : telemetry.keySet()) {
                         telemetryPacket.add(s + " : " + telemetry.get(s));
                     }
                 }
                 telemetryPacket.addAll(telemetryStrings);
-                String telemetryStr = "";
-                for(String s : telemetryPacket){
-                    telemetryStr += s + "<br>";
-                }
-                packet.telemetry = telemetryStr;
+                packet.telemetry = telemetryPacket.toArray(new String[0]);
                 sendTelemetry = false;
                 packet.position = position;
                 telemetryPacket.clear();
                 synchronized (telemetry) {
                     telemetry.clear();
                 }
-                if(!telemetryStr.equals("")) {
-                    handler.sendAll(gson.toJson(packet));
-                }
-
+                handler.sendAll(gson.toJson(packet));
+            }else{
+                packet.timestamp = System.currentTimeMillis();
+                packet.console = logText.toArray(new String[0]);
+                packet.colors = colors.toArray(new String[0]);
+                if(opModeManager != null)
+                    packet.selectedOpmode = opModeManager.getActiveOpModeName();
+                handler.sendAll(gson.toJson(packet));
             }
 
             while(System.currentTimeMillis() < timer); //Limit to 100 ms per cycle so we don't accidentally DOS the client
@@ -226,6 +209,27 @@ public class InterfaceHandler implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onOpModePreInit(OpMode opMode) {
+        packet.init = true;
+        packet.start = false;
+        this.activeOpMode = opMode;
+    }
+
+    @Override
+    public void onOpModePreStart(OpMode opMode) {
+        packet.init = false;
+        packet.start = true;
+        this.activeOpMode = opMode;
+    }
+
+    @Override
+    public void onOpModePostStop(OpMode opMode) {
+        packet.init = true;
+        packet.start = true;
+        this.activeOpMode = opMode;
     }
 
     private class SyncOpmodes implements Runnable {
@@ -378,4 +382,18 @@ public class InterfaceHandler implements Runnable {
         return cs;
     }
 
+    public static void log(String message){
+        instance.colors.add("Gray");
+        instance.logText.add(System.currentTimeMillis() + ": " + message);
+    }
+
+    public static void warn(String message){
+        instance.colors.add("Orange");
+        instance.logText.add(System.currentTimeMillis() + ": " + message);
+    }
+
+    public static void error(String message){
+        instance.colors.add("Red");
+        instance.logText.add(System.currentTimeMillis() + ": " + message);
+    }
 }

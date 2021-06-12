@@ -21,7 +21,6 @@ public class RingPipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input) {
-        RobotLog.ii("Processing Frames", "true");
         Mat processed = new Mat();
         Imgproc.cvtColor(input, processed, Imgproc.COLOR_RGB2HSV);
 

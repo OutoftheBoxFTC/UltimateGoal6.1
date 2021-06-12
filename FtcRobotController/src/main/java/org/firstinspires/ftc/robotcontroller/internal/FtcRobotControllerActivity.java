@@ -104,6 +104,7 @@ import org.firstinspires.ftc.ftccommon.internal.FtcRobotControllerWatchdogServic
 import org.firstinspires.ftc.ftccommon.internal.ProgramAndManageActivity;
 import org.firstinspires.ftc.onbotjava.OnBotJavaHelperImpl;
 import org.firstinspires.ftc.onbotjava.OnBotJavaProgrammingMode;
+import org.firstinspires.ftc.robotcontroller.internal.WebInterface.InterfaceHandler;
 import org.firstinspires.ftc.robotcore.external.navigation.MotionDetection;
 import org.firstinspires.ftc.robotcore.internal.hardware.android.AndroidBoard;
 import org.firstinspires.ftc.robotcore.internal.network.DeviceNameManagerFactory;
@@ -387,6 +388,8 @@ public class FtcRobotControllerActivity extends Activity
     checkPreferredChannel();
 
     FtcDashboard.start();
+    InterfaceHandler.getInstance().start();
+    InterfaceHandler.getInstance().addContext(context);
   }
 
   protected UpdateUI createUpdateUI() {
@@ -456,6 +459,7 @@ public class FtcRobotControllerActivity extends Activity
 
     RobotLog.cancelWriteLogcatToDisk();
     FtcDashboard.stop();
+    InterfaceHandler.getInstance().stop();
   }
 
   protected void bindToService() {
@@ -720,6 +724,7 @@ public class FtcRobotControllerActivity extends Activity
     passReceivedUsbAttachmentsToEventLoop();
     AndroidBoard.showErrorIfUnknownControlHub();
     FtcDashboard.attachEventLoop(eventLoop);
+    InterfaceHandler.attachEventLoop(eventLoop);
   }
 
   protected OpModeRegister createOpModeRegister() {
