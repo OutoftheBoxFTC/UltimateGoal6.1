@@ -49,10 +49,10 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
  * is explained below.
  */
-@TeleOp(name = "Concept: TensorFlow Object Detection", group = "Concept")
-@Disabled
+@TeleOp(name = "Concept: TensorFlow Object Detection")
+//@Disabled
 public class ConceptTensorFlowObjectDetection extends LinearOpMode {
-    private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
+    private static final String TFOD_MODEL_ASSET = "detectNew.tflite";
     private static final String LABEL_FIRST_ELEMENT = "Quad";
     private static final String LABEL_SECOND_ELEMENT = "Single";
 
@@ -69,7 +69,7 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
      * and paste it in to your code on the next line, between the double quotes.
      */
     private static final String VUFORIA_KEY =
-            " -- YOUR NEW VUFORIA KEY GOES HERE  --- ";
+            "AWgMoiX/////AAABmWgxXRIPp0SKg/1vlWFXQHpvvUse8cgKFT6YVhd53nIsJoARWa0D3gSDe5KvRbJicI9jlwYY2wJ7ae7+Mx16NzOlGaOfoV5zRfNH8Ym3FCfjz9kXfjjgbpVfm6GARMvqHxfb7aTJAUf2+UFjjJhigeI16elpoZgAOpTYtXLmcT9Jj+P7ZZAz6rayYr11cfI5yj5QY2KDfiB0IPPH5FQpnixu6VyjN2EEMl4xGfDnPfCscG4wL66VX93BEh7vNyFyZE9+hmPSylugcYU5GeNRCE0JINYqZHvJ90ELPAlmUt4A+R6JfuzexKtwMU4PwBf2WrBxYmV+QT8208slL0CaGEZ34Re6qwPRLOyZ72LQ2+bI";
 
     /**
      * {@link #vuforia} is the variable we will use to store our instance of the Vuforia

@@ -22,7 +22,8 @@ public class SmartCV extends SmartDevice {
 
     public SmartCV(WebcamName ringCam, WebcamName towerCam, final HardwareMap hardwareMap){
         ringPipeline = new RingPipeline();
-        highgoalPipeline = new TensorPipeline(hardwareMap, 70);
+        highgoalPipeline = new TensorPipeline(hardwareMap, 70, "model2.tflite");
+        //highgoalPipeline = new TensorPipeline(hardwareMap, 70, "detectNew.tflite");
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         ring = OpenCvCameraFactory.getInstance().createWebcam(ringCam);
         tower = OpenCvCameraFactory.getInstance().createWebcam(towerCam, cameraMonitorViewId);
