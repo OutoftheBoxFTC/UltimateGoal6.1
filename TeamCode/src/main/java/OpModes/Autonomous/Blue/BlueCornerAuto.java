@@ -19,6 +19,7 @@ import Motion.Path.PathBuilder;
 import Motion.Terminators.OrientationTerminator;
 import Motion.Terminators.TimeTerminator;
 import Motion.Terminators.TrueTimeTerminator;
+import Odometry.AdvancedVOdometer;
 import Odometry.ConstantVOdometer;
 import OpModes.BasicOpmode;
 import OpModes.TeleOp.TensorTeleop;
@@ -33,7 +34,8 @@ public class BlueCornerAuto extends BasicOpmode {
     long DELAY_TIME_MS = 1000;
 
     ConstantVOdometer odometer;
-    Vector3 position, velocity;
+    AdvancedVOdometer targetingOdometer;
+    Vector3 position, velocity, targetingPos, targetingVel;
     boolean doStarterStack = true, pickupSecondWobble = false;
     DELAY_LOCATION delayLocation = DELAY_LOCATION.NO_DELAY;
     int startingStack = 0;
@@ -41,6 +43,10 @@ public class BlueCornerAuto extends BasicOpmode {
     CrosstrackBuilder builder;
     boolean shooterReady = false, shoot = false;
     TensorTeleop.TARGET turretTarget = TensorTeleop.TARGET.NONE;
+    private long timestamp;
+    private Vector3 timestampedPosition = Vector3.ZERO();
+    private long dataTimestamp;
+
     public BlueCornerAuto() {
         super(new UltimateGoalHardware());
     }
@@ -52,6 +58,9 @@ public class BlueCornerAuto extends BasicOpmode {
 
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
+        targetingPos = Vector3.ZERO();
+        targetingVel = Vector3.ZERO();
+        targetingOdometer = new AdvancedVOdometer(stateMachine, targetingPos, targetingVel);
         odometer = new ConstantVOdometer(stateMachine, position, velocity);
 
         linearSystem = new LinearEventSystem(stateMachine, LinearEventSystem.ENDTYPE.CONTINUE_LAST);
@@ -60,10 +69,41 @@ public class BlueCornerAuto extends BasicOpmode {
 
         eventSystem.onStart("Odometer", odometer);
 
+        eventSystem.onInit("Targeting Odometer", targetingOdometer);
+
         eventSystem.onInit("Monitoring", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 telemetry.addData("States", stateMachine.getActiveStates());
+                telemetry.addData("Targeting Pos", targetingPos);
+            }
+        });
+
+        eventSystem.onInit("Vision Update", new LogicState(stateMachine) {
+            SmartCV smartCV;
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                smartCV = hardware.getSmartDevices().get("SmartCV", SmartCV.class);
+                smartCV.setPitchOffset(17.7);
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                //This timestamp is updated BEFORE the AI runs, so we grab our position and save it
+                if(smartCV.getTimestamp() != timestamp){
+                    timestamp = smartCV.getTimestamp();
+                    timestampedPosition.set(targetingPos);
+                }
+                //This timestamp is updated AFTER the AI runs
+                if(smartCV.getDataTimestamp() != dataTimestamp){
+                    dataTimestamp = smartCV.getDataTimestamp();
+                    //Calculate how much we have moved since the AI started running
+                    Vector3 posdiff = targetingPos.subtract(timestampedPosition);
+                    //Retroactively set and update our position, by adding the delta to our AI position
+                    //Because the AI position will be old (~650ms behind)
+                    Vector3 newpos = new Vector3(smartCV.getPosition()[0], smartCV.getPosition()[1], 0);
+                    targetingOdometer.setKinematicPosition(newpos.add(posdiff));
+                }
             }
         });
 
@@ -184,7 +224,7 @@ public class BlueCornerAuto extends BasicOpmode {
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
                 highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(9, 13).complete();
-                startingStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(21, 35).lineTo(21, 45).complete();
+                startingStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(21, 35).lineTo(21, 55).complete();
                 hardwareData.setTurret(UGUtils.getTurretValue(-1.5));
             }
 
@@ -194,6 +234,8 @@ public class BlueCornerAuto extends BasicOpmode {
 
                 linearSystem.put("Highgoal Shoot Pos", builder.follow(highgoalPath), new OrientationTerminator(position, highgoalPath));
 
+                linearSystem.put("Stop", new TrueTimeTerminator(500));
+
                 linearSystem.put("Shoot", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
@@ -201,7 +243,8 @@ public class BlueCornerAuto extends BasicOpmode {
                     }
                 }, new TrueTimeTerminator(1000));
 
-                linearSystem.put("Stop", new TrueTimeTerminator(500));
+                linearSystem.put("Vision Update", new TrueTimeTerminator(2));
+
                 if(doStarterStack){
                     linearSystem.put("Intake", new VelocityDriveState(stateMachine) {
                         @Override
@@ -212,9 +255,11 @@ public class BlueCornerAuto extends BasicOpmode {
                         @Override
                         public void update(SensorData sensorData, HardwareData hardwareData) {
                             hardwareData.setIntakePower(1);
+                            double deltaX = -(targetingPos.getA()+35);
+                            double deltaY = -(targetingPos.getB());
+                            hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(targetingPos.getC(), -Math.atan2(deltaX, deltaY)))));
                         }
                     }, new TimeTerminator(2));
-
                     linearSystem.put("ShootStack", new VelocityDriveState(stateMachine) {
                         @Override
                         public Vector3 getVelocities() {
@@ -224,13 +269,12 @@ public class BlueCornerAuto extends BasicOpmode {
                         @Override
                         public void update(SensorData sensorData, HardwareData hardwareData) {
                             shoot = true;
-                            hardwareData.setTurret(UGUtils.getTurretValue(7.5));
                         }
                     }, new TimeTerminator(2));
 
                     linearSystem.put("Starting Stack Shoot", builder.follow(startingStackPath, 2, 0.4, 0.3), new OrientationTerminator(position, startingStackPath));
 
-                    linearSystem.put("ShootStack", new TimeTerminator(2));
+                    linearSystem.put("ShootStack", new TrueTimeTerminator(1000));
                 }
                 wait1Path = new PathBuilder(doStarterStack ? startingStackPath.getEndpoint() : highgoalPath.getEndpoint()).lineTo(-5, 30).complete();
                 linearSystem.put("Drive Wait 1", builder.follow(wait1Path, 2, 0.4, 0.3), new OrientationTerminator(position, wait1Path));
