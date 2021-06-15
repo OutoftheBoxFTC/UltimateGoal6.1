@@ -54,6 +54,7 @@ public class AdvancedVOdometer extends Odometer {
         double forInc = ((sensors.getOdometryLeft() + sensors.getOdometryRight())/2.0) - prevEncoderValues.getA();
         double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT));
         double strafeInc = (sensors.getOdometryAux() - (AUX_ROTATION_CONSTANT * rotInc)) - prevEncoderValues.getB();
+        RobotLog.ii("Encoders", rotInc + " | " + sensors.getOdometryRight() + " | " + sensors.getOdometryLeft() + " | " + prevEncoderValues.getC());
         Vector2 pos = MathUtils.toPolar(ConstantVMathUtil.toRobotCentric(forInc, strafeInc, rotInc));
         Vector2 fieldCentric = MathUtils.toCartesian(pos.getA(), pos.getB() - rot);
         x = fieldCentric.getA();

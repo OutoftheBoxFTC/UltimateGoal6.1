@@ -16,7 +16,7 @@ import State.*;
 public class ConstantVOdometer extends Odometer {
     private Vector3 prevEncoderValues, prevPosition;
     private static final double AUX_ROTATION_CONSTANT = 750.8771; //2305.27659012?
-    private double ROT_CONSTANT = 1/(15178.3496); //15141.82356
+    private double ROT_CONSTANT = 1/(15612.072973); //15178.3496
     private double x, y, rot;
     private long prevTime;
     public ConstantVOdometer(StateMachine stateMachine, Vector3 position, Vector3 velocity) {
@@ -61,7 +61,7 @@ public class ConstantVOdometer extends Odometer {
         Vector2 fieldCentric = MathUtils.toCartesian(pos.getA(), pos.getB() - rot);
         x += fieldCentric.getA();
         y += fieldCentric.getB();
-        rot += rotInc;
+        rot = (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT);
         double tau = (2 * Math.PI);
         rot = ((rot % tau) + tau) % tau;
         position.set(x * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, -y * RobotConstants.UltimateGoal.ODOMETRY_TRANSLATION_FACTOR, rot);

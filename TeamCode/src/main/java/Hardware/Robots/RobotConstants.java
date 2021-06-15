@@ -34,7 +34,7 @@ public class RobotConstants {
         public static final double INDEXER_OUT_POSITION = 0;
         public static final double INDEXER_TIMING = 0;
 
-        public static final double INTAKE_BLOCKER_DOWN = 1190;
+        public static final double INTAKE_BLOCKER_DOWN = 1175;
         public static final double INTAKE_BLOCKER_UP = 2250;
     }
 }

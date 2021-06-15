@@ -1,14 +1,14 @@
-package OpModes.Autonomous.Blue;
+package OpModes.Autonomous.Red;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import Hardware.*;
 import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartCV.SmartCV;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
+import Hardware.UltimateGoalHardware;
 import MathSystems.Angle;
 import MathSystems.MathUtils;
 import MathSystems.PIDFSystem;
@@ -29,7 +29,7 @@ import State.SingleLogicState;
 import State.VelocityDriveState;
 
 @Autonomous
-public class BlueCornerAuto extends BasicOpmode {
+public class RedCornerAuto extends BasicOpmode {
     long START_DELAY_TIME_MS = 1000;
     long DELAY_TIME_MS = 1000;
 
@@ -47,7 +47,7 @@ public class BlueCornerAuto extends BasicOpmode {
     private Vector3 timestampedPosition = Vector3.ZERO();
     private long dataTimestamp;
 
-    public BlueCornerAuto() {
+    public RedCornerAuto() {
         super(new UltimateGoalHardware());
     }
 
@@ -223,9 +223,9 @@ public class BlueCornerAuto extends BasicOpmode {
             Path highgoalPath, startingStackPath, wait1Path, wobblePath, wait2Path, secondWobblePath, shootSecondPath, parkPath;
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
-                highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(9, 13).complete();
-                startingStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(21, 35).lineTo(21, 55).complete();
-                hardwareData.setTurret(UGUtils.getTurretValue(-1.5));
+                highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(-9, 13).complete();
+                startingStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(-21, 35).lineTo(-21, 55).complete();
+                hardwareData.setTurret(UGUtils.getTurretValue(20));
                 hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
             }
 
@@ -240,6 +240,9 @@ public class BlueCornerAuto extends BasicOpmode {
                 linearSystem.put("Shoot", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
+                        double deltaX = (-30)-position.getA();
+                        double deltaY = 135-position.getB();
+                        hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
                         shoot = true;
                     }
                 }, new TrueTimeTerminator(1000));
@@ -254,9 +257,9 @@ public class BlueCornerAuto extends BasicOpmode {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
                         hardwareData.setIntakePower(1);
-                        double deltaX = 7.5-position.getA();
+                        double deltaX = (-30)-position.getA();
                         double deltaY = 135-position.getB();
-                        hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(targetingPos.getC(), -Math.atan2(deltaX, deltaY)))));
+                        hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
                     }
                 }, new TimeTerminator(2));
                 if(doStarterStack){
@@ -277,8 +280,8 @@ public class BlueCornerAuto extends BasicOpmode {
 
                     linearSystem.put("ShootStack", new TrueTimeTerminator(1000));
                 }
-                wait1Path = new PathBuilder(doStarterStack ? startingStackPath.getEndpoint() : highgoalPath.getEndpoint()).lineTo(-5, 30).complete();
-                linearSystem.put("Drive Wait 1", builder.follow(wait1Path, 2, 0.4, 0.3), new OrientationTerminator(position, wait1Path));
+                wait1Path = new PathBuilder(doStarterStack ? startingStackPath.getEndpoint() : highgoalPath.getEndpoint()).lineTo(-3, 30).complete();
+                linearSystem.put("Drive Wait 1", builder.follow(wait1Path, 2, 0.6, 0.3), new OrientationTerminator(position, wait1Path));
 
                 if(delayLocation == DELAY_LOCATION.FIRST_LOCATION || delayLocation == DELAY_LOCATION.BOTH_LOCATIONS){
                     linearSystem.put("Stop", new TrueTimeTerminator(5000));
@@ -286,22 +289,22 @@ public class BlueCornerAuto extends BasicOpmode {
 
                 PathBuilder wobbleBuilder = new PathBuilder(wait1Path.getEndpoint());
                 if(startingStack == 0){
-                    wobblePath = wobbleBuilder.lineTo(0, 75).complete();
+                    wobblePath = wobbleBuilder.lineTo(-5, 75).complete();
                 }else if(startingStack == 1){
-                    wobblePath = wobbleBuilder.lineTo(28, 99).complete();
+                    wobblePath = wobbleBuilder.lineTo(-28, 99).complete();
                 }else{
-                    wobblePath = wobbleBuilder.lineTo(0, 123).complete();
+                    wobblePath = wobbleBuilder.lineTo(-5, 123).complete();
                 }
                 linearSystem.put("Wobble Path", builder.follow(wobblePath), new OrientationTerminator(position, wobblePath));
 
                 linearSystem.put("Deploy Oneuse", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
-                        hardwareData.setWobbleOneuseLeft(RobotConstants.UltimateGoal.ONEUSE_LEFT_ARM_RELEASE);
+                        hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
                     }
                 }, new TrueTimeTerminator(500));
 
-                wait2Path = new PathBuilder(wobblePath.getEndpoint()).lineTo(21, 124, Angle.degrees(-90)).lineTo(45, 124, Angle.degrees(-90)).complete();
+                wait2Path = new PathBuilder(wobblePath.getEndpoint()).lineTo(-21, 124, Angle.degrees(90)).lineTo(-45, 124, Angle.degrees(90)).complete();
                 linearSystem.put("Wait 2 Path", builder.follow(wait2Path, 2, 0.6, 0.15), new OrientationTerminator(position, wait2Path));
 
                 if(delayLocation == DELAY_LOCATION.SECOND_LOCATION || delayLocation == DELAY_LOCATION.BOTH_LOCATIONS){
@@ -311,20 +314,20 @@ public class BlueCornerAuto extends BasicOpmode {
                 if(pickupSecondWobble){
                     //TODO: Develop this further
                     secondWobblePath = new PathBuilder(wait2Path.getEndpoint())
-                            .lineTo(31, 15, Angle.degrees(0)).complete();
+                            .lineTo(-31, 15, Angle.degrees(0)).complete();
                     linearSystem.put("Pickup Second Wobble", builder.follow(secondWobblePath), new OrientationTerminator(position, secondWobblePath));
                     wait2Endpoint = secondWobblePath.getEndpoint();
                 }
 
                 shootSecondPath = new PathBuilder(wait2Endpoint)
-                        .lineTo(45, 100)
-                        .lineTo(21, 50, Angle.degrees(0)).complete();
+                        .lineTo(-45, 100)
+                        .lineTo(-21, 50, Angle.degrees(0)).complete();
 
                 linearSystem.put("Second Shot Drive", builder.follow(shootSecondPath), new OrientationTerminator(position, shootSecondPath));
 
                 linearSystem.put("Shoot", new TrueTimeTerminator(1000));
 
-                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(21, 75, Angle.degrees(0)).complete();
+                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(-21, 75, Angle.degrees(0)).complete();
 
                 linearSystem.put("Shutdown Systems", new LogicState(stateMachine) {
                     @Override
