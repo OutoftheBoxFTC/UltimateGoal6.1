@@ -6,6 +6,7 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
@@ -20,12 +21,20 @@ public class RingMaskPipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input) {
-        Imgproc.cvtColor(input, processed, Imgproc.COLOR_RGB2HSV);
+        input = input.submat(new Rect(0, (int) (input.height()-(input.height()/2.75)), input.width(), input.height()/4));
+        /**Imgproc.cvtColor(input, processed, Imgproc.COLOR_RGB2HSV);
 
-        Scalar min = new Scalar(6, 151, 99);
+        Scalar min = new Scalar(6, 100, 99);
         Scalar max = new Scalar(23, 255, 255);
+        */
+        Imgproc.cvtColor(input, processed, Imgproc.COLOR_RGB2YCrCb);
 
+        Scalar min = new Scalar(0, 150, 0);
+        Scalar max = new Scalar(150, 170, 125);
         Core.inRange(processed, min, max, mask);
+
+        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(1, 1));
+        Imgproc.morphologyEx(mask, mask, Imgproc.MORPH_OPEN, kernel);
 
         ArrayList<MatOfPoint> contours = new ArrayList<>();
 
@@ -49,9 +58,9 @@ public class RingMaskPipeline extends OpenCvPipeline {
 
             Rect matchRect = Imgproc.boundingRect(matchCurve);
 
-            if (matchRect.area() < 1000) {
+            if (matchRect.area() < 500) {
                 numRings = 0;
-            } else if (matchRect.area() < 27000) {
+            } else if (matchRect.area() < 2200) {
                 numRings = 1;
             } else {
                 numRings = 4;
@@ -64,7 +73,7 @@ public class RingMaskPipeline extends OpenCvPipeline {
 
             Imgproc.rectangle(mask, matchRect, new Scalar(255, 0, 0), 4);
 
-            return mask;
+            return edited;
         }else{
             numRings = 0;
             area = 0;

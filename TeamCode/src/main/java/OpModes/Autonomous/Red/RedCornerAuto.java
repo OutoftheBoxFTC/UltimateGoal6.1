@@ -224,9 +224,10 @@ public class RedCornerAuto extends BasicOpmode {
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
                 highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(-9, 13).complete();
-                startingStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(-21, 35).lineTo(-21, 55).complete();
+                startingStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(-21, 30).lineTo(-21, 55).complete();
                 hardwareData.setTurret(UGUtils.getTurretValue(20));
                 hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
+                turretTarget = TensorTeleop.TARGET.BLUE_POWERSHOT_CENTER;
             }
 
             @Override
@@ -273,10 +274,11 @@ public class RedCornerAuto extends BasicOpmode {
                         @Override
                         public void update(SensorData sensorData, HardwareData hardwareData) {
                             shoot = true;
+                            turretTarget = TensorTeleop.TARGET.BLUE_GOAL;
                         }
                     }, new TimeTerminator(2));
 
-                    linearSystem.put("Starting Stack Shoot", builder.follow(startingStackPath, 2, 0.4, 0.3), new OrientationTerminator(position, startingStackPath));
+                    linearSystem.put("Starting Stack Shoot", builder.follow(startingStackPath, 2, 0.3, 0.3), new OrientationTerminator(position, startingStackPath));
 
                     linearSystem.put("ShootStack", new TrueTimeTerminator(1000));
                 }
@@ -360,17 +362,17 @@ public class RedCornerAuto extends BasicOpmode {
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 if(turretTarget == TensorTeleop.TARGET.BLUE_GOAL || turretTarget == TensorTeleop.TARGET.RED_GOAL || turretTarget == TensorTeleop.TARGET.NONE){
                     //Targeting the goal
-                    hardwareData.setShooter(0.75 + system.getCorrection(4.5 - vel, shoot ? 1 : 0));
-                    hardwareData.setShooterTilt(0.32);
-                    if(Math.abs(vel - 4.5) < 0.1){
+                    hardwareData.setShooter(0.75 + system.getCorrection(3.5 - vel, shoot ? 1 : 0));
+                    hardwareData.setShooterTilt(0.29);
+                    if(Math.abs(vel - 3.5) < 0.1){
                         shooterReady = true;
                     }else{
-                        shooterReady = false;
+                        shooterReady = true;
                     }
                 }else {
                     //Targeting the powershots
                     hardwareData.setShooter(0.7 + system.getCorrection(4.2 - vel, shoot ? 1 : 0));
-                    hardwareData.setShooterTilt(0.335);
+                    hardwareData.setShooterTilt(0.335); //TODO: Raise Angle
                     if(Math.abs(vel - 4.2) < 0.1){
                         shooterReady = true;
                     }else{
@@ -398,7 +400,7 @@ public class RedCornerAuto extends BasicOpmode {
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.925);//Retract the indexer out
-                    timer = System.currentTimeMillis() + 80; //Wait for indexer to move and next ring to fall
+                    timer = System.currentTimeMillis() + 200; //Wait for indexer to move and next ring to fall
                     state = 3;
                 }
                 if(state == 3){
