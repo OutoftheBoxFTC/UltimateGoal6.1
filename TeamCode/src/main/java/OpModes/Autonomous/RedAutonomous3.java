@@ -570,16 +570,16 @@ public class RedAutonomous3 extends BasicOpmode {
         autoStates.put("Release Forks", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.49055);
-                hardwareData.setWobbleLiftLeft(0.4801);
+                hardwareData.setWobbleFourbarRight(0.49055);
+                hardwareData.setWobbleFourbarLeft(0.4801);
                 hardwareData.setShooterTilt(0.34);
             }
         });
         autoStates.put("Move Forks Down", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.43622);
-                hardwareData.setWobbleLiftLeft(0.5208);
+                hardwareData.setWobbleFourbarRight(0.43622);
+                hardwareData.setWobbleFourbarLeft(0.5208);
                 //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
                 hardwareData.setShooterTilt(0.34);
             }
@@ -587,8 +587,8 @@ public class RedAutonomous3 extends BasicOpmode {
         autoStates.put("Raise Forks", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.57676);
-                hardwareData.setWobbleLiftLeft(0.37882);
+                hardwareData.setWobbleFourbarRight(0.57676);
+                hardwareData.setWobbleFourbarLeft(0.37882);
                 hardwareData.setShooterLoadArm(0.875);
                 hardwareData.setShooterTilt(0.34);
             }
@@ -812,23 +812,23 @@ public class RedAutonomous3 extends BasicOpmode {
         autoStates.put("Release Forks", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.49055);
-                hardwareData.setWobbleLiftLeft(0.4801);
+                hardwareData.setWobbleFourbarRight(0.49055);
+                hardwareData.setWobbleFourbarLeft(0.4801);
             }
         });
         autoStates.put("Move Forks Down", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.43622);
-                hardwareData.setWobbleLiftLeft(0.5208);
+                hardwareData.setWobbleFourbarRight(0.43622);
+                hardwareData.setWobbleFourbarLeft(0.5208);
                 hardwareData.setIntakePower(1);
             }
         });
         autoStates.put("Raise Forks", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.57676);
-                hardwareData.setWobbleLiftLeft(0.37882);
+                hardwareData.setWobbleFourbarRight(0.57676);
+                hardwareData.setWobbleFourbarLeft(0.37882);
                 hardwareData.setShooterLoadArm(0.875);
             }
         });
@@ -1121,15 +1121,15 @@ public class RedAutonomous3 extends BasicOpmode {
         autoStates.put("Release Forks", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.49055);
-                hardwareData.setWobbleLiftLeft(0.4801);
+                hardwareData.setWobbleFourbarRight(0.49055);
+                hardwareData.setWobbleFourbarLeft(0.4801);
             }
         });
         autoStates.put("Move Forks Down", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.43622);
-                hardwareData.setWobbleLiftLeft(0.5208);
+                hardwareData.setWobbleFourbarRight(0.43622);
+                hardwareData.setWobbleFourbarLeft(0.5208);
                 hardwareData.setShooterTilt(0.34);
                 //hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
             }
@@ -1137,8 +1137,8 @@ public class RedAutonomous3 extends BasicOpmode {
         autoStates.put("Raise Forks", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.57676);
-                hardwareData.setWobbleLiftLeft(0.37882);
+                hardwareData.setWobbleFourbarRight(0.57676);
+                hardwareData.setWobbleFourbarLeft(0.37882);
                 hardwareData.setShooterLoadArm(0.875);
             }
         });

@@ -10,7 +10,7 @@ import MathSystems.Vector4;
  */
 
 public class HardwareData {
-    private double bl, br, fl, fr, intake, shooter, shooterTilt, shooterLoadArm, wobbleLift, wobbleOneuseRight, wobbleLiftLeft, wobbleLiftRight, intakeRelease, turret, intakeShield, wobbleOneuseLeft;
+    private double bl, br, fl, fr, intake, shooter, shooterTilt, shooterLoadArm, wobbleForkLeft, wobbleForkRight, wobbleOneuseRight, wobbleFourbarLeft, wobbleFourbarRight, intakeRelease, turret, intakeShield, wobbleOneuseLeft;
     private long timestamp;
     private RevBlinkinLedDriver.BlinkinPattern pattern;
     public HardwareData(){
@@ -20,13 +20,13 @@ public class HardwareData {
         fr = 0;
         intake = 0;
         shooter = 0;
-        wobbleLift = 0;
+        wobbleForkLeft = -1;
+        wobbleForkRight = -1;
         wobbleOneuseRight = -1;
-        wobbleLiftLeft = -1;
-        wobbleLiftRight = -1;
+        wobbleFourbarLeft = -1;
+        wobbleFourbarRight = -1;
         shooterLoadArm = -1;
         intakeRelease = -1;
-        wobbleLift = 0;
         turret = -1;
         intakeShield = -1;
         wobbleOneuseLeft = -1;
@@ -88,12 +88,20 @@ public class HardwareData {
         this.shooterLoadArm = shooterLoadArm;
     }
 
-    public double getWobbleLift() {
-        return wobbleLift;
+    public double getWobbleForkLeft() {
+        return wobbleForkLeft;
     }
 
-    public void setWobbleLift(double wobbleLift) {
-        this.wobbleLift = wobbleLift;
+    public void setWobbleForkLeft(double wobbleForkLeft) {
+        this.wobbleForkLeft = wobbleForkLeft;
+    }
+
+    public double getWobbleForkRight() {
+        return wobbleForkRight;
+    }
+
+    public void setWobbleForkRight(double wobbleForkRight) {
+        this.wobbleForkRight = wobbleForkRight;
     }
 
     public void setWobbleOneuseRight(double wobbleOneuseRight) {
@@ -104,20 +112,20 @@ public class HardwareData {
         return wobbleOneuseRight;
     }
 
-    public void setWobbleLiftLeft(double wobbleLiftLeft) {
-        this.wobbleLiftLeft = wobbleLiftLeft;
+    public void setWobbleFourbarLeft(double wobbleFourbarLeft) {
+        this.wobbleFourbarLeft = wobbleFourbarLeft;
     }
 
-    public void setWobbleLiftRight(double wobbleLiftRight) {
-        this.wobbleLiftRight = wobbleLiftRight;
+    public void setWobbleFourbarRight(double wobbleFourbarRight) {
+        this.wobbleFourbarRight = wobbleFourbarRight;
     }
 
-    public double getWobbleLiftLeft() {
-        return wobbleLiftLeft;
+    public double getWobbleFourbarLeft() {
+        return wobbleFourbarLeft;
     }
 
-    public double getWobbleLiftRight() {
-        return wobbleLiftRight;
+    public double getWobbleFourbarRight() {
+        return wobbleFourbarRight;
     }
 
     public void setIntakeRelease(double intakeRelease) {

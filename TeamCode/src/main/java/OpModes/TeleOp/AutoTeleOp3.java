@@ -346,16 +346,16 @@ public class AutoTeleOp3 extends BasicOpmode {
                      //hardwareData.setWobbleLiftLeft(0.5208);
                  }
                  if(gamepad2.x){
-                     hardwareData.setWobbleLiftRight(0.49055);
-                     hardwareData.setWobbleLiftLeft(0.4801);
+                     hardwareData.setWobbleFourbarRight(0.49055);
+                     hardwareData.setWobbleFourbarLeft(0.4801);
                  }
                  if(gamepad2.b){
-                     hardwareData.setWobbleLiftRight(0.57676);
-                     hardwareData.setWobbleLiftLeft(0.37882);
+                     hardwareData.setWobbleFourbarRight(0.57676);
+                     hardwareData.setWobbleFourbarLeft(0.37882);
                  }
                  if(gamepad2.y){
-                     hardwareData.setWobbleLiftRight(0.96634);
-                     hardwareData.setWobbleLiftLeft(0.01);
+                     hardwareData.setWobbleFourbarRight(0.96634);
+                     hardwareData.setWobbleFourbarLeft(0.01);
                  }
             }
         });

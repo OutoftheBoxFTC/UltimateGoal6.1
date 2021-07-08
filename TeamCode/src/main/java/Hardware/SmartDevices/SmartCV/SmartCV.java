@@ -28,8 +28,8 @@ public class SmartCV extends SmartDevice {
         highgoalPipeline = new TensorPipeline(hardwareMap, 70, "model2.tflite");
         //highgoalPipeline = new TensorPipeline(hardwareMap, 70, "detectNew.tflite");
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        ring = OpenCvCameraFactory.getInstance().createWebcam(ringCam, cameraMonitorViewId);
-        tower = OpenCvCameraFactory.getInstance().createWebcam(towerCam);
+        ring = OpenCvCameraFactory.getInstance().createWebcam(ringCam);
+        tower = OpenCvCameraFactory.getInstance().createWebcam(towerCam, cameraMonitorViewId);
 
         this.towerCam = towerCam;
         this.ringCam = ringCam;
@@ -42,17 +42,18 @@ public class SmartCV extends SmartDevice {
                 ring.openCameraDevice();
                 ring.getExposureControl().setExposure(10, TimeUnit.MILLISECONDS);
                 ring.getGainControl().setGain(5);
-                ring.startStreaming(1920, 1080, OpenCvCameraRotation.SIDEWAYS_LEFT);
+                ring.startStreaming(1280, 720, OpenCvCameraRotation.SIDEWAYS_LEFT);
                 ring.setPipeline(ringPipeline);
-                FtcDashboard.getInstance().startCameraStream(ring, 30);
             }
         });
         tower.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
                 tower.openCameraDevice();
-                tower.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
+                tower.startStreaming(640, 480, OpenCvCameraRotation.UPSIDE_DOWN);
+                tower.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
                 tower.setPipeline(highgoalPipeline);
+                FtcDashboard.getInstance().startCameraStream(tower, 30);
                 /**tower.startRecordingPipeline(new PipelineRecordingParameters.Builder()
                 .setPath("/sdcard/tower" + System.currentTimeMillis() + ".mp4")
                 .setFrameRate(24)

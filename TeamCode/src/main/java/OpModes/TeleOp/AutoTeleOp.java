@@ -319,20 +319,20 @@ public class AutoTeleOp extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                  if(gamepad2.a){
-                     hardwareData.setWobbleLiftRight(0.43622);
-                     hardwareData.setWobbleLiftLeft(0.5208);
+                     hardwareData.setWobbleFourbarRight(0.43622);
+                     hardwareData.setWobbleFourbarLeft(0.5208);
                  }
                  if(gamepad2.x){
-                     hardwareData.setWobbleLiftRight(0.49055);
-                     hardwareData.setWobbleLiftLeft(0.4801);
+                     hardwareData.setWobbleFourbarRight(0.49055);
+                     hardwareData.setWobbleFourbarLeft(0.4801);
                  }
                  if(gamepad2.b){
-                     hardwareData.setWobbleLiftRight(0.57676);
-                     hardwareData.setWobbleLiftLeft(0.37882);
+                     hardwareData.setWobbleFourbarRight(0.57676);
+                     hardwareData.setWobbleFourbarLeft(0.37882);
                  }
                  if(gamepad2.y){
-                     hardwareData.setWobbleLiftRight(0.96634);
-                     hardwareData.setWobbleLiftLeft(0.01);
+                     hardwareData.setWobbleFourbarRight(0.96634);
+                     hardwareData.setWobbleFourbarLeft(0.01);
                  }
                  double minVal = -1;
                  double maxVal = 1;
@@ -344,9 +344,9 @@ public class AutoTeleOp extends BasicOpmode {
                  }
                  maxVal = 0.2;
                  telemetry.addData("Wobble", sensorData.getWobbleLift() + " | " + minVal + " | " + maxVal);
-                hardwareData.setWobbleLift(-MathUtils.clamp(gamepad2.left_stick_y * 1, minVal, maxVal));
+                hardwareData.setWobbleForkLeft(-MathUtils.clamp(gamepad2.left_stick_y * 1, minVal, maxVal));
                 if(Math.abs(gamepad2.left_stick_y) < 0.1){
-                     hardwareData.setWobbleLift(0.1);
+                     hardwareData.setWobbleForkLeft(0.1);
                  }
                  /**
                  if(gamepad2.left_stick_y < -0.1){
@@ -376,7 +376,7 @@ public class AutoTeleOp extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 hardwareData.setShooterTilt(0.49);
-                hardwareData.setWobbleLift(MathUtils.sign(target - (-sensorData.getWobbleLift())) * power);
+                hardwareData.setWobbleForkLeft(MathUtils.sign(target - (-sensorData.getWobbleLift())) * power);
                 if(Math.abs(target - sensorData.getWobbleLift()) < tolerence){
                     stateMachine.activateLogic("Hold Wobble");
                     telemetry.addData("Moving", "Wobble");
@@ -389,7 +389,7 @@ public class AutoTeleOp extends BasicOpmode {
         stateMachine.appendLogicState("Hold Wobble", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLift(0.1);
+                hardwareData.setWobbleForkLeft(0.1);
             }
         });
 

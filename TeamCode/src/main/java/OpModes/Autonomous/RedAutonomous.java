@@ -19,7 +19,6 @@ import MathSystems.Vector4;
 import Motion.DriveToPoint.DriveToPointBuilder;
 import Motion.PIDDriveToPoint.PIDDriveToPointBuilder;
 import Motion.PurePursuit.PurePursuitBuilder;
-import Motion.Terminators.LogicStateTerminator;
 import Motion.Terminators.OrientationTerminator;
 import Motion.Terminators.TimeTerminator;
 import Odometry.ConstantVOdometer;
@@ -226,22 +225,22 @@ public class RedAutonomous extends BasicOpmode {
         autoStates.put("Release Forks", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.49055);
-                hardwareData.setWobbleLiftLeft(0.4801);
+                hardwareData.setWobbleFourbarRight(0.49055);
+                hardwareData.setWobbleFourbarLeft(0.4801);
             }
         });
         autoStates.put("Move Forks Down", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.43622);
-                hardwareData.setWobbleLiftLeft(0.5208);
+                hardwareData.setWobbleFourbarRight(0.43622);
+                hardwareData.setWobbleFourbarLeft(0.5208);
             }
         });
         autoStates.put("Raise Forks", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                hardwareData.setWobbleLiftRight(0.57676);
-                hardwareData.setWobbleLiftLeft(0.37882);
+                hardwareData.setWobbleFourbarRight(0.57676);
+                hardwareData.setWobbleFourbarLeft(0.37882);
             }
         });
         autoStates.put("Drop And Outtake", new LogicState(stateMachine) {

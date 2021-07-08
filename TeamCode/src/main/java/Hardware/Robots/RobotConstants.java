@@ -36,5 +36,27 @@ public class RobotConstants {
 
         public static final double INTAKE_BLOCKER_DOWN = 1175;
         public static final double INTAKE_BLOCKER_UP = 2250;
+
+        //TODO: Populate these fields
+        public static final double WOBBLE_ARM_LEFT_DOWN = 0.1;
+        public static final double WOBBLE_ARM_RIGHT_DOWN = 0.9;
+
+        public static final double WOBBLE_ARM_LEFT_CHANGE = 0.22;
+        public static final double WOBBLE_ARM_RIGHT_CHANGE = 0.79;
+
+        public static final double WOBBLE_ARM_LEFT_TRAVEL = 0.65;
+        public static final double WOBBLE_ARM_RIGHT_TRAVEL = 0.35;
+
+        public static final double WOBBLE_ARM_LEFT_SCORE = 0.65;
+        public static final double WOBBLE_ARM_RIGHT_SCORE = 0.35;
+
+        public static final double WOBBLE_FORK_LEFT_IN = 0.5208;
+        public static final double WOBBLE_FORK_RIGHT_IN = 0.43622;
+
+        public static final double WOBBLE_FORK_LEFT_OUT = 0.01;
+        public static final double WOBBLE_FORK_RIGHT_OUT = 0.96634;
+
+        public static final double WOBBLE_FORK_LEFT_TRAVEL = 0.18;
+        public static final double WOBBLE_FORK_RIGHT_TRAVEL = 0.79634;
     }
 }

@@ -1,29 +1,21 @@
 package OpModes.TeleOp;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartCV.SmartCV;
-import Hardware.SmartDevices.SmartCV.TowerGoal.TensorPipeline;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.UltimateGoalHardware;
 import MathSystems.MathUtils;
 import MathSystems.PIDFSystem;
-import MathSystems.Vector2;
 import MathSystems.Vector3;
-import MathSystems.Vector4;
 import Odometry.AdvancedVOdometer;
 import OpModes.BasicOpmode;
-import State.DriveState;
-import State.EventSystem.LinearEventSystem;
 import State.GamepadDriveState;
 import State.LogicState;
 import State.SingleLogicState;
@@ -38,6 +30,10 @@ public class TensorTeleop extends BasicOpmode {
     COLOR color = COLOR.RED;
     boolean shoot = false, shooterReady = false;
     public static double ARM_IDLE = 1400, ARM_DOWN = RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN;
+
+    WOBBLE_FORK_POSITION forkPos = WOBBLE_FORK_POSITION.IN, targetForkPos = WOBBLE_FORK_POSITION.IN;
+    WOBBLE_FOURBAR_POSITION fourbarPos = WOBBLE_FOURBAR_POSITION.IN, targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
+
     public TensorTeleop() {
         super(new UltimateGoalHardware());
     }
@@ -74,7 +70,7 @@ public class TensorTeleop extends BasicOpmode {
                     hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_BLUE);
                 }
                 hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
-                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(17.7);
+                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(29.695);
                 hardware.smartDevices.get("SmartCV", SmartCV.class).setVelocity(velocity);
                 if(isStarted()){
                     deactivateThis();
@@ -190,7 +186,10 @@ public class TensorTeleop extends BasicOpmode {
                     //deltaX -= velocity.getA() * (dist / 120);
                     //deltaY -= velocity.getB() * (dist / 120);
                 }
-                hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
+                if(fourbarPos == WOBBLE_FOURBAR_POSITION.IN && targetFourbarPos == WOBBLE_FOURBAR_POSITION.IN) {
+                    telemetry.addData("Angle", Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY))));
+                    hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
+                }
             }
         });
 
@@ -278,20 +277,44 @@ public class TensorTeleop extends BasicOpmode {
                 }else{
                     hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.IDLE_INTAKE);
                 }
+
+                if(gamepad2.y){
+                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.TRAVEL;
+                    targetForkPos = WOBBLE_FORK_POSITION.TRAVEL;
+                }
+                if(gamepad2.a){
+                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
+                    targetForkPos = WOBBLE_FORK_POSITION.IN;
+                }
+                if(gamepad2.x){
+                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
+                    targetForkPos = WOBBLE_FORK_POSITION.OUT;
+                }
+                if(gamepad2.b){
+                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.SCORE;
+                    targetForkPos = WOBBLE_FORK_POSITION.OUT;
+                }
+                telemetry.addData("Wobble", fourbarPos + " | " + forkPos + " | " + targetFourbarPos + " | " + targetForkPos);
             }
         });
 
         eventSystem.onStart("Shooter", new LogicState(stateMachine) {
-            final PIDFSystem system = new PIDFSystem(1, 0, 0, 0.1);
+            final PIDFSystem system = new PIDFSystem(3, 0, 0, 0.1);
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 //TODO: Put this velocity in SensorData
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
+                if(fourbarPos == WOBBLE_FOURBAR_POSITION.TRAVEL || fourbarPos == WOBBLE_FOURBAR_POSITION.SCORE || targetFourbarPos == WOBBLE_FOURBAR_POSITION.TRAVEL || targetFourbarPos == WOBBLE_FOURBAR_POSITION.SCORE){
+                    hardwareData.setShooter(0 + system.getCorrection(0 - vel, 0));
+                    hardwareData.setShooterTilt(0.42);
+                    shooterReady = false;
+                    return;
+                }
                 if(turretTarget == TARGET.BLUE_GOAL || turretTarget == TARGET.RED_GOAL || turretTarget == TARGET.NONE){
                     //Targeting the goal
-                    hardwareData.setShooter(0.75 + system.getCorrection(4.5 - vel, shoot ? 1 : 0));
-                    hardwareData.setShooterTilt(0.321);
-                    if(Math.abs(vel - 4.5) < 0.1){
+                    hardwareData.setShooter(0.75 + system.getCorrection(4 - vel, shoot ? 1 : 0));
+                    hardwareData.setShooterTilt(0.334);
+                    if(Math.abs(vel - 4) < 0.1){
                         shooterReady = true;
                     }else{
                         shooterReady = false;
@@ -317,17 +340,17 @@ public class TensorTeleop extends BasicOpmode {
                 if(state == 0){
                     //First we move the indexer into the hopper
                     hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 60; //Wait for indexer to move and shooter to grab ring
+                    timer = System.currentTimeMillis() + 80; //Wait for indexer to move and shooter to grab ring
                     state = 1;
                 }
                 if(state == 1){
                     if(System.currentTimeMillis() >= timer){
-                        state = 2;//Waiting for the "in" move to complete...
+                        state = 2; //Waiting for the "in" move to complete...
                     }
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.925);//Retract the indexer out
-                    timer = System.currentTimeMillis() + 60; //Wait for indexer to move and next ring to fall
+                    timer = System.currentTimeMillis() + 80; //Wait for indexer to move and next ring to fall
                     state = 3;
                 }
                 if(state == 3){
@@ -339,6 +362,79 @@ public class TensorTeleop extends BasicOpmode {
                         hardwareData.setShooterLoadArm(0.925); //Ensure the load arm is retracted
                     }
                     hardwareData.setShooterLoadArm(0.925); //Ensure the load arm is retracted
+                }
+            }
+        });
+
+        eventSystem.onStart("Change Fork Position", new LogicState(stateMachine) {
+            int state = 0;
+            long timer = 0;
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(fourbarPos == targetFourbarPos && forkPos == targetForkPos){
+                    return;
+                }
+                if(fourbarPos == WOBBLE_FOURBAR_POSITION.IN){
+                    if(state == 0){
+                        hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_CHANGE);
+                        hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_CHANGE);
+                        state = 1;
+                        timer = System.currentTimeMillis() + 100;
+                    }
+                    if(state == 1 && System.currentTimeMillis() > timer){
+                        if(targetForkPos == WOBBLE_FORK_POSITION.IN){
+                            hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_IN);
+                            hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_IN);
+                        }else if(targetForkPos == WOBBLE_FORK_POSITION.OUT){
+                            hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_OUT);
+                            hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_OUT);
+                        }else{
+                            hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_TRAVEL);
+                            hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_TRAVEL);
+                        }
+                        state = 2;
+                        timer = System.currentTimeMillis() + 100;
+                    }
+                    if(state == 2 && System.currentTimeMillis() > timer){
+                        if(targetFourbarPos == WOBBLE_FOURBAR_POSITION.IN){
+                            hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_DOWN);
+                            hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_DOWN);
+                        }else if(targetFourbarPos == WOBBLE_FOURBAR_POSITION.TRAVEL){
+                            hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_TRAVEL);
+                            hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_TRAVEL);
+                        }else if(targetFourbarPos == WOBBLE_FOURBAR_POSITION.SCORE){
+                            hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_SCORE);
+                            hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_SCORE);
+                        }
+                        fourbarPos = targetFourbarPos;
+                        forkPos = targetForkPos;
+                        state = 0;
+                    }
+                }else{
+                    if(targetForkPos == WOBBLE_FORK_POSITION.IN){
+                        hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_IN);
+                        hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_IN);
+                    }else if(targetForkPos == WOBBLE_FORK_POSITION.OUT){
+                        hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_OUT);
+                        hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_OUT);
+                    }else{
+                        hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_TRAVEL);
+                        hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_TRAVEL);
+                    }
+
+                    if(targetFourbarPos == WOBBLE_FOURBAR_POSITION.IN){
+                        hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_DOWN);
+                        hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_DOWN);
+                    }else if(targetFourbarPos == WOBBLE_FOURBAR_POSITION.TRAVEL){
+                        hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_TRAVEL);
+                        hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_TRAVEL);
+                    }else if(targetFourbarPos == WOBBLE_FOURBAR_POSITION.SCORE){
+                        hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_SCORE);
+                        hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_SCORE);
+                    }
+
+                    fourbarPos = targetFourbarPos;
+                    forkPos = targetForkPos;
                 }
             }
         });
@@ -359,5 +455,17 @@ public class TensorTeleop extends BasicOpmode {
     public enum COLOR{
         BLUE,
         RED
+    }
+
+    public enum WOBBLE_FOURBAR_POSITION{
+        IN,
+        TRAVEL,
+        SCORE
+    }
+
+    public enum WOBBLE_FORK_POSITION{
+        OUT,
+        IN,
+        TRAVEL
     }
 }

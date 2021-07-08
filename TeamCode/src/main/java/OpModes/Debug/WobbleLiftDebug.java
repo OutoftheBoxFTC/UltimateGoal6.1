@@ -23,7 +23,7 @@ public class WobbleLiftDebug extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 telemetry.addData("Wobble", sensorData.getWobbleLift());
-                hardwareData.setWobbleLift(gamepad1.dpad_up ? 0.5 : (gamepad1.dpad_down ? -0.5 : 0));
+                hardwareData.setWobbleForkLeft(gamepad1.dpad_up ? 0.5 : (gamepad1.dpad_down ? -0.5 : 0));
             }
         });
     }

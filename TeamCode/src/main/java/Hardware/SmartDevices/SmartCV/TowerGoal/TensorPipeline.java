@@ -17,7 +17,6 @@ import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.task.vision.detector.Detection;
 import org.tensorflow.lite.task.vision.detector.ObjectDetector;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,6 +55,7 @@ public class TensorPipeline extends OpenCvPipeline {
         Mat cropCopy = input.clone();
         Bitmap bmp = Bitmap.createBitmap(input.cols(), input.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(input, bmp);
+
         List<Detection> dets = det.detect(TensorImage.createFrom(TensorImage.fromBitmap(bmp), DataType.UINT8));
         bmp.recycle();
         for(Detection d : dets) {
@@ -77,25 +77,25 @@ public class TensorPipeline extends OpenCvPipeline {
                 Imgproc.circle(input, new Point(d.getBoundingBox().left, d.getBoundingBox().bottom), 5, new Scalar(255, 255, 0), -1);
 
                 if(means.val[0] > means.val[2]){
-                    Imgproc.putText(input, "Red", CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
+                    Imgproc.putText(input, "Red " + d.getCategories().get(0).getScore(), CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
                     //The goal is the red goal (R > B)
                     redFiringSolution = PnPUtils.getPitchAndYaw(input, r, cropCopy, fov);
                     pitch = redFiringSolution[0];
-                    double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(14, redFiringSolution[0] + pitchOffset);
+                    double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(17.5, redFiringSolution[0] + pitchOffset);
                     redPowershots = BetterTowerGoalUtils.approxPowershotAngles(-redFiringSolution[1], goalWallDist2, BetterTowerGoalUtils.RED);
                     redFiringSolution[0] = goalWallDist2;
                     double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, -redFiringSolution[1]);
-                    position = new double[]{xDist + 35, -goalWallDist2}; //Subtract 35 inches so that the point 0, 0 is in the centre of the field
+                    position = new double[]{xDist + 35 + 6, -goalWallDist2}; //Subtract 35 inches so that the point 0, 0 is in the centre of the field
                 }else{
-                    Imgproc.putText(input, "Blue", CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
+                    Imgproc.putText(input, "Blue " + d.getCategories().get(0).getScore(), CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
                     //The goal is the blue goal (R < B)
                     blueFiringSolution = PnPUtils.getPitchAndYaw(input, r, cropCopy, fov);
                     pitch = blueFiringSolution[0];
-                    double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(14, blueFiringSolution[0] + pitchOffset);
+                    double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(17.5, blueFiringSolution[0] + pitchOffset);
                     bluePowershots = BetterTowerGoalUtils.approxPowershotAngles(-blueFiringSolution[1], goalWallDist2, BetterTowerGoalUtils.BLUE);
                     blueFiringSolution[0] = goalWallDist2;
                     double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, -blueFiringSolution[1]);
-                    position = new double[]{xDist - 35, -goalWallDist2}; //Add 35 inches so that the point 0, 0 is in the centre of the field
+                    position = new double[]{xDist - 35 + 6, -goalWallDist2}; //Add 35 inches so that the point 0, 0 is in the centre of the field
                 }
                 dataTimestamp.set(System.currentTimeMillis());
                 track.set(true);
@@ -146,7 +146,7 @@ public class TensorPipeline extends OpenCvPipeline {
     }
 
     public double calibratePitch(){
-        return BetterTowerGoalUtils.approximateCameraAngle(14, 126, pitch);
+        return BetterTowerGoalUtils.approximateCameraAngle(17.5, 126, pitch);
     }
 
     public double[] getPosition() {
