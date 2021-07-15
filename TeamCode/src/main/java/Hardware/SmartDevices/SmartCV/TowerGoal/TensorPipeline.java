@@ -1,9 +1,12 @@
 package Hardware.SmartDevices.SmartCV.TowerGoal;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.RobotLog;
 
+import org.checkerframework.checker.units.qual.A;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -15,9 +18,11 @@ import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.support.image.TensorImage;
+import org.tensorflow.lite.task.core.vision.ImageProcessingOptions;
 import org.tensorflow.lite.task.vision.detector.Detection;
 import org.tensorflow.lite.task.vision.detector.ObjectDetector;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -39,7 +44,7 @@ public class TensorPipeline extends OpenCvPipeline {
 
     public TensorPipeline(HardwareMap hardwareMap, double fov, String model){
         try {
-            det = ObjectDetector.createFromFileAndOptions(hardwareMap.appContext, model, ObjectDetector.ObjectDetectorOptions.builder().setNumThreads(2).setScoreThreshold(0.95f).build());
+            det = ObjectDetector.createFromFileAndOptions(hardwareMap.appContext, model, ObjectDetector.ObjectDetectorOptions.builder().setNumThreads(4).setScoreThreshold(0.95f).build());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -57,6 +62,7 @@ public class TensorPipeline extends OpenCvPipeline {
         Utils.matToBitmap(input, bmp);
 
         List<Detection> dets = det.detect(TensorImage.createFrom(TensorImage.fromBitmap(bmp), DataType.UINT8));
+        //List<Detection> dets = new ArrayList<>();
         bmp.recycle();
         for(Detection d : dets) {
             Rect r = new Rect(

@@ -39,10 +39,13 @@ public class PIDSystem {
     public double getCorrection(double error){
         proportional = error * kp;
         if(dt != 0){
-            if(Math.abs(error) < integralRange)
+            if(Math.abs(integral) < integralRange)
                 integral += error * ki * dt;
             if(previousError != 0){
                 derivative = kd * (error - previousError) / dt;
+            }
+            if(Math.signum(previousError) != Math.signum(error)){
+                integral = 0;
             }
         }
 

@@ -5,7 +5,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
+import Hardware.SmartDevices.SmartCV.TestCV;
 import Hardware.SmartDevices.SmartVuforia.SmartPhoneVuforia;
+import OpModes.Debug.TensorTest;
 
 /**
  * Test Hardware class, which is completely empty
@@ -16,7 +18,7 @@ public class TestHardware extends Hardware {
 
     @Override
     public void registerDevices(HardwareMap map) {
-
+        smartDevices.put("Test", new TestCV(map));
     }
 
     @Override

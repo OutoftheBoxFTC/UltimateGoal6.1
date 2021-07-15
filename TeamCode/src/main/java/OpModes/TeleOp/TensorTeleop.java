@@ -13,6 +13,7 @@ import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import Hardware.UltimateGoalHardware;
 import MathSystems.MathUtils;
 import MathSystems.PIDFSystem;
+import MathSystems.PIDSystem;
 import MathSystems.Vector3;
 import Odometry.AdvancedVOdometer;
 import OpModes.BasicOpmode;
@@ -23,12 +24,13 @@ import State.VelocityDriveState;
 
 @TeleOp
 public class TensorTeleop extends BasicOpmode {
-    AdvancedVOdometer odometer;
-    Vector3 position, velocity, timestampedPosition;
+    AdvancedVOdometer odometer, trackingOdo;
+    Vector3 position, velocity, timestampedPosition, trackingPos, trackingVel;
     long timestamp = 0, dataTimestamp = 0;
     TARGET turretTarget = TARGET.NONE;
     COLOR color = COLOR.RED;
     boolean shoot = false, shooterReady = false;
+    double speedMod = 1;
     public static double ARM_IDLE = 1400, ARM_DOWN = RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN;
 
     WOBBLE_FORK_POSITION forkPos = WOBBLE_FORK_POSITION.IN, targetForkPos = WOBBLE_FORK_POSITION.IN;
@@ -48,10 +50,14 @@ public class TensorTeleop extends BasicOpmode {
         //They give accurate angles to anything on the goal wall, but should NOT be used for field position
         position = Vector3.ZERO();
         velocity = Vector3.ZERO();
+        trackingPos = Vector3.ZERO();
+        trackingVel = Vector3.ZERO();
         timestampedPosition = Vector3.ZERO();
         odometer = new AdvancedVOdometer(stateMachine, position, velocity);
+        trackingOdo = new AdvancedVOdometer(stateMachine, trackingPos, trackingVel);
 
         eventSystem.onInit("Odometry", odometer);
+        eventSystem.onInit("TrackingVelOdo", trackingOdo);
 
         eventSystem.onInit("Setup Colour", new LogicState(stateMachine) {
             @Override
@@ -194,55 +200,80 @@ public class TensorTeleop extends BasicOpmode {
         });
 
         eventSystem.onStart("Drive", new VelocityDriveState(stateMachine) {
-            /**
-             * Technically
-             * @see GamepadDriveState
-             * does this for us, but we write it out here in case we want to do anything fancy
-             * Like velocity corrected drive, absolute breaking to prevent pushing
-             * or to keep the heading constant while strafing
-             */
+            final double minSpeed = 0.1;
+            final double minDist = 5;
+            final double maxSpeed = 1;
+            final double maxDist = 35;
+
+            double speed = 1;
+
+            final Vector3 lastPos = Vector3.ZERO();
+            final PIDSystem x = new PIDSystem(1, 1, 0.2, 1);
+            final PIDSystem y = new PIDSystem(1, 1, 0.2, 1);
+            final PIDSystem r = new PIDSystem(0.1, 0.5, 0.2, 1);
+
             @Override
             public Vector3 getVelocities() {
                 hardware.smartDevices.get("Front Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x);
+                if(Math.abs(gamepad1.left_stick_x) > 0.1 || Math.abs(gamepad1.left_stick_y) > 0.1 || Math.abs(gamepad1.left_stick_x) > 0.1) {
+                    lastPos.set(trackingPos);
+                    return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x).scale(speed).scale(speedMod);
+                }else{
+                    if(lastPos.getVector2().distanceTo(trackingPos.getVector2()) > 0.15) {
+                        double xcorr = x.getCorrection(lastPos.getA() - trackingPos.getA());
+                        double ycorr = y.getCorrection(lastPos.getB() - trackingPos.getB());
+                        double rcorr = r.getCorrection(MathUtils.getRadRotDist(position.getC(), trackingPos.getC()));
+                        return new Vector3(xcorr, ycorr, rcorr);
+                    }
+                }
+                return Vector3.ZERO();
             }
 
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
+                double slope = (maxSpeed - minSpeed) / (maxDist - minDist);
+                double intercept = maxSpeed - (slope * maxDist);
 
+                if(fourbarPos != WOBBLE_FOURBAR_POSITION.IN){
+                    speed = Math.max((slope * sensorData.getDistance()) + intercept, minSpeed);
+                }else{
+                    speed = 1;
+                }
             }
         });
 
         eventSystem.onStart("Driver", new LogicState(stateMachine) {
+            boolean lastUp = false, lastDown = false;
+            int state = 0;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 hardwareData.setIntakePower(gamepad1.right_bumper ? 1 : gamepad1.left_bumper ? -1 : 0);
                 //To simplify the code and changes, both Blue and Red modes are in one TeleOp and can be switched
-                //With x and b (blue and red ofc)
-                if(gamepad1.x){
+                //With start and back
+                if(gamepad1.back){
                     color = COLOR.BLUE;
                 }
-                if(gamepad1.b){
+                if(gamepad1.start){
                     color = COLOR.RED;
                 }
                 //Powershot control
                 //Currently on the dpad because its easier to press
-                if(gamepad1.dpad_left){
+                if(gamepad1.x){
                     if(color == COLOR.BLUE){
                         turretTarget = TARGET.BLUE_POWERSHOT_LEFT;
                     }else{
                         turretTarget = TARGET.RED_POWERSHOT_LEFT;
                     }
-                }else if(gamepad1.dpad_up){
+                }else if(gamepad1.y){
                     if(color == COLOR.BLUE){
                         turretTarget = TARGET.BLUE_POWERSHOT_CENTER;
                     }else{
                         turretTarget = TARGET.RED_POWERSHOT_CENTER;
                     }
-                }else if(gamepad1.dpad_right){
+                }else if(gamepad1.b){
                     if(color == COLOR.BLUE){
                         turretTarget = TARGET.BLUE_POWERSHOT_RIGHT;
                     }else{
@@ -259,11 +290,41 @@ public class TensorTeleop extends BasicOpmode {
                 if(gamepad1.left_trigger > 0.15){
                     shoot = true;
                 }
-                if(gamepad1.right_trigger > 0.1){
-                    hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(ARM_DOWN));
+                if(gamepad1.right_trigger > 0.15){
+                    speedMod = 0.5;
                 }else{
-                    hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(ARM_IDLE));
+                    speedMod = 1;
                 }
+
+                if(gamepad1.dpad_up && lastUp){
+                    state ++;
+                    if(state == 4){
+                        state = 0;
+                    }
+                }
+                if(gamepad1.dpad_down && lastDown){
+                    state --;
+                    if(state < 0){
+                        state = 3;
+                    }
+                }
+
+                if(state == 0){
+                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
+                    targetForkPos = WOBBLE_FORK_POSITION.IN;
+                }else if(state == 1){
+                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
+                    targetForkPos = WOBBLE_FORK_POSITION.OUT;
+                }else if(state == 2){
+                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.TRAVEL;
+                    targetForkPos = WOBBLE_FORK_POSITION.TRAVEL;
+                }else if(state == 3){
+                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.SCORE;
+                    targetForkPos = WOBBLE_FORK_POSITION.OUT;
+                }
+
+                lastUp = gamepad1.dpad_up;
+                lastDown = gamepad1.dpad_down;
             }
         });
 

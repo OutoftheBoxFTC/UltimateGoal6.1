@@ -6,7 +6,7 @@ package Hardware.Packets;
  */
 
 public class SensorData {
-    private double gyro, gyro2, fps, wobbleLift, backlog, rings, heading, pitch, range;
+    private double gyro, gyro2, fps, wobbleLift, backlog, rings, heading, pitch, range, distance;
     private double powershots[] = new double[]{0, 0, 0};
     private int odometryLeft, odometryRight, odometryAux;
     private boolean track = false;
@@ -23,6 +23,7 @@ public class SensorData {
         heading = 0;
         pitch = 0;
         range = 0;
+        distance = 0;
     }
 
     public int getOdometryAux() {
@@ -131,6 +132,14 @@ public class SensorData {
 
     public void setPowershots(double[] powershots) {
         this.powershots = powershots;
+    }
+
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+
+    public double getDistance() {
+        return distance;
     }
 
     public void setFps(double fps) {

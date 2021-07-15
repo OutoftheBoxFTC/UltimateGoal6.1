@@ -66,7 +66,7 @@ public abstract class BasicOpmode extends LinearOpMode {
             hardwareData.setDriveMotors(stateMachine.getDriveVelocities());
             hardwareData.setTimestamp(System.currentTimeMillis());
             hardware.addHardwarePacket(hardwareData);
-            RobotLog.ii("Test", String.valueOf(System.currentTimeMillis() - sensorData.getTimestamp()));
+            //RobotLog.ii("Test", String.valueOf(System.currentTimeMillis() - sensorData.getTimestamp()));
             telemetry.update();
             ProgramClock.update();
         }

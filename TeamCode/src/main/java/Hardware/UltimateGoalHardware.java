@@ -1,12 +1,16 @@
 package Hardware;
 
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
+import Hardware.SmartDevices.Smart2MSensor.Smart2MSensor;
+import Hardware.SmartDevices.Smart2MSensor.Smart2MSensorConfiguration;
 import Hardware.SmartDevices.SmartBlinkin.SmartBlinkin;
 import Hardware.SmartDevices.SmartCV.SmartCV;
 import Hardware.SmartDevices.SmartEncoder.SmartEncoder;
@@ -64,6 +68,9 @@ public class UltimateGoalHardware extends Hardware {
         if(registeredDevices.contains(HardwareDevices.LEDS)){
             smartDevices.put("Blinkin", new SmartBlinkin(map.get(RevBlinkinLedDriver.class, "Blinkin")));
         }
+        if(registeredDevices.contains(HardwareDevices.DISTANCE_SENSOR)){
+            smartDevices.put("Distance Sensor", new Smart2MSensor(map.get(Rev2mDistanceSensor.class, "distanceSensor"), new Smart2MSensorConfiguration().setUnit(DistanceUnit.INCH)));
+        }
     }
 
     @Override
@@ -119,6 +126,9 @@ public class UltimateGoalHardware extends Hardware {
             sensorData.setRange(smartCV.getRange());
             sensorData.setPitch(smartCV.getPitch());
             sensorData.setPowershots(smartCV.getRedPowershots());
+        }
+        if(enabledDevices.contains(HardwareDevices.DISTANCE_SENSOR)){
+            sensorData.setDistance(smartDevices.get("Distance Sensor", Smart2MSensor.class).getDistance());
         }
         sensorData.setFps(1/(MathSystems.MathUtils.nanoToDSec(System.nanoTime()-prevTime)));
         prevTime = System.nanoTime();

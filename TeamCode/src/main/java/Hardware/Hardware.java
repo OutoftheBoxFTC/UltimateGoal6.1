@@ -200,6 +200,7 @@ public abstract class Hardware implements Runnable {
         WOBBLE,
         WEBCAM,
         TURRET,
-        LEDS
+        LEDS,
+        DISTANCE_SENSOR
     }
 }
