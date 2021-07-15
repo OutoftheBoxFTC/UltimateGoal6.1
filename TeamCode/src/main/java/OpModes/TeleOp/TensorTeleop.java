@@ -313,7 +313,11 @@ public class TensorTeleop extends BasicOpmode {
                 if(turretTarget == TARGET.BLUE_GOAL || turretTarget == TARGET.RED_GOAL || turretTarget == TARGET.NONE){
                     //Targeting the goal
                     hardwareData.setShooter(0.75 + system.getCorrection(4 - vel, shoot ? 1 : 0));
-                    hardwareData.setShooterTilt(0.334);
+                    if(gamepad1.right_bumper || gamepad1.left_bumper){
+                        hardwareData.setShooterTilt(0.355);
+                    }else {
+                        //hardwareData.setShooterTilt(0.37);
+                    }
                     if(Math.abs(vel - 4) < 0.1){
                         shooterReady = true;
                     }else{
@@ -339,8 +343,8 @@ public class TensorTeleop extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(state == 0){
                     //First we move the indexer into the hopper
-                    hardwareData.setShooterLoadArm(0.7);
-                    timer = System.currentTimeMillis() + 80; //Wait for indexer to move and shooter to grab ring
+                    hardwareData.setShooterLoadArm(0.985);
+                    timer = System.currentTimeMillis() + 95; //Wait for indexer to move and shooter to grab ring
                     state = 1;
                 }
                 if(state == 1){
@@ -349,8 +353,8 @@ public class TensorTeleop extends BasicOpmode {
                     }
                 }
                 if(state == 2){
-                    hardwareData.setShooterLoadArm(0.925);//Retract the indexer out
-                    timer = System.currentTimeMillis() + 80; //Wait for indexer to move and next ring to fall
+                    hardwareData.setShooterLoadArm(0.7);//Retract the indexer out
+                    timer = System.currentTimeMillis() + 100; //Wait for indexer to move and next ring to fall
                     state = 3;
                 }
                 if(state == 3){
@@ -359,9 +363,9 @@ public class TensorTeleop extends BasicOpmode {
                             shoot = false;//Set shoot to false since we are shooting the ring now
                             state = 0;
                         }
-                        hardwareData.setShooterLoadArm(0.925); //Ensure the load arm is retracted
+                        hardwareData.setShooterLoadArm(0.7); //Ensure the load arm is retracted
                     }
-                    hardwareData.setShooterLoadArm(0.925); //Ensure the load arm is retracted
+                    hardwareData.setShooterLoadArm(0.7); //Ensure the load arm is retracted
                 }
             }
         });
