@@ -8,6 +8,7 @@ import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
 import Hardware.Robots.RobotConstants;
 import Hardware.SmartDevices.SmartCV.SmartCV;
+import Hardware.SmartDevices.SmartCV.TowerGoal.ImageClassification.Classifier;
 import Hardware.SmartDevices.SmartMotor.SmartMotor;
 import MathSystems.Angle;
 import MathSystems.MathUtils;
@@ -199,6 +200,11 @@ public class BlueCornerAuto extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 startingStack = (int) sensorData.getRings();
+                telemetry.addLine("=====================");
+                telemetry.addLine("RECOGITIONS: ");
+                for(Classifier.Recognition recog : hardware.smartDevices.get("SmartCV", SmartCV.class).getRecogs()){
+                    telemetry.addData(recog.getTitle(), recog.getConfidence());
+                }
                 hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_UP));
                 hardwareData.setWobbleOneuseLeft(RobotConstants.UltimateGoal.ONEUSE_LEFT_ARM_HOLD);
                 if(isStarted()){

@@ -9,8 +9,11 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvWebcam;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import Hardware.SmartDevices.SmartCV.TowerGoal.ImageClassification.Classifier;
+import Hardware.SmartDevices.SmartCV.TowerGoal.ImageClassification.TensorRingPipeline;
 import Hardware.SmartDevices.SmartCV.TowerGoal.TensorPipeline;
 import Hardware.SmartDevices.SmartDevice;
 import MathSystems.Vector3;
@@ -19,12 +22,12 @@ public class SmartCV extends SmartDevice {
 
     private OpenCvWebcam ring, tower;
     private WebcamName ringCam, towerCam;
-    private RingMaskPipeline ringPipeline;
+    private TensorRingPipeline ringPipeline;
     private TensorPipeline highgoalPipeline;
     private boolean opened;
 
     public SmartCV(WebcamName ringCam, WebcamName towerCam, final HardwareMap hardwareMap){
-        ringPipeline = new RingMaskPipeline();
+        ringPipeline = new TensorRingPipeline(hardwareMap);
         highgoalPipeline = new TensorPipeline(hardwareMap, 70, "model2.tflite");
         //highgoalPipeline = new TensorPipeline(hardwareMap, 70, "detectNew.tflite");
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -91,11 +94,15 @@ public class SmartCV extends SmartDevice {
     }
 
     public int getRings(){
-        return ringPipeline.getNumRings();
+        return 0;
     }
 
-    public double getArea(){
-        return ringPipeline.getArea();
+    //public double getArea(){
+    //    return ringPipeline.getArea();
+    //}
+
+    public List<Classifier.Recognition> getRecogs(){
+        return ringPipeline.getMasterRecogs();
     }
 
     public double getRedHeading(){
