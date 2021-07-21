@@ -4,6 +4,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -11,6 +12,7 @@ import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class RingMaskPipeline extends OpenCvPipeline {
 
@@ -21,64 +23,41 @@ public class RingMaskPipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input) {
-        input = input.submat(new Rect(0, (int) (input.height()-(input.height()/2.75)), input.width(), input.height()/4));
-        /**Imgproc.cvtColor(input, processed, Imgproc.COLOR_RGB2HSV);
+        Mat mat = new Mat();
+        Imgproc.cvtColor(input, mat, Imgproc.COLOR_BGR2YCrCb);
+        //[0.0, 130.0, 0.0, 0.0] [111.0, 230.0, 150.0, 0.0]
+        Mat frameHSV = new Mat();
+        Imgproc.cvtColor(input, frameHSV, Imgproc.COLOR_BGR2YCrCb);
+        Mat thresh = new Mat();
+        Core.inRange(frameHSV, new Scalar(0, 135, 0), new Scalar(110, 230, 150), thresh);
+        Imgproc.rectangle(thresh, new Rect(new Point(0, 0), new Point(640, 480 / 3.0)), Scalar.all(0), -1);
 
-        Scalar min = new Scalar(6, 100, 99);
-        Scalar max = new Scalar(23, 255, 255);
-        */
-        Imgproc.cvtColor(input, processed, Imgproc.COLOR_RGB2YCrCb);
+        Imgproc.GaussianBlur(thresh, thresh, new Size(15.0, 15.0), 0.00);
 
-        Scalar min = new Scalar(0, 150, 0);
-        Scalar max = new Scalar(150, 170, 125);
-        Core.inRange(processed, min, max, mask);
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(thresh, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_NONE);
 
-        Mat kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(1, 1));
-        Imgproc.morphologyEx(mask, mask, Imgproc.MORPH_OPEN, kernel);
+        Imgproc.drawContours(input, contours, -1, new Scalar(0, 255, 0), 3);
 
-        ArrayList<MatOfPoint> contours = new ArrayList<>();
+        double area = 0;
 
-        Imgproc.findContours(mask, contours, new Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_NONE);
-
-        int largestIndex = 0;
-        double maxSize = 0;
-
-        if(contours.size() > 0) {
-
-            for (int i = 0; i < contours.size(); i++) {
-                double area = Imgproc.contourArea(contours.get(i));
-                if (maxSize < area) {
-                    maxSize = area;
-                    largestIndex = i;
+        for(MatOfPoint m : contours){
+            if(Imgproc.contourArea(m) > 250){
+                Imgproc.rectangle(input, Imgproc.boundingRect(m), new Scalar(255, 0, 0), 3);
+                if(Imgproc.contourArea(m) > area){
+                    area = Imgproc.contourArea(m);
                 }
             }
-
-            MatOfPoint2f matchCurve = new MatOfPoint2f();
-            Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(largestIndex).toArray()), matchCurve, 0.005 * Imgproc.arcLength(new MatOfPoint2f(contours.get(largestIndex).toArray()), true), true);
-
-            Rect matchRect = Imgproc.boundingRect(matchCurve);
-
-            if (matchRect.area() < 500) {
-                numRings = 0;
-            } else if (matchRect.area() < 2200) {
-                numRings = 1;
-            } else {
-                numRings = 4;
-            }
-
-            area = matchRect.area();
-
-            Mat edited = new Mat();
-            Core.copyTo(input, edited, mask);
-
-            Imgproc.rectangle(mask, matchRect, new Scalar(255, 0, 0), 4);
-
-            return edited;
-        }else{
-            numRings = 0;
-            area = 0;
-            return input;
         }
+
+        if(area < 1000){
+            numRings = 0;
+        }else if(area < 3000){
+            numRings = 1;
+        }else if(area < 5000){
+            numRings = 4;
+        }
+        return input;
     }
 
     public int getNumRings() {
