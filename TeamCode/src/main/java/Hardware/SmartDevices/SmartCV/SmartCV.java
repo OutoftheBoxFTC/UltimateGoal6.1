@@ -22,17 +22,17 @@ public class SmartCV extends SmartDevice {
 
     private OpenCvWebcam ring, tower;
     private WebcamName ringCam, towerCam;
-    private TensorRingPipeline ringPipeline;
+    private RingMaskPipeline ringPipeline;
     private TensorPipeline highgoalPipeline;
     private boolean opened;
 
     public SmartCV(WebcamName ringCam, WebcamName towerCam, final HardwareMap hardwareMap){
-        ringPipeline = new TensorRingPipeline(hardwareMap);
+        ringPipeline = new RingMaskPipeline();
         highgoalPipeline = new TensorPipeline(hardwareMap, 70, "model2.tflite");
         //highgoalPipeline = new TensorPipeline(hardwareMap, 70, "detectNew.tflite");
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        ring = OpenCvCameraFactory.getInstance().createWebcam(ringCam);
-        tower = OpenCvCameraFactory.getInstance().createWebcam(towerCam, cameraMonitorViewId);
+        ring = OpenCvCameraFactory.getInstance().createWebcam(ringCam, cameraMonitorViewId);
+        tower = OpenCvCameraFactory.getInstance().createWebcam(towerCam);
 
         this.towerCam = towerCam;
         this.ringCam = ringCam;
@@ -43,10 +43,9 @@ public class SmartCV extends SmartDevice {
             @Override
             public void onOpened() {
                 ring.openCameraDevice();
-                ring.getExposureControl().setExposure(10, TimeUnit.MILLISECONDS);
-                ring.getGainControl().setGain(5);
-                ring.startStreaming(1280, 720, OpenCvCameraRotation.SIDEWAYS_LEFT);
+                ring.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT);
                 ring.setPipeline(ringPipeline);
+                FtcDashboard.getInstance().startCameraStream(ring, 30);
             }
         });
         tower.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
@@ -56,7 +55,6 @@ public class SmartCV extends SmartDevice {
                 tower.startStreaming(640, 480, OpenCvCameraRotation.UPSIDE_DOWN);
                 tower.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
                 tower.setPipeline(highgoalPipeline);
-                FtcDashboard.getInstance().startCameraStream(tower, 30);
                 /**tower.startRecordingPipeline(new PipelineRecordingParameters.Builder()
                 .setPath("/sdcard/tower" + System.currentTimeMillis() + ".mp4")
                 .setFrameRate(24)
@@ -94,16 +92,16 @@ public class SmartCV extends SmartDevice {
     }
 
     public int getRings(){
-        return 0;
+        return ringPipeline.getNumRings();
     }
 
     //public double getArea(){
     //    return ringPipeline.getArea();
     //}
 
-    public List<Classifier.Recognition> getRecogs(){
-        return ringPipeline.getMasterRecogs();
-    }
+    //public List<Classifier.Recognition> getRecogs(){
+    //    return ringPipeline.getMasterRecogs();
+    //}
 
     public double getRedHeading(){
         return highgoalPipeline.getRedHeading()-0;
@@ -163,5 +161,13 @@ public class SmartCV extends SmartDevice {
     public void shutdown(){
         //openCvCamera.stopStreaming();
         //openCvCamera.closeCameraDevice();
+    }
+
+    public void setOuter(boolean outer){
+        ringPipeline.setOuter(outer);
+    }
+
+    public void setBlue(boolean blue){
+        ringPipeline.setBlue(blue);
     }
 }

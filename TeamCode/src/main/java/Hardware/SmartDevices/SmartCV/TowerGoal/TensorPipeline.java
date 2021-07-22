@@ -14,6 +14,7 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.tensorflow.lite.DataType;
@@ -27,6 +28,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+import Hardware.SmartDevices.SmartCV.TowerGoal.TFLite.Detector;
+import Hardware.SmartDevices.SmartCV.TowerGoal.TFLite.TFLiteObjectDetectionAPIModel;
 import MathSystems.Vector3;
 
 
@@ -41,10 +44,14 @@ public class TensorPipeline extends OpenCvPipeline {
     private final AtomicBoolean track = new AtomicBoolean(false);
     private Vector3 velocity = Vector3.ZERO();
     private AtomicBoolean shutdown = new AtomicBoolean(false);
+    Detector detector;
+
 
     public TensorPipeline(HardwareMap hardwareMap, double fov, String model){
         try {
-            det = ObjectDetector.createFromFileAndOptions(hardwareMap.appContext, model, ObjectDetector.ObjectDetectorOptions.builder().setNumThreads(4).setScoreThreshold(0.95f).build());
+            det = ObjectDetector.createFromFileAndOptions(hardwareMap.appContext, model, ObjectDetector.ObjectDetectorOptions.builder().setNumThreads(2).setScoreThreshold(0.95f).build());
+            detector = TFLiteObjectDetectionAPIModel.create(hardwareMap.appContext, "model (3).tflite", 320, true, 25, "Goal", "Null");
+            detector.setUseNNAPI(true);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -58,16 +65,22 @@ public class TensorPipeline extends OpenCvPipeline {
         }
         timestamp.set(System.currentTimeMillis());
         Mat cropCopy = input.clone();
-        Bitmap bmp = Bitmap.createBitmap(input.cols(), input.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(input, bmp);
+        Mat resized = new Mat();
+        Imgproc.resize(input, resized, new Size(320, 320));
+        Bitmap bmp = Bitmap.createBitmap(resized.cols(), resized.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(resized, bmp);
 
-        List<Detection> dets = det.detect(TensorImage.createFrom(TensorImage.fromBitmap(bmp), DataType.UINT8));
+        //List<Detection> dets = det.detect(TensorImage.createFrom(TensorImage.fromBitmap(bmp), DataType.UINT8));
+        List<Detector.Recognition> dets = detector.recognizeImage(bmp);
         //List<Detection> dets = new ArrayList<>();
         bmp.recycle();
-        for(Detection d : dets) {
+        for(Detector.Recognition d : dets) {
+            if(d.getConfidence() < 0.98f){
+                continue;
+            }
             Rect r = new Rect(
-                    new Point(d.getBoundingBox().right, d.getBoundingBox().top),
-                    new Point(d.getBoundingBox().left, d.getBoundingBox().bottom)
+                    new Point((d.getLocation().right / 320) * input.width(), (d.getLocation().top / 320) * input.height()),
+                    new Point((d.getLocation().left / 320) * input.width(), (d.getLocation().bottom / 320) * input.height())
             );
             boundingRect = r;
             track.set(false);
@@ -77,13 +90,9 @@ public class TensorPipeline extends OpenCvPipeline {
                 double distance = 20;
 
                 Imgproc.rectangle(input, r, new Scalar(0, 255, 0), 2);
-                Imgproc.circle(input, new Point(d.getBoundingBox().right, d.getBoundingBox().top), 5, new Scalar(255, 0, 0), -1);
-                Imgproc.circle(input, new Point(d.getBoundingBox().right, d.getBoundingBox().bottom), 5, new Scalar(0, 255, 0), -1);
-                Imgproc.circle(input, new Point(d.getBoundingBox().left, d.getBoundingBox().top), 5, new Scalar(0, 0, 255), -1);
-                Imgproc.circle(input, new Point(d.getBoundingBox().left, d.getBoundingBox().bottom), 5, new Scalar(255, 255, 0), -1);
 
                 if(means.val[0] > means.val[2]){
-                    Imgproc.putText(input, "Red " + d.getCategories().get(0).getScore(), CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
+                    Imgproc.putText(input, "Red " + d.getConfidence(), CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
                     //The goal is the red goal (R > B)
                     redFiringSolution = PnPUtils.getPitchAndYaw(input, r, cropCopy, fov);
                     pitch = redFiringSolution[0];
@@ -93,7 +102,7 @@ public class TensorPipeline extends OpenCvPipeline {
                     double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, -redFiringSolution[1]);
                     position = new double[]{xDist + 35 + 6, -goalWallDist2}; //Subtract 35 inches so that the point 0, 0 is in the centre of the field
                 }else{
-                    Imgproc.putText(input, "Blue " + d.getCategories().get(0).getScore(), CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
+                    Imgproc.putText(input, "Blue " + d.getConfidence(), CvUtils.getCenter(r), Imgproc.FONT_HERSHEY_COMPLEX, 0.5, new Scalar(0, 255, 0));
                     //The goal is the blue goal (R < B)
                     blueFiringSolution = PnPUtils.getPitchAndYaw(input, r, cropCopy, fov);
                     pitch = blueFiringSolution[0];

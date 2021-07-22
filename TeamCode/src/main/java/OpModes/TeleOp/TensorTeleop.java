@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import Hardware.Hardware;
 import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
@@ -15,6 +16,7 @@ import Hardware.UltimateGoalHardware;
 import MathSystems.MathUtils;
 import MathSystems.PIDFSystem;
 import MathSystems.PIDSystem;
+import MathSystems.ProgramClock;
 import MathSystems.Vector3;
 import Odometry.AdvancedVOdometer;
 import OpModes.BasicOpmode;
@@ -31,10 +33,10 @@ public class TensorTeleop extends BasicOpmode {
     TARGET turretTarget = TARGET.NONE;
     COLOR color = COLOR.RED;
     boolean shoot = false, shooterReady = false;
-    double speedMod = 1;
+    double speedMod = 1, angOffset = 0, pitchOffset = 0;
     public static double ARM_IDLE = 1400, ARM_DOWN = RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN;
 
-    WOBBLE_FORK_POSITION forkPos = WOBBLE_FORK_POSITION.IN, targetForkPos = WOBBLE_FORK_POSITION.IN;
+    WOBBLE_FORK_POSITION forkPos = WOBBLE_FORK_POSITION.IN, targetForkPos = WOBBLE_FORK_POSITION.OUT;
     WOBBLE_FOURBAR_POSITION fourbarPos = WOBBLE_FOURBAR_POSITION.IN, targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
 
     public TensorTeleop() {
@@ -105,10 +107,11 @@ public class TensorTeleop extends BasicOpmode {
         eventSystem.onStart("Monitoring", new LogicState(stateMachine) {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
+                telemetry.addData("Pitch And Yaw Offsets", angOffset + " " + pitchOffset);
                 telemetry.addData("Target", turretTarget);
                 telemetry.addData("Color", color);
                 telemetry.addData("Timestamped Pos", timestampedPosition);
-                telemetry.addData("Pos", position);
+                telemetry.addData("Pos", trackingPos);
             }
         });
 
@@ -195,23 +198,24 @@ public class TensorTeleop extends BasicOpmode {
                 }
                 if(fourbarPos == WOBBLE_FOURBAR_POSITION.IN && targetFourbarPos == WOBBLE_FOURBAR_POSITION.IN) {
                     telemetry.addData("Angle", Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY))));
-                    hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
+                    hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY))) + angOffset));
                 }
             }
         });
 
         eventSystem.onStart("Drive", new VelocityDriveState(stateMachine) {
-            final double minSpeed = 0.1;
-            final double minDist = 5;
+            final double minSpeed = 0.2;
+            final double minDist = 8;
             final double maxSpeed = 1;
             final double maxDist = 35;
 
             double speed = 1;
+            double lastDist = -1;
 
             final Vector3 lastPos = Vector3.ZERO();
-            final PIDSystem x = new PIDSystem(1, 1, 0.2, 1);
-            final PIDSystem y = new PIDSystem(1, 1, 0.2, 1);
-            final PIDSystem r = new PIDSystem(0.1, 0.5, 0.2, 1);
+            final PIDSystem x = new PIDSystem(0.1, 0.4, 0.2, 1);
+            final PIDSystem y = new PIDSystem(0.1, 0.4, 0.2, 1);
+            final PIDSystem r = new PIDSystem(0.1, 0.1, 0.2, 1);
 
             @Override
             public Vector3 getVelocities() {
@@ -219,16 +223,9 @@ public class TensorTeleop extends BasicOpmode {
                 hardware.smartDevices.get("Front Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Left", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
                 hardware.smartDevices.get("Back Right", SmartMotor.class).getMotor().setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-                if(Math.abs(gamepad1.left_stick_x) > 0.1 || Math.abs(gamepad1.left_stick_y) > 0.1 || Math.abs(gamepad1.left_stick_x) > 0.1) {
-                    lastPos.set(trackingPos);
+                telemetry.addData("Poses", trackingPos + " " + lastPos);
+                if(Math.abs(gamepad1.left_stick_x) > 0.1 || Math.abs(gamepad1.left_stick_y) > 0.1 || Math.abs(gamepad1.right_stick_x) > 0.1) {
                     return new Vector3(gamepad1.left_stick_x, gamepad1.left_stick_y, -gamepad1.right_stick_x).scale(speed).scale(speedMod);
-                }else{
-                    if(lastPos.getVector2().distanceTo(trackingPos.getVector2()) > 0.15) {
-                        double xcorr = x.getCorrection(lastPos.getA() - trackingPos.getA());
-                        double ycorr = y.getCorrection(lastPos.getB() - trackingPos.getB());
-                        double rcorr = r.getCorrection(MathUtils.getRadRotDist(position.getC(), trackingPos.getC()));
-                        return new Vector3(xcorr, ycorr, rcorr);
-                    }
                 }
                 return Vector3.ZERO();
             }
@@ -239,19 +236,34 @@ public class TensorTeleop extends BasicOpmode {
                 double intercept = maxSpeed - (slope * maxDist);
 
                 if(fourbarPos != WOBBLE_FOURBAR_POSITION.IN){
+                    hardware.enableDevice(Hardware.HardwareDevices.DISTANCE_SENSOR);
                     speed = Math.max((slope * sensorData.getDistance()) + intercept, minSpeed);
+                    if(lastDist != -1){
+                        double vel = (sensorData.getDistance() - lastDist) / ProgramClock.getFrameTimeSeconds();
+                        if(vel > 1){
+                            speed = speed / 2;
+                        }
+                    }
+                    lastDist = sensorData.getDistance();
+                    if(gamepad1.right_trigger > 0.1){
+                        speed = 1;
+                    }
                 }else{
+                    hardware.disableDevice(Hardware.HardwareDevices.DISTANCE_SENSOR);
                     speed = 1;
+                    lastDist = -1;
                 }
+                telemetry.addData("Distance", sensorData.getDistance());
             }
         });
 
         eventSystem.onStart("Driver", new LogicState(stateMachine) {
-            boolean lastUp = false, lastDown = false;
+            boolean lastUp = false, lastDown = false, prevShoot = false;
             int state = 0;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 hardwareData.setIntakePower(gamepad1.right_bumper ? 1 : gamepad1.left_bumper ? -1 : 0);
+                hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
                 //To simplify the code and changes, both Blue and Red modes are in one TeleOp and can be switched
                 //With start and back
                 if(gamepad1.back){
@@ -289,21 +301,28 @@ public class TensorTeleop extends BasicOpmode {
                 }
                 //Shooting is not on a hair trigger because it has gotten "stuck" before, constantly returning ~0.1
                 if(gamepad1.left_trigger > 0.15){
-                    shoot = true;
+                    if(gamepad1.x || gamepad1.y || gamepad1.b){
+                        if(!prevShoot){
+                            shoot = true;
+                        }
+                    }else {
+                        shoot = true;
+                    }
                 }
+                prevShoot = gamepad1.left_trigger > 0.15;
                 if(gamepad1.right_trigger > 0.15){
                     speedMod = 0.5;
                 }else{
                     speedMod = 1;
                 }
 
-                if(gamepad1.dpad_up && lastUp){
+                if(gamepad1.dpad_up && !lastUp){
                     state ++;
                     if(state == 4){
                         state = 0;
                     }
                 }
-                if(gamepad1.dpad_down && lastDown){
+                if(gamepad1.dpad_down && !lastDown){
                     state --;
                     if(state < 0){
                         state = 3;
@@ -323,6 +342,7 @@ public class TensorTeleop extends BasicOpmode {
                     targetFourbarPos = WOBBLE_FOURBAR_POSITION.SCORE;
                     targetForkPos = WOBBLE_FORK_POSITION.OUT;
                 }
+                telemetry.addData("Wobble", state + " | " + targetFourbarPos + " | " + targetForkPos);
 
                 lastUp = gamepad1.dpad_up;
                 lastDown = gamepad1.dpad_down;
@@ -330,45 +350,54 @@ public class TensorTeleop extends BasicOpmode {
         });
 
         eventSystem.onStart("Operator", new LogicState(stateMachine) {
+            boolean dpadUp, dpadDown, dpadLeft, dpadRight;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                if(gamepad2.dpad_up){
-                    hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.HOLD_INTAKE);
-                }else if(gamepad2.dpad_down){
-                    hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.RELEASE_INTAKE);
-                }else{
-                    hardwareData.setIntakeRelease(RobotConstants.UltimateGoal.IDLE_INTAKE);
+
+                if(gamepad2.dpad_up && !dpadUp){
+                    pitchOffset += 0.01;
+                }
+                if(gamepad2.dpad_down && !dpadDown){
+                    pitchOffset -= 0.01;
+                }
+                if(gamepad2.dpad_right && !dpadRight){
+                    angOffset -= 1;
+                }
+                if(gamepad2.dpad_left && !dpadLeft){
+                    angOffset += 1;
                 }
 
-                if(gamepad2.y){
-                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.TRAVEL;
-                    targetForkPos = WOBBLE_FORK_POSITION.TRAVEL;
-                }
-                if(gamepad2.a){
-                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
-                    targetForkPos = WOBBLE_FORK_POSITION.IN;
-                }
-                if(gamepad2.x){
-                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
-                    targetForkPos = WOBBLE_FORK_POSITION.OUT;
-                }
-                if(gamepad2.b){
-                    targetFourbarPos = WOBBLE_FOURBAR_POSITION.SCORE;
-                    targetForkPos = WOBBLE_FORK_POSITION.OUT;
-                }
+                dpadUp = gamepad2.dpad_up;
+                dpadDown = gamepad2.dpad_down;
+                dpadLeft = gamepad2.dpad_left;
+                dpadRight = gamepad2.dpad_right;
                 telemetry.addData("Wobble", fourbarPos + " | " + forkPos + " | " + targetFourbarPos + " | " + targetForkPos);
             }
         });
 
         eventSystem.onStart("Shooter", new LogicState(stateMachine) {
-            final PIDFSystem system = new PIDFSystem(3, 0, 0, 0.1);
+            final PIDFSystem system = new PIDFSystem(1, 0, 0, 0.1);
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 //TODO: Put this velocity in SensorData
                 double vel = hardware.getSmartDevices().get("Shooter Right", SmartMotor.class).getVelocity();
                 if(fourbarPos == WOBBLE_FOURBAR_POSITION.TRAVEL || fourbarPos == WOBBLE_FOURBAR_POSITION.SCORE || targetFourbarPos == WOBBLE_FOURBAR_POSITION.TRAVEL || targetFourbarPos == WOBBLE_FOURBAR_POSITION.SCORE){
-                    hardwareData.setShooter(0 + system.getCorrection(0 - vel, 0));
-                    hardwareData.setShooterTilt(0.42);
+                    if(Math.abs(vel) > 2) {
+                        hardwareData.setShooter(0 + system.getCorrection(0 - vel, 0));
+                    }else{
+                        hardwareData.setShooter(0);
+                    }
+                    hardwareData.setShooterTilt(0.42 + pitchOffset);
+                    shooterReady = false;
+                    return;
+                }
+                if(Math.abs(gamepad1.right_stick_y) > 0.9){
+                    if(Math.abs(vel) > 2) {
+                        hardwareData.setShooter(0 + system.getCorrection(0 - vel, 0));
+                    }else{
+                        hardwareData.setShooter(0);
+                    }
+                    hardwareData.setShooterTilt(0.41 + pitchOffset);
                     shooterReady = false;
                     return;
                 }
@@ -376,11 +405,11 @@ public class TensorTeleop extends BasicOpmode {
                     //Targeting the goal
                     hardwareData.setShooter(0.75 + system.getCorrection(4 - vel, shoot ? 1 : 0));
                     if(gamepad1.right_bumper || gamepad1.left_bumper){
-                        hardwareData.setShooterTilt(0.355);
+                        hardwareData.setShooterTilt(0.355 + pitchOffset);
                     }else {
-                        //hardwareData.setShooterTilt(0.37);
+                        hardwareData.setShooterTilt(0.355 + pitchOffset);
                     }
-                    if(Math.abs(vel - 4) < 0.1){
+                    if(Math.abs(vel - 4) < 0.25){
                         shooterReady = true;
                     }else{
                         shooterReady = false;
@@ -388,7 +417,7 @@ public class TensorTeleop extends BasicOpmode {
                 }else {
                     //Targeting the powershots
                     hardwareData.setShooter(0.7 + system.getCorrection(4.2 - vel, shoot ? 1 : 0));
-                    hardwareData.setShooterTilt(0.335);
+                    hardwareData.setShooterTilt(0.355 + pitchOffset);
                     if(Math.abs(vel - 4.2) < 0.1){
                         shooterReady = true;
                     }else{

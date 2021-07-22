@@ -3,11 +3,11 @@ package Hardware;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
 import Hardware.Packets.HardwareData;
 import Hardware.Packets.SensorData;
-import Hardware.SmartDevices.SmartCV.TestCV;
-import Hardware.SmartDevices.SmartVuforia.SmartPhoneVuforia;
-import OpModes.Debug.TensorTest;
+import Hardware.SmartDevices.SmartCV.SmartCV;
 
 /**
  * Test Hardware class, which is completely empty
@@ -18,7 +18,7 @@ public class TestHardware extends Hardware {
 
     @Override
     public void registerDevices(HardwareMap map) {
-        smartDevices.put("Test", new TestCV(map));
+        smartDevices.put("SmartCV", new SmartCV(map.get(WebcamName.class, "Webcam 2"), map.get(WebcamName.class, "Webcam 1"), map));
     }
 
     @Override

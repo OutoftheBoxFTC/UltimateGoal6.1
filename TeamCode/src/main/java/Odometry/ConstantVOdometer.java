@@ -54,7 +54,7 @@ public class ConstantVOdometer extends Odometer {
     public void update(SensorData sensors, HardwareData hardwareData) {
         double forInc = ((sensors.getOdometryLeft() + sensors.getOdometryRight())/2.0) - prevEncoderValues.getA();
         double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), (((sensors.getOdometryRight() - sensors.getOdometryLeft())/2.0) * ROT_CONSTANT));
-        RobotLog.ii("Encoders", rotInc + " | " + sensors.getOdometryRight() + " | " + sensors.getOdometryLeft() + " | " + prevEncoderValues.getC());
+        //RobotLog.ii("Encoders", rotInc + " | " + sensors.getOdometryRight() + " | " + sensors.getOdometryLeft() + " | " + prevEncoderValues.getC());
         //double rotInc = MathUtils.getRadRotDist(prevEncoderValues.getC(), sensors.getGyro());
         double strafeInc = (sensors.getOdometryAux() - (AUX_ROTATION_CONSTANT * rotInc)) - prevEncoderValues.getB();
         Vector2 pos = MathUtils.toPolar(ConstantVMathUtil.toRobotCentric(forInc, strafeInc, rotInc));

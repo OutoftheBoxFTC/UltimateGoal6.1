@@ -23,7 +23,7 @@ public class SensorData {
         heading = 0;
         pitch = 0;
         range = 0;
-        distance = 0;
+        distance = 9999;
     }
 
     public int getOdometryAux() {

@@ -1,5 +1,7 @@
 package Hardware.SmartDevices.SmartCV;
 
+import com.qualcomm.robotcore.util.RobotLog;
+
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -18,19 +20,25 @@ public class RingMaskPipeline extends OpenCvPipeline {
 
     private int numRings = -1;
     private double area = -1;
+    private boolean outer = false, blue = false;
     Mat processed = new Mat();
     Mat mask = new Mat();
 
     @Override
     public Mat processFrame(Mat input) {
+        if(blue){
+            Point centre = new Point(input.cols()/2.0, input.rows()/2.0);
+            Mat rotMat = Imgproc.getRotationMatrix2D(centre, 180, 1.0);
+            Imgproc.warpAffine(input, input, rotMat, input.size());
+        }
         Mat mat = new Mat();
-        Imgproc.cvtColor(input, mat, Imgproc.COLOR_BGR2YCrCb);
+        Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2YCrCb);
         //[0.0, 130.0, 0.0, 0.0] [111.0, 230.0, 150.0, 0.0]
         Mat frameHSV = new Mat();
-        Imgproc.cvtColor(input, frameHSV, Imgproc.COLOR_BGR2YCrCb);
+        Imgproc.cvtColor(input, frameHSV, Imgproc.COLOR_RGB2YCrCb);
         Mat thresh = new Mat();
         Core.inRange(frameHSV, new Scalar(0, 135, 0), new Scalar(110, 230, 150), thresh);
-        Imgproc.rectangle(thresh, new Rect(new Point(0, 0), new Point(640, 480 / 3.0)), Scalar.all(0), -1);
+        Imgproc.rectangle(thresh, new Rect(new Point(0, 0), new Point(640, 480 / 2.5)), Scalar.all(0), -1);
 
         Imgproc.GaussianBlur(thresh, thresh, new Size(15.0, 15.0), 0.00);
 
@@ -40,23 +48,35 @@ public class RingMaskPipeline extends OpenCvPipeline {
         Imgproc.drawContours(input, contours, -1, new Scalar(0, 255, 0), 3);
 
         double area = 0;
+        double height = 0;
 
         for(MatOfPoint m : contours){
             if(Imgproc.contourArea(m) > 250){
                 Imgproc.rectangle(input, Imgproc.boundingRect(m), new Scalar(255, 0, 0), 3);
                 if(Imgproc.contourArea(m) > area){
                     area = Imgproc.contourArea(m);
+                    height = Imgproc.boundingRect(m).height / ((double)Imgproc.boundingRect(m).width);
                 }
             }
         }
-
-        if(area < 1000){
-            numRings = 0;
-        }else if(area < 3000){
-            numRings = 1;
-        }else if(area < 5000){
-            numRings = 4;
+        if(outer) {
+            if (area < 800) {
+                numRings = 0;
+            } else if (height < 1.5) {
+                numRings = 1;
+            } else {
+                numRings = 4;
+            }
+        }else{
+            if (area < 800) {
+                numRings = 0;
+            } else if (height < 0.6) {
+                numRings = 1;
+            } else {
+                numRings = 4;
+            }
         }
+        RobotLog.ii("Area", ""+height);
         return input;
     }
 
@@ -66,5 +86,13 @@ public class RingMaskPipeline extends OpenCvPipeline {
 
     public double getArea() {
         return area;
+    }
+
+    public void setOuter(boolean outer) {
+        this.outer = outer;
+    }
+
+    public void setBlue(boolean blue) {
+        this.blue = blue;
     }
 }

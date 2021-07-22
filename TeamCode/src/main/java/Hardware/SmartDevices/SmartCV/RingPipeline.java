@@ -34,7 +34,8 @@ public class RingPipeline extends OpenCvPipeline {
         Calib3d.undistort(input, undist, intrinsicMat, distMat);
         input = undist;
         */
-        input = input.submat(new Rect(0, (int) (input.height()-(input.height()/2.5)), input.width(), input.height()/4));
+        Mat clone = input.clone();
+        //input = input.submat(new Rect(0, (int) (input.height()-(input.height()/2.5)), input.width(), input.height()/4));
         Mat processed = new Mat();
         Imgproc.cvtColor(input, processed, Imgproc.COLOR_RGB2YCrCb);
 
@@ -67,11 +68,12 @@ public class RingPipeline extends OpenCvPipeline {
             Rect matchRect = Imgproc.boundingRect(matchCurve);
             if (matchRect.area() < 500) {
                 numRings = 0;
-            } else if (matchRect.area() < 2200) {
+            } else if (matchRect.area() < 9000) {
                 numRings = 1;
             } else {
                 numRings = 4;
             }
+            RobotLog.ii("Area", "" + matchRect.area());
 
             area = matchRect.area();
 
@@ -87,7 +89,7 @@ public class RingPipeline extends OpenCvPipeline {
             numRings = 0;
             area = 0;
         }
-        return input;
+        return clone;
     }
 
     public int getNumRings() {

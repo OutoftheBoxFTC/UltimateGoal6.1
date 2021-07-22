@@ -161,6 +161,7 @@ public abstract class Hardware implements Runnable {
         registeredDevices.add(HardwareDevices.WEBCAM);
         registeredDevices.add(HardwareDevices.TURRET);
         registeredDevices.add(HardwareDevices.LEDS);
+        registeredDevices.add(HardwareDevices.DISTANCE_SENSOR);
     }
 
     public void enableAll(){
@@ -173,6 +174,7 @@ public abstract class Hardware implements Runnable {
         enabledDevices.add(HardwareDevices.WEBCAM);
         enabledDevices.add(HardwareDevices.TURRET);
         enabledDevices.add(HardwareDevices.LEDS);
+        enabledDevices.add(HardwareDevices.DISTANCE_SENSOR);
     }
 
     public void disableAll(){

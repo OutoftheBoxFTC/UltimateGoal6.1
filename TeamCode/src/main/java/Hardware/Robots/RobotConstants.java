@@ -34,15 +34,14 @@ public class RobotConstants {
         public static final double INDEXER_OUT_POSITION = 0;
         public static final double INDEXER_TIMING = 0;
 
-        public static final double INTAKE_BLOCKER_DOWN = 1175;
+        public static final double INTAKE_BLOCKER_DOWN = 1210;
         public static final double INTAKE_BLOCKER_UP = 2250;
 
-        //TODO: Populate these fields
         public static final double WOBBLE_ARM_LEFT_DOWN = 0.1;
         public static final double WOBBLE_ARM_RIGHT_DOWN = 0.9;
 
-        public static final double WOBBLE_ARM_LEFT_CHANGE = 0.22;
-        public static final double WOBBLE_ARM_RIGHT_CHANGE = 0.79;
+        public static final double WOBBLE_ARM_LEFT_CHANGE = 0.42;
+        public static final double WOBBLE_ARM_RIGHT_CHANGE = 0.59;
 
         public static final double WOBBLE_ARM_LEFT_TRAVEL = 0.65;
         public static final double WOBBLE_ARM_RIGHT_TRAVEL = 0.35;

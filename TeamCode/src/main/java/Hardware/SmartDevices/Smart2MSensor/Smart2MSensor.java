@@ -24,14 +24,15 @@ public class Smart2MSensor extends SmartDevice {
 
     @Override
     public void update() {
+
+    }
+
+    public double getDistance(){
         if(configuration.relative){
             distance = sensor.getDistance(configuration.unit) - offset;
         }else{
             distance = sensor.getDistance(configuration.unit);
         }
-    }
-
-    public double getDistance(){
         return distance;
     }
 
