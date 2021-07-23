@@ -20,6 +20,10 @@ public class OrientationTerminator extends Terminator {
         this(position, path.getEndpoint().getVector2().toVector3(Math.toDegrees(path.getEndpoint().getC())), 1.5, 3);
     }
 
+    public OrientationTerminator(Vector3 position, Path path, int numFrames){
+        this(position, path.getEndpoint().getVector2().toVector3(Math.toDegrees(path.getEndpoint().getC())), 1.5, 3, numFrames);
+    }
+
     public OrientationTerminator(Vector3 position, Vector3 target, double distance, double rotation){
         this.position = position;
         this.target = target;

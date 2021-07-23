@@ -20,17 +20,12 @@ public class RingMaskPipeline extends OpenCvPipeline {
 
     private int numRings = -1;
     private double area = -1;
-    private boolean outer = false, blue = false;
+    private boolean outer = false;
     Mat processed = new Mat();
     Mat mask = new Mat();
 
     @Override
     public Mat processFrame(Mat input) {
-        if(blue){
-            Point centre = new Point(input.cols()/2.0, input.rows()/2.0);
-            Mat rotMat = Imgproc.getRotationMatrix2D(centre, 180, 1.0);
-            Imgproc.warpAffine(input, input, rotMat, input.size());
-        }
         Mat mat = new Mat();
         Imgproc.cvtColor(input, mat, Imgproc.COLOR_RGB2YCrCb);
         //[0.0, 130.0, 0.0, 0.0] [111.0, 230.0, 150.0, 0.0]
@@ -38,7 +33,7 @@ public class RingMaskPipeline extends OpenCvPipeline {
         Imgproc.cvtColor(input, frameHSV, Imgproc.COLOR_RGB2YCrCb);
         Mat thresh = new Mat();
         Core.inRange(frameHSV, new Scalar(0, 135, 0), new Scalar(110, 230, 150), thresh);
-        Imgproc.rectangle(thresh, new Rect(new Point(0, 0), new Point(640, 480 / 2.5)), Scalar.all(0), -1);
+        Imgproc.rectangle(thresh, new Rect(new Point(0, 0), new Point(640, 480 / 2.3)), Scalar.all(0), -1);
 
         Imgproc.GaussianBlur(thresh, thresh, new Size(15.0, 15.0), 0.00);
 
@@ -70,7 +65,7 @@ public class RingMaskPipeline extends OpenCvPipeline {
         }else{
             if (area < 800) {
                 numRings = 0;
-            } else if (height < 0.6) {
+            } else if (height < 0.9) {
                 numRings = 1;
             } else {
                 numRings = 4;
@@ -90,9 +85,5 @@ public class RingMaskPipeline extends OpenCvPipeline {
 
     public void setOuter(boolean outer) {
         this.outer = outer;
-    }
-
-    public void setBlue(boolean blue) {
-        this.blue = blue;
     }
 }

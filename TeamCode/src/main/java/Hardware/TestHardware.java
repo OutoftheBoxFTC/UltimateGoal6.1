@@ -18,7 +18,6 @@ public class TestHardware extends Hardware {
 
     @Override
     public void registerDevices(HardwareMap map) {
-        smartDevices.put("SmartCV", new SmartCV(map.get(WebcamName.class, "Webcam 2"), map.get(WebcamName.class, "Webcam 1"), map));
     }
 
     @Override

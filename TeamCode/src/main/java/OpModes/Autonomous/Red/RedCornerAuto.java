@@ -18,7 +18,6 @@ import Motion.CrosstrackDrive.CrosstrackBuilder;
 import Motion.Path.Path;
 import Motion.Path.PathBuilder;
 import Motion.Terminators.OrientationTerminator;
-import Motion.Terminators.Terminator;
 import Motion.Terminators.TimeTerminator;
 import Motion.Terminators.TrueTimeTerminator;
 import Odometry.AdvancedVOdometer;
@@ -37,8 +36,8 @@ public class RedCornerAuto extends BasicOpmode {
 
     ConstantVOdometer odometer;
     AdvancedVOdometer targetingOdometer;
-    Vector3 position, velocity, targetingPos, targetingVel, fakeVel;
-    boolean doStarterStack = true, pickupSecondWobble = false, startingStackEdited = false;
+    Vector3 position, velocity, targetingPos, targetingVel;
+    boolean doStarterStack = true, pickupSecondWobble = false;
     DELAY_LOCATION delayLocation = DELAY_LOCATION.NO_DELAY;
     int startingStack = 0;
     LinearEventSystem linearSystem;
@@ -64,7 +63,6 @@ public class RedCornerAuto extends BasicOpmode {
         velocity = Vector3.ZERO();
         targetingPos = Vector3.ZERO();
         targetingVel = Vector3.ZERO();
-        fakeVel = new Vector3(1000, 1000, 1000);
         targetingOdometer = new AdvancedVOdometer(stateMachine, targetingPos, targetingVel);
         odometer = new ConstantVOdometer(stateMachine, position, velocity);
 
@@ -90,7 +88,9 @@ public class RedCornerAuto extends BasicOpmode {
             public void init(SensorData sensorData, HardwareData hardwareData) {
                 smartCV = hardware.getSmartDevices().get("SmartCV", SmartCV.class);
                 smartCV.setPitchOffset(29.695);
+                smartCV.setVelocity(velocity);
                 smartCV.setOuter(true);
+                smartCV.setBlue(true);
             }
 
             @Override
@@ -124,12 +124,12 @@ public class RedCornerAuto extends BasicOpmode {
                 if(gamepad1.dpad_up && !pressedUp){
                     idx --;
                     if(idx < 0){
-                        idx = 4;
+                        idx = 3;
                     }
                 }
                 if(gamepad1.dpad_down && !pressedDown){
                     idx ++;
-                    if(idx > 4){
+                    if(idx > 3){
                         idx = 0;
                     }
                 }
@@ -138,7 +138,6 @@ public class RedCornerAuto extends BasicOpmode {
                     telemetry.addData("Do Starting Stack", "<" + doStarterStack + ">");
                     if((gamepad1.dpad_left && !pressedLeft) || (gamepad1.dpad_right && !pressedRight)){
                         doStarterStack = !doStarterStack;
-                        startingStackEdited = true;
                     }
                 }else{
                     telemetry.addData("Do Starting Stack: ", doStarterStack);
@@ -170,23 +169,7 @@ public class RedCornerAuto extends BasicOpmode {
                 }else{
                     telemetry.addData("Start Delay Time", START_DELAY_TIME_MS);
                 }
-
                 if(idx == 3){
-                    telemetry.addData("Delay Time", "<" + DELAY_TIME_MS + ">");
-                    if(gamepad1.dpad_right && !pressedRight){
-                        DELAY_TIME_MS += 250;
-                    }
-                    if(gamepad1.dpad_left && !pressedLeft){
-                        DELAY_TIME_MS -= 250;
-                        if(DELAY_TIME_MS < 0){
-                            DELAY_TIME_MS = 0;
-                        }
-                    }
-                }else{
-                    telemetry.addData("Delay Time", DELAY_TIME_MS);
-                }
-
-                if(idx == 4){
                     telemetry.addData("Starting Stack", "<" + startingStack + ">");
                     if((gamepad1.dpad_right && !pressedRight)){
                         startingStack ++;
@@ -233,7 +216,7 @@ public class RedCornerAuto extends BasicOpmode {
                         deltaY = -(targetingPos.getB());
                         break;
                     case RED_GOAL:
-                        deltaX = -(targetingPos.getA()-35);
+                        deltaX = -(targetingPos.getA()-37);
                         deltaY = -(targetingPos.getB());
                         break;
                     case RED_POWERSHOT_LEFT:
@@ -268,8 +251,7 @@ public class RedCornerAuto extends BasicOpmode {
                     //deltaX -= velocity.getA() * (dist / 120);
                     //deltaY -= velocity.getB() * (dist / 120);
                 }
-                //hardwareData.setTurret(UGUtils.getTurretValue(-4.6));
-                hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(targetingPos.getC(), -Math.atan2(deltaX, deltaY)))+15));
+                hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(targetingPos.getC(), -Math.atan2(deltaX, deltaY)))+5));
             }
         });
 
@@ -280,11 +262,6 @@ public class RedCornerAuto extends BasicOpmode {
                 //startingStack = 4;
                 if(startingStack == 0){
                     doStarterStack = false;
-                }
-                if(!startingStackEdited){
-                    if(startingStack == 1 || startingStack == 4){
-                        doStarterStack = true;
-                    }
                 }
                 hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_UP));
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_HOLD);
@@ -314,9 +291,7 @@ public class RedCornerAuto extends BasicOpmode {
                 hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_IN);
                 hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_IN);
 
-                hardwareData.setTurret(UGUtils.getTurretValue(22));
-
-                //hardware.smartDevices.get("SmartCV", SmartCV.class).setLeftCam();
+                hardwareData.setTurret(UGUtils.getTurretValue(20));
             }
         });
 
@@ -331,11 +306,10 @@ public class RedCornerAuto extends BasicOpmode {
             Path highgoalPath, startingStackPath, wait1Path, wobblePath, wait2Path, secondWobblePath, shootSecondPath, parkPath;
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
-                highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(-21, 22).complete();
+                highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(-21, 25).complete();
                 startingStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(-21, 35).lineTo(-21, 55).complete();
                 turretTarget = TensorTeleop.TARGET.RED_GOAL;
                 hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
-                hardwareData.setTurret(UGUtils.getTurretValue(-7));
                 hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
             }
 
@@ -356,43 +330,25 @@ public class RedCornerAuto extends BasicOpmode {
                 linearSystem.put("Stop For Shoot", new VelocityDriveState(stateMachine) {
                     @Override
                     public Vector3 getVelocities() {
-                        fakeVel.set(Vector3.ZERO());
-                        stateMachine.deactivateState("Turret");
                         return Vector3.ZERO();
                     }
 
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
+
                     }
-                }, new TrueTimeTerminator(500));
+                }, new TimeTerminator(15));
 
                 linearSystem.put("Stop", new TrueTimeTerminator(500));
 
-                linearSystem.put("Wait For Turret To Move", new LogicState(stateMachine) {
-                    @Override
-                    public void update(SensorData sensorData, HardwareData hardwareData) {
-                        double deltaX = -4.5-position.getA();//rn its -4.5
-                        double deltaY = 135-position.getB();
-                        turretTarget = TensorTeleop.TARGET.RED_GOAL;
-                        hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
-                        //stateMachine.activateLogic("Turret");
-                        hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
-
-                    }
-                }, new TrueTimeTerminator(250));
-
                 linearSystem.put("Shoot", new LogicState(stateMachine) {
-                    @Override
-                    public void init(SensorData sensorData, HardwareData hardwareData) {
-                    }
-
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
                         shoot = true;
-                        double deltaX = -4.5-position.getA();//rn its -4.5
+                        hardwareData.setIntakePower(1);
+                        double deltaX = -10-position.getA();
                         double deltaY = 135-position.getB();
                         turretTarget = TensorTeleop.TARGET.RED_GOAL;
-                        hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
                         //stateMachine.activateLogic("Turret");
                         hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
                     }
@@ -407,7 +363,7 @@ public class RedCornerAuto extends BasicOpmode {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
                         hardwareData.setIntakePower(1);
-                        double deltaX = -4.5-position.getA();//-4.5
+                        double deltaX = -10-position.getA();
                         double deltaY = 135-position.getB();
                         turretTarget = TensorTeleop.TARGET.RED_GOAL;
                         //stateMachine.activateLogic("Turret");
@@ -433,7 +389,7 @@ public class RedCornerAuto extends BasicOpmode {
 
                     linearSystem.put("ShootStack", new TrueTimeTerminator(2000));
                 }
-                wait1Path = new PathBuilder(doStarterStack ? startingStackPath.getEndpoint() : highgoalPath.getEndpoint()).lineTo(2, 30).complete();
+                wait1Path = new PathBuilder(doStarterStack ? startingStackPath.getEndpoint() : highgoalPath.getEndpoint()).lineTo(-5, 30).complete();
                 linearSystem.put("Drive Wait 1", builder.follow(wait1Path, 2, 0.4, 0.3), new OrientationTerminator(position, wait1Path));
 
                 if(delayLocation == DELAY_LOCATION.FIRST_LOCATION || delayLocation == DELAY_LOCATION.BOTH_LOCATIONS){
@@ -442,11 +398,11 @@ public class RedCornerAuto extends BasicOpmode {
 
                 PathBuilder wobbleBuilder = new PathBuilder(wait1Path.getEndpoint());
                 if(startingStack == 0){
-                    wobblePath = wobbleBuilder.lineTo(-5, 75).complete();
+                    wobblePath = wobbleBuilder.lineTo(0, 55, Angle.degrees(90)).complete();
                 }else if(startingStack == 1){
-                    wobblePath = wobbleBuilder.lineTo(-37, 99).complete();
+                    wobblePath = wobbleBuilder.lineTo(0, 90, Angle.degrees(180)).complete();
                 }else{
-                    wobblePath = wobbleBuilder.lineTo(-5, 115, Angle.degrees(45)).complete();
+                    wobblePath = wobbleBuilder.lineTo(0, 108, Angle.degrees(90)).complete();
                 }
                 linearSystem.put("Wobble Path", builder.follow(wobblePath), new OrientationTerminator(position, wobblePath));
 
@@ -454,10 +410,9 @@ public class RedCornerAuto extends BasicOpmode {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
                         stateMachine.activateLogic("Turret");
-                        hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
                         //hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_CHANGE);
                         //hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_CHANGE);
-                        //hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
+                        hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
                     }
                 }, new TrueTimeTerminator(1000));
 
@@ -467,54 +422,18 @@ public class RedCornerAuto extends BasicOpmode {
                         //hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_DOWN);
                         //hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_DOWN);
                     }
-                }, new TrueTimeTerminator(500));
-
-                wait2Path = new PathBuilder(wobblePath.getEndpoint()).lineTo(-21, 115, Angle.degrees(90)).lineTo(-45, 115, Angle.degrees(90)).complete();
-                linearSystem.put("Wait 2 Path", builder.follow(wait2Path, 2, 0.6, 0.15), new OrientationTerminator(position, wait2Path));
-
-                if(delayLocation == DELAY_LOCATION.SECOND_LOCATION || delayLocation == DELAY_LOCATION.BOTH_LOCATIONS){
-                    linearSystem.put("Stop", new TrueTimeTerminator(5000));
+                }, new TimeTerminator(5));
+                if(startingStack == 1) {
+                    shootSecondPath = new PathBuilder(wobblePath.getEndpoint())
+                            .lineTo(-7.5, 40, Angle.degrees(180)).complete();
+                }else{
+                    shootSecondPath = new PathBuilder(wobblePath.getEndpoint())
+                            .lineTo(-7.5, 30, Angle.degrees(0)).complete();
                 }
-                Vector3 wait2Endpoint = wait2Path.getEndpoint();
-                if(pickupSecondWobble){
-                    //TODO: Develop this further
-                    secondWobblePath = new PathBuilder(wait2Path.getEndpoint())
-                            .lineTo(-31, 15, Angle.degrees(0)).complete();
-                    linearSystem.put("Pickup Second Wobble", builder.follow(secondWobblePath), new OrientationTerminator(position, secondWobblePath));
-                    wait2Endpoint = secondWobblePath.getEndpoint();
-                }
-
-                shootSecondPath = new PathBuilder(wait2Endpoint)
-                        .lineTo(-45, 100)
-                        .lineTo(-21, 50, Angle.degrees(0)).complete();
-
-                linearSystem.put("Turret Activation", new TrueTimeTerminator(200));
 
                 linearSystem.put("Second Shot Drive", builder.follow(shootSecondPath), new OrientationTerminator(position, shootSecondPath));
 
-                linearSystem.put("Stop For Shoot", new VelocityDriveState(stateMachine) {
-                    @Override
-                    public Vector3 getVelocities() {
-                        return Vector3.ZERO();
-                    }
-
-                    @Override
-                    public void update(SensorData sensorData, HardwareData hardwareData) {
-
-                    }
-                }, new Terminator() {
-                    @Override
-                    public boolean shouldTerminate(SensorData sensorData, HardwareData hardwareData) {
-                        return hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()
-                                && (System.currentTimeMillis() - hardware.smartDevices.get("SmartCV", SmartCV.class).getDataTimestamp()) < 3000;
-                    }
-                });
-
-                linearSystem.put("Stop", new TrueTimeTerminator(500));
-
-                linearSystem.put("Shoot", new TrueTimeTerminator(1000));
-
-                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(-21, 75, Angle.degrees(0)).complete();
+                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(-17, 75, Angle.degrees(0)).complete();
 
                 linearSystem.put("Shutdown Systems", new LogicState(stateMachine) {
                     @Override
@@ -549,7 +468,7 @@ public class RedCornerAuto extends BasicOpmode {
                     //Targeting the goal
                     hardwareData.setShooter(0.75 + system.getCorrection(4 - vel, shoot ? 1 : 0));
                     hardwareData.setShooterTilt(0.355);
-                    if(Math.abs(vel - 4) < 0.3){
+                    if(Math.abs(vel - 4) < 0.2){
                         shooterReady = true;
                     }else{
                         shooterReady = false;

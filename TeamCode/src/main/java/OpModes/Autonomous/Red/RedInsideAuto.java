@@ -38,7 +38,7 @@ public class RedInsideAuto extends BasicOpmode {
     ConstantVOdometer odometer;
     AdvancedVOdometer targetingOdometer;
     Vector3 position, velocity, targetingPos, targetingVel;
-    boolean doStarterStack = true, pickupSecondWobble = false, doPowerShots = false;
+    boolean doStarterStack = false, pickupSecondWobble = false, doPowerShots = true;
     DELAY_LOCATION delayLocation = DELAY_LOCATION.NO_DELAY;
     int startingStack = 0;
     LinearEventSystem linearSystem;
@@ -89,6 +89,7 @@ public class RedInsideAuto extends BasicOpmode {
             public void init(SensorData sensorData, HardwareData hardwareData) {
                 smartCV = hardware.getSmartDevices().get("SmartCV", SmartCV.class);
                 smartCV.setPitchOffset(29.695);
+                smartCV.setBlue(false);
                 smartCV.setOuter(false);
                 smartCV.setVelocity(velocity);
             }
@@ -224,15 +225,15 @@ public class RedInsideAuto extends BasicOpmode {
                         deltaY = -(targetingPos.getB());
                         break;
                     case RED_POWERSHOT_LEFT:
-                        deltaX = -(targetingPos.getA() - (35 - goalOffset - powershotOffset - powershotOffset));
+                        deltaX = -(targetingPos.getA() - (34 - goalOffset - powershotOffset - powershotOffset));
                         deltaY = -(targetingPos.getB());
                         break;
                     case RED_POWERSHOT_CENTER:
-                        deltaX = -(targetingPos.getA() - (35 - goalOffset - powershotOffset));
+                        deltaX = -(targetingPos.getA() - (33 - goalOffset - powershotOffset));
                         deltaY = -(targetingPos.getB());
                         break;
                     case RED_POWERSHOT_RIGHT:
-                        deltaX = -(targetingPos.getA() - (35 - goalOffset));
+                        deltaX = -(targetingPos.getA() - (34 - goalOffset));
                         deltaY = -(targetingPos.getB());
                         break;
                     case BLUE_POWERSHOT_LEFT:
@@ -255,7 +256,7 @@ public class RedInsideAuto extends BasicOpmode {
                     //deltaX -= velocity.getA() * (dist / 120);
                     //deltaY -= velocity.getB() * (dist / 120);
                 }
-                hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(targetingPos.getC(), -Math.atan2(deltaX, deltaY)))+20));
+                hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(targetingPos.getC(), -Math.atan2(deltaX, deltaY)))));
             }
         });
 
@@ -267,6 +268,7 @@ public class RedInsideAuto extends BasicOpmode {
                     doStarterStack = false;
                 }
                 hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_UP));
+                hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_HOLD);
                 if(isStarted()){
                     deactivateThis();
                 }
@@ -292,7 +294,6 @@ public class RedInsideAuto extends BasicOpmode {
                 hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_DOWN);
                 hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_IN);
                 hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_IN);
-                hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_HOLD);
 
                 hardwareData.setTurret(UGUtils.getTurretValue(20));
             }
@@ -306,30 +307,31 @@ public class RedInsideAuto extends BasicOpmode {
         });
 
         eventSystem.onStart("Setup Systems", new SingleLogicState(stateMachine) {
-            Path highgoalPath, driveToStackPath, startingStackPath, wait1Path, wobblePath, wait2Path, secondWobblePath, shootSecondPath, parkPath;
+            Path highgoalPath, startingStackPath, wait1Path, wobblePath, wait2Path, secondWobblePath, shootSecondPath, parkPath;
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
-                highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(-10, 20).lineTo(-15, 50).complete();
-                driveToStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(-15, 10).lineTo(3, 30).complete();
-                startingStackPath = new PathBuilder(driveToStackPath.getEndpoint()).lineTo(3, 50).lineTo(3, 55).complete();
+                highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(2, 50).complete();
+                startingStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(3, 35).lineTo(3, 55).complete();
                 turretTarget = TensorTeleop.TARGET.RED_GOAL;
                 hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
-                hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
+                hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_UP));
             }
 
             @Override
             public void main(SensorData sensorData, HardwareData hardwareData) {
+                linearSystem.put("Stop", new TrueTimeTerminator(START_DELAY_TIME_MS));
+
                 linearSystem.put("Release Mechs", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
-                        hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
-                        hardwareData.setIntakePower(1);
+                        //hardwareData.setIntakePower(1);
+                        //hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
+                        turretTarget = TensorTeleop.TARGET.RED_POWERSHOT_LEFT;
+                        stateMachine.activateLogic("Turret");
                     }
-                }, new TrueTimeTerminator(250));
+                }, new TimeTerminator(15));
 
-                linearSystem.put("Stop", new TrueTimeTerminator(START_DELAY_TIME_MS));
-
-                linearSystem.put("Highgoal Shoot Pos", builder.follow(highgoalPath), new OrientationTerminator(position, highgoalPath));
+                linearSystem.put("Highgoal Shoot Pos", builder.follow(highgoalPath), new OrientationTerminator(position, highgoalPath, 10));
 
                 linearSystem.put("Stop For Shoot", new VelocityDriveState(stateMachine) {
                     @Override
@@ -343,70 +345,84 @@ public class RedInsideAuto extends BasicOpmode {
                     }
                 }, new TimeTerminator(15));
 
-                linearSystem.put("Stop", new TrueTimeTerminator(500));
+                linearSystem.put("Stop", new TrueTimeTerminator(1200));
 
-                linearSystem.put("Shoot", new LogicState(stateMachine) {
+                linearSystem.put("Stop", new Terminator() {
                     @Override
-                    public void update(SensorData sensorData, HardwareData hardwareData) {
-                        shoot = true;
-                        hardwareData.setIntakePower(1);
-                        double deltaX = 12-position.getA();
-                        double deltaY = 135-position.getB();
-                        turretTarget = TensorTeleop.TARGET.RED_GOAL;
-                        //stateMachine.activateLogic("Turret");
-                        hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
+                    public boolean shouldTerminate(SensorData sensorData, HardwareData hardwareData) {
+                        return hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()
+                                && (System.currentTimeMillis() - hardware.smartDevices.get("SmartCV", SmartCV.class).getDataTimestamp()) < 1500;
                     }
-                }, new TrueTimeTerminator(1500));
+                });
 
-                linearSystem.put("Intake", new VelocityDriveState(stateMachine) {
-                    @Override
-                    public Vector3 getVelocities() {
-                        return Vector3.ZERO();
-                    }
+                if(doPowerShots) {
 
-                    @Override
-                    public void update(SensorData sensorData, HardwareData hardwareData) {
-                        hardwareData.setIntakePower(1);
-                        double deltaX = 12-position.getA();
-                        double deltaY = 135-position.getB();
-                        turretTarget = TensorTeleop.TARGET.RED_GOAL;
-                        //stateMachine.activateLogic("Turret");
-                        hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)))));
-                    }
-                }, new TimeTerminator(2));
-                if(doStarterStack){
-                    linearSystem.put("driveToStackPath", builder.follow(driveToStackPath, 2, 0.5, 0.075), new OrientationTerminator(position, driveToStackPath));
-                    linearSystem.put("ShootStack", new VelocityDriveState(stateMachine) {
+                    linearSystem.put("Shoot Left", new SingleLogicState(stateMachine) {
                         @Override
-                        public Vector3 getVelocities() {
-                            return Vector3.ZERO();
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = TensorTeleop.TARGET.RED_POWERSHOT_LEFT;
+                            shoot = true;
                         }
+                    }, new TimeTerminator(7));
 
+                    linearSystem.put("Stop", new TrueTimeTerminator(500));
+
+                    linearSystem.put("Aim Centre", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = TensorTeleop.TARGET.RED_POWERSHOT_CENTER;
+                        }
+                    }, new TrueTimeTerminator(500));
+
+                    linearSystem.put("Shoot Centre", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = TensorTeleop.TARGET.RED_POWERSHOT_CENTER;
+                            shoot = true;
+                        }
+                    }, new TimeTerminator(7));
+
+                    linearSystem.put("Stop", new TrueTimeTerminator(500));
+
+                    linearSystem.put("Aim Right", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = TensorTeleop.TARGET.RED_POWERSHOT_RIGHT;
+                        }
+                    }, new TrueTimeTerminator(500));
+
+                    linearSystem.put("Shoot Right", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = TensorTeleop.TARGET.RED_POWERSHOT_RIGHT;
+                            shoot = true;
+                            stateMachine.activateLogic("Vision Update");
+                        }
+                    }, new TimeTerminator(7));
+
+                    linearSystem.put("Stop", new TrueTimeTerminator(500));
+                }else{
+                    linearSystem.put("Aim Highgoal", new LogicState(stateMachine) {
+                        @Override
+                        public void update(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = TensorTeleop.TARGET.RED_GOAL;
+                        }
+                    }, new TrueTimeTerminator(500));
+                    linearSystem.put("Shoot Rings", new LogicState(stateMachine) {
                         @Override
                         public void update(SensorData sensorData, HardwareData hardwareData) {
                             shoot = true;
-                            stateMachine.deactivateState("Turret");
                         }
-                    }, new TimeTerminator(2));
-
-                    linearSystem.put("Starting Stack Shoot", builder.follow(startingStackPath, 2, 0.25, 0.3), new OrientationTerminator(position, startingStackPath));
-
-                    linearSystem.put("ShootStack", new TrueTimeTerminator(2000));
-                }
-                wait1Path = new PathBuilder(doStarterStack ? startingStackPath.getEndpoint() : highgoalPath.getEndpoint()).lineTo(26, 30).complete();
-                linearSystem.put("Drive Wait 1", builder.follow(wait1Path, 2, 0.4, 0.3), new OrientationTerminator(position, wait1Path));
-
-                if(delayLocation == DELAY_LOCATION.FIRST_LOCATION || delayLocation == DELAY_LOCATION.BOTH_LOCATIONS){
-                    linearSystem.put("Stop", new TrueTimeTerminator(5000));
+                    }, new TrueTimeTerminator(1000));
                 }
 
-                PathBuilder wobbleBuilder = new PathBuilder(wait1Path.getEndpoint());
+                PathBuilder wobbleBuilder = new PathBuilder(highgoalPath.getEndpoint());
                 if(startingStack == 0){
-                    wobblePath = wobbleBuilder.lineTo(8, 75).complete();
+                    wobblePath = wobbleBuilder.lineTo(24, 84).complete();
                 }else if(startingStack == 1){
-                    wobblePath = wobbleBuilder.lineTo(-2, 99).complete();
+                    wobblePath = wobbleBuilder.lineTo(0, 105).complete();
                 }else{
-                    wobblePath = wobbleBuilder.lineTo(8, 117, Angle.degrees(45)).complete();
+                    wobblePath = wobbleBuilder.lineTo(25, 117, Angle.degrees(45)).complete();
                 }
                 linearSystem.put("Wobble Path", builder.follow(wobblePath), new OrientationTerminator(position, wobblePath));
 
@@ -414,6 +430,8 @@ public class RedInsideAuto extends BasicOpmode {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
                         stateMachine.activateLogic("Turret");
+                        //hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_CHANGE);
+                        //hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_CHANGE);
                         hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
                     }
                 }, new TrueTimeTerminator(1000));
@@ -421,36 +439,44 @@ public class RedInsideAuto extends BasicOpmode {
                 linearSystem.put("Fourbar Back", new SingleLogicState(stateMachine) {
                     @Override
                     public void main(SensorData sensorData, HardwareData hardwareData) {
-
+                        //hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_DOWN);
+                        //hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_DOWN);
                     }
-                }, new TimeTerminator(5));
+                }, new TrueTimeTerminator(500));
 
-                wait2Path = new PathBuilder(wobblePath.getEndpoint()).lineTo(-10, 115, Angle.degrees(90)).lineTo(-21, 115, Angle.degrees(90)).complete();
+                linearSystem.put("Intake On", new SingleLogicState(stateMachine) {
+                    @Override
+                    public void main(SensorData sensorData, HardwareData hardwareData) {
+                        stateMachine.appendLogicState("IntakeSys", new LogicState(stateMachine) {
+                            @Override
+                            public void update(SensorData sensorData, HardwareData hardwareData) {
+                                hardwareData.setIntakePower(1);
+                            }
+                        });
+                        stateMachine.activateLogic("IntakeSys");
+                    }
+                }, new TimeTerminator(7));
+
+                wait2Path = new PathBuilder(wobblePath.getEndpoint()).lineTo(8, 118, Angle.degrees(0)).lineTo(-21, 122, Angle.degrees(83)).complete();
                 linearSystem.put("Wait 2 Path", builder.follow(wait2Path, 2, 0.6, 0.15), new OrientationTerminator(position, wait2Path));
 
                 if(delayLocation == DELAY_LOCATION.SECOND_LOCATION || delayLocation == DELAY_LOCATION.BOTH_LOCATIONS){
                     linearSystem.put("Stop", new TrueTimeTerminator(5000));
                 }
                 Vector3 wait2Endpoint = wait2Path.getEndpoint();
-                if(pickupSecondWobble){
-                    //TODO: Develop this further
-                    secondWobblePath = new PathBuilder(wait2Path.getEndpoint())
-                            .lineTo(-7, 15, Angle.degrees(0)).complete();
-                    linearSystem.put("Pickup Second Wobble", builder.follow(secondWobblePath), new OrientationTerminator(position, secondWobblePath));
-                    wait2Endpoint = secondWobblePath.getEndpoint();
-                }
 
                 shootSecondPath = new PathBuilder(wait2Endpoint)
-                        .lineTo(-21, 80)
-                        .lineTo(3, 50, Angle.degrees(0)).complete();
+                        .lineTo(-21, 100)
+                        .lineTo(-3, 50, Angle.degrees(0)).complete();
 
                 linearSystem.put("Turret Activation", new TrueTimeTerminator(500));
 
-                linearSystem.put("Second Shot Drive", builder.follow(shootSecondPath), new OrientationTerminator(position, shootSecondPath));
+                linearSystem.put("Second Shot Drive", builder.follow(shootSecondPath), new OrientationTerminator(position, shootSecondPath, 10));
 
-                linearSystem.put("Stop For Shoot", new VelocityDriveState(stateMachine) {
+                linearSystem.put("Stop For Shoot 2", new VelocityDriveState(stateMachine) {
                     @Override
                     public Vector3 getVelocities() {
+                        turretTarget = TensorTeleop.TARGET.RED_GOAL;
                         return Vector3.ZERO();
                     }
 
@@ -462,15 +488,21 @@ public class RedInsideAuto extends BasicOpmode {
                     @Override
                     public boolean shouldTerminate(SensorData sensorData, HardwareData hardwareData) {
                         return hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()
-                                && (System.currentTimeMillis() - hardware.smartDevices.get("SmartCV", SmartCV.class).getDataTimestamp()) < 3000;
+                                && (System.currentTimeMillis() - hardware.smartDevices.get("SmartCV", SmartCV.class).getDataTimestamp()) < 1500;
                     }
                 });
 
                 linearSystem.put("Stop", new TrueTimeTerminator(500));
 
-                linearSystem.put("Shoot", new TrueTimeTerminator(1000));
+                linearSystem.put("Shoot Highgoal", new LogicState(stateMachine) {
+                    @Override
+                    public void update(SensorData sensorData, HardwareData hardwareData) {
+                        shoot = true;
+                        turretTarget = TensorTeleop.TARGET.RED_GOAL;
+                    }
+                }, new TrueTimeTerminator(1000));
 
-                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(3, 70, Angle.degrees(0)).complete();
+                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(-3, 75, Angle.degrees(0)).complete();
 
                 linearSystem.put("Shutdown Systems", new LogicState(stateMachine) {
                     @Override
@@ -512,9 +544,9 @@ public class RedInsideAuto extends BasicOpmode {
                     }
                 }else {
                     //Targeting the powershots
-                    hardwareData.setShooter(0.7 + system.getCorrection(4.2 - vel, shoot ? 1 : 0));
-                    hardwareData.setShooterTilt(0.335);
-                    if(Math.abs(vel - 4.2) < 0.1){
+                    hardwareData.setShooter(0.7 + system.getCorrection(3.9 - vel, shoot ? 1 : 0));
+                    hardwareData.setShooterTilt(0.365);
+                    if(Math.abs(vel - 3.9) < 0.25){
                         shooterReady = true;
                     }else{
                         //shooterReady = false;

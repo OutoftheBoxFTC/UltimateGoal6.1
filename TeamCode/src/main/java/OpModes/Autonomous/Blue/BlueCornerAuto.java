@@ -94,7 +94,7 @@ public class BlueCornerAuto extends BasicOpmode {
                 smartCV = hardware.getSmartDevices().get("SmartCV", SmartCV.class);
                 smartCV.setPitchOffset(29.695);
                 smartCV.setVelocity(velocity);
-                smartCV.setBlue(true);
+                smartCV.setBlue(false);
                 smartCV.setOuter(true);
             }
 
@@ -129,12 +129,12 @@ public class BlueCornerAuto extends BasicOpmode {
                 if(gamepad1.dpad_up && !pressedUp){
                     idx --;
                     if(idx < 0){
-                        idx = 4;
+                        idx = 3;
                     }
                 }
                 if(gamepad1.dpad_down && !pressedDown){
                     idx ++;
-                    if(idx > 4){
+                    if(idx > 3){
                         idx = 0;
                     }
                 }
@@ -174,23 +174,7 @@ public class BlueCornerAuto extends BasicOpmode {
                 }else{
                     telemetry.addData("Start Delay Time", START_DELAY_TIME_MS);
                 }
-
                 if(idx == 3){
-                    telemetry.addData("Delay Time", "<" + DELAY_TIME_MS + ">");
-                    if(gamepad1.dpad_right && !pressedRight){
-                        DELAY_TIME_MS += 250;
-                    }
-                    if(gamepad1.dpad_left && !pressedLeft){
-                        DELAY_TIME_MS -= 250;
-                        if(DELAY_TIME_MS < 0){
-                            DELAY_TIME_MS = 0;
-                        }
-                    }
-                }else{
-                    telemetry.addData("Delay Time", DELAY_TIME_MS);
-                }
-
-                if(idx == 4){
                     telemetry.addData("Starting Stack", "<" + startingStack + ">");
                     if((gamepad1.dpad_right && !pressedRight)){
                         startingStack ++;
@@ -210,7 +194,7 @@ public class BlueCornerAuto extends BasicOpmode {
                 }else{
                     telemetry.addData("Starting Stack", startingStack);
                 }
-
+                telemetry.addLine("=====================");
                 pressedDown = gamepad1.dpad_down;
                 pressedUp = gamepad1.dpad_up;
                 pressedLeft = gamepad1.dpad_left;
@@ -419,11 +403,11 @@ public class BlueCornerAuto extends BasicOpmode {
 
                 PathBuilder wobbleBuilder = new PathBuilder(wait1Path.getEndpoint());
                 if(startingStack == 0){
-                    wobblePath = wobbleBuilder.lineTo(5, 78).complete();
+                    wobblePath = wobbleBuilder.lineTo(0, 55, Angle.degrees(-90)).complete();
                 }else if(startingStack == 1){
-                    wobblePath = wobbleBuilder.lineTo(28, 99).complete();
+                    wobblePath = wobbleBuilder.lineTo(0, 90, Angle.degrees(180)).complete();
                 }else{
-                    wobblePath = wobbleBuilder.lineTo(7.5, 115, Angle.degrees(-45)).complete();
+                    wobblePath = wobbleBuilder.lineTo(0, 108, Angle.degrees(-90)).complete();
                 }
                 linearSystem.put("Wobble Path", builder.follow(wobblePath), new OrientationTerminator(position, wobblePath));
 
@@ -444,53 +428,17 @@ public class BlueCornerAuto extends BasicOpmode {
                         //hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_DOWN);
                     }
                 }, new TimeTerminator(5));
-
-                wait2Path = new PathBuilder(wobblePath.getEndpoint()).lineTo(21, 115, Angle.degrees(-90)).lineTo(45, 115, Angle.degrees(-90)).complete();
-                linearSystem.put("Wait 2 Path", builder.follow(wait2Path, 2, 0.6, 0.15), new OrientationTerminator(position, wait2Path));
-
-                if(delayLocation == DELAY_LOCATION.SECOND_LOCATION || delayLocation == DELAY_LOCATION.BOTH_LOCATIONS){
-                    linearSystem.put("Stop", new TrueTimeTerminator(5000));
+                if(startingStack == 1) {
+                    shootSecondPath = new PathBuilder(wobblePath.getEndpoint())
+                            .lineTo(7.5, 40, Angle.degrees(180)).complete();
+                }else{
+                    shootSecondPath = new PathBuilder(wobblePath.getEndpoint())
+                            .lineTo(7.5, 30, Angle.degrees(0)).complete();
                 }
-                Vector3 wait2Endpoint = wait2Path.getEndpoint();
-                if(pickupSecondWobble){
-                    //TODO: Develop this further
-                    secondWobblePath = new PathBuilder(wait2Path.getEndpoint())
-                            .lineTo(31, 15, Angle.degrees(0)).complete();
-                    linearSystem.put("Pickup Second Wobble", builder.follow(secondWobblePath), new OrientationTerminator(position, secondWobblePath));
-                    wait2Endpoint = secondWobblePath.getEndpoint();
-                }
-
-                shootSecondPath = new PathBuilder(wait2Endpoint)
-                        .lineTo(45, 100)
-                        .lineTo(21, 50, Angle.degrees(0)).complete();
-
-                linearSystem.put("Turret Activation", new TrueTimeTerminator(500));
 
                 linearSystem.put("Second Shot Drive", builder.follow(shootSecondPath), new OrientationTerminator(position, shootSecondPath));
 
-                linearSystem.put("Stop For Shoot", new VelocityDriveState(stateMachine) {
-                    @Override
-                    public Vector3 getVelocities() {
-                        return Vector3.ZERO();
-                    }
-
-                    @Override
-                    public void update(SensorData sensorData, HardwareData hardwareData) {
-
-                    }
-                }, new Terminator() {
-                    @Override
-                    public boolean shouldTerminate(SensorData sensorData, HardwareData hardwareData) {
-                        return hardware.smartDevices.get("SmartCV", SmartCV.class).getTrack()
-                                && (System.currentTimeMillis() - hardware.smartDevices.get("SmartCV", SmartCV.class).getDataTimestamp()) < 3000;
-                    }
-                });
-
-                linearSystem.put("Stop", new TrueTimeTerminator(500));
-
-                linearSystem.put("Shoot", new TrueTimeTerminator(1000));
-
-                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(21, 75, Angle.degrees(0)).complete();
+                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(17, 75, Angle.degrees(0)).complete();
 
                 linearSystem.put("Shutdown Systems", new LogicState(stateMachine) {
                     @Override

@@ -60,7 +60,7 @@ public class UltimateGoalHardware extends Hardware {
         if(registeredDevices.contains(HardwareDevices.WEBCAM)){
             //smartDevices.put("Ring Detector", new SmartCV(map.get(WebcamName.class, "Webcam 2"), map));
             //smartDevices.put("TowerCam", new TowerCV(map.get(WebcamName.class, "Webcam 1"), map));
-            smartDevices.put("SmartCV", new SmartCV(map.get(WebcamName.class, "Webcam 2"), map.get(WebcamName.class, "Webcam 1"), map));
+            smartDevices.put("SmartCV", new SmartCV(map.get(WebcamName.class, "Webcam 3"), map.get(WebcamName.class, "Webcam 2"), map.get(WebcamName.class, "Webcam 1"), map));
         }
         if(registeredDevices.contains(HardwareDevices.TURRET)){
             smartDevices.put("Turret", new SmartServo(map.servo.get("turret"), new SmartServoConfiguration().setInitPos(0.5)));
