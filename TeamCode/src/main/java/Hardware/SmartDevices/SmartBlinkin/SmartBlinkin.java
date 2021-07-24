@@ -15,7 +15,7 @@ public class SmartBlinkin extends SmartDevice {
         this.blinkin = blinkin;
         this.pattern = RevBlinkinLedDriver.BlinkinPattern.BLACK;
         blinkin.setPattern(pattern);
-        timer = System.currentTimeMillis() + 500;
+        timer = System.currentTimeMillis() + 1000;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class SmartBlinkin extends SmartDevice {
             RobotLog.ii("Pattern Changed", pattern.toString());
             blinkin.setPattern(pattern);
             changed = false;
-            timer = System.currentTimeMillis() + 500;
+            //timer = System.currentTimeMillis() + 500;
         }
     }
 

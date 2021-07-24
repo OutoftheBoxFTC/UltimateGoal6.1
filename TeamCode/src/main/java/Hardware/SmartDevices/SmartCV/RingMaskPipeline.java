@@ -57,7 +57,7 @@ public class RingMaskPipeline extends OpenCvPipeline {
         if(outer) {
             if (area < 800) {
                 numRings = 0;
-            } else if (height < 1.5) {
+            } else if (height < 1.3) {
                 numRings = 1;
             } else {
                 numRings = 4;

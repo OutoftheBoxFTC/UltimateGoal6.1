@@ -237,7 +237,7 @@ public class BlueInsideAuto extends BasicOpmode {
                         deltaY = -(targetingPos.getB());
                         break;
                     case BLUE_POWERSHOT_LEFT:
-                        deltaX = -(targetingPos.getA() + (35 - goalOffset));
+                        deltaX = -(targetingPos.getA() + (35 - goalOffset - 2));
                         deltaY = -(targetingPos.getB());
                         break;
                     case BLUE_POWERSHOT_CENTER:
@@ -422,7 +422,7 @@ public class BlueInsideAuto extends BasicOpmode {
                 }else if(startingStack == 1){
                     wobblePath = wobbleBuilder.lineTo(0, 105).complete();
                 }else{
-                    wobblePath = wobbleBuilder.lineTo(-25, 117, Angle.degrees(-45)).complete();
+                    wobblePath = wobbleBuilder.lineTo(-27, 119, Angle.degrees(-45)).complete();
                 }
                 linearSystem.put("Wobble Path", builder.follow(wobblePath), new OrientationTerminator(position, wobblePath));
 
@@ -430,8 +430,8 @@ public class BlueInsideAuto extends BasicOpmode {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
                         stateMachine.activateLogic("Turret");
-                        hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_CHANGE);
-                        hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_CHANGE);
+                        //hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_CHANGE);
+                        //hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_CHANGE);
                         hardwareData.setWobbleOneuseLeft(RobotConstants.UltimateGoal.ONEUSE_LEFT_ARM_RELEASE);
                     }
                 }, new TrueTimeTerminator(1000));
@@ -563,7 +563,7 @@ public class BlueInsideAuto extends BasicOpmode {
                 if(state == 0){
                     //First we move the indexer into the hopper
                     hardwareData.setShooterLoadArm(0.985);
-                    timer = System.currentTimeMillis() + 95; //Wait for indexer to move and shooter to grab ring
+                    timer = System.currentTimeMillis() + 110; //Wait for indexer to move and shooter to grab ring
                     state = 1;
                 }
                 if(state == 1){

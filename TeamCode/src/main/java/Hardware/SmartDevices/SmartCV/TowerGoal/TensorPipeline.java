@@ -96,7 +96,7 @@ public class TensorPipeline extends OpenCvPipeline {
                     //The goal is the red goal (R > B)
                     redFiringSolution = PnPUtils.getPitchAndYaw(input, r, cropCopy, fov);
                     pitch = redFiringSolution[0];
-                    double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(17.5, redFiringSolution[0] + pitchOffset);
+                    double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(17.25, redFiringSolution[0] + pitchOffset);
                     redPowershots = BetterTowerGoalUtils.approxPowershotAngles(-redFiringSolution[1], goalWallDist2, BetterTowerGoalUtils.RED);
                     redFiringSolution[0] = goalWallDist2;
                     double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, -redFiringSolution[1]);
@@ -106,7 +106,7 @@ public class TensorPipeline extends OpenCvPipeline {
                     //The goal is the blue goal (R < B)
                     blueFiringSolution = PnPUtils.getPitchAndYaw(input, r, cropCopy, fov);
                     pitch = blueFiringSolution[0];
-                    double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(17.5, blueFiringSolution[0] + pitchOffset);
+                    double goalWallDist2 = BetterTowerGoalUtils.getDistanceToGoalWall(17.25, blueFiringSolution[0] + pitchOffset);
                     bluePowershots = BetterTowerGoalUtils.approxPowershotAngles(-blueFiringSolution[1], goalWallDist2, BetterTowerGoalUtils.BLUE);
                     blueFiringSolution[0] = goalWallDist2;
                     double xDist = BetterTowerGoalUtils.approximateGoalX(goalWallDist2, -blueFiringSolution[1]);

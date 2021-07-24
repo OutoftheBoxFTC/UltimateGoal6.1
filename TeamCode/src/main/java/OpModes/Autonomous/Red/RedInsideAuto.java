@@ -563,7 +563,7 @@ public class RedInsideAuto extends BasicOpmode {
                 if(state == 0){
                     //First we move the indexer into the hopper
                     hardwareData.setShooterLoadArm(0.985);
-                    timer = System.currentTimeMillis() + 95; //Wait for indexer to move and shooter to grab ring
+                    timer = System.currentTimeMillis() + 110; //Wait for indexer to move and shooter to grab ring
                     state = 1;
                 }
                 if(state == 1){

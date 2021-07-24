@@ -18,8 +18,11 @@ import MathSystems.PIDFSystem;
 import MathSystems.PIDSystem;
 import MathSystems.ProgramClock;
 import MathSystems.Vector3;
+import Motion.Terminators.TimeTerminator;
+import Motion.Terminators.TrueTimeTerminator;
 import Odometry.AdvancedVOdometer;
 import OpModes.BasicOpmode;
+import State.EventSystem.LinearEventSystem;
 import State.GamepadDriveState;
 import State.LogicState;
 import State.SingleLogicState;
@@ -67,10 +70,10 @@ public class TensorTeleop extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 //To simplify the code and changes, both Blue and Red modes are in one TeleOp and can be switched
                 //With x and b (blue and red ofc)
-                if(gamepad1.x){
+                if(gamepad1.back){
                     color = COLOR.BLUE;
                 }
-                if(gamepad1.b){
+                if(gamepad1.start){
                     color = COLOR.RED;
                 }
                 if(color == COLOR.RED){
@@ -79,7 +82,7 @@ public class TensorTeleop extends BasicOpmode {
                     hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_BLUE);
                 }
                 hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
-                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(29.695);
+                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(30.45);
                 hardware.smartDevices.get("SmartCV", SmartCV.class).setVelocity(velocity);
                 if(isStarted()){
                     deactivateThis();
@@ -100,11 +103,27 @@ public class TensorTeleop extends BasicOpmode {
         eventSystem.onStart("Wobble Release", new SingleLogicState(stateMachine) {
             @Override
             public void main(SensorData sensorData, HardwareData hardwareData) {
+                hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_IN);
+                hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_IN);
+                hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_DOWN);
+                hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_DOWN);
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
+                hardwareData.setWobbleOneuseLeft(RobotConstants.UltimateGoal.ONEUSE_LEFT_ARM_RELEASE);
             }
         });
 
         eventSystem.onStart("Monitoring", new LogicState(stateMachine) {
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_IN);
+                hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_IN);
+                hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_DOWN);
+                hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_DOWN);
+                hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
+                hardwareData.setWobbleOneuseLeft(RobotConstants.UltimateGoal.ONEUSE_LEFT_ARM_RELEASE);
+            }
+
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 telemetry.addData("Pitch And Yaw Offsets", angOffset + " " + pitchOffset);
@@ -138,6 +157,25 @@ public class TensorTeleop extends BasicOpmode {
                     //Because the AI position will be old (~650ms behind)
                     Vector3 newpos = new Vector3(smartCV.getPosition()[0], smartCV.getPosition()[1], 0);
                     odometer.setKinematicPosition(newpos.add(posdiff));
+                    if(isStarted()) {
+                        stateMachine.activateLogic("Change Blinkin Lights");
+                    }
+                }
+            }
+        });
+
+        stateMachine.appendLogicState("Change Blinkin Lights", new LogicState(stateMachine) {
+            long timer = 0;
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(timer == 0){
+                    timer = System.currentTimeMillis() + 400;
+                }
+                hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
+                if(timer < System.currentTimeMillis()){
+                    hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.CP1_LARSON_SCANNER);
+                    timer = 0;
+                    stateMachine.deactivateState("Change Blinkin Lights");
                 }
             }
         });
@@ -177,15 +215,27 @@ public class TensorTeleop extends BasicOpmode {
                         deltaY = -(position.getB());
                         break;
                     case BLUE_POWERSHOT_LEFT:
-                        deltaX = -(position.getA() + (35 - goalOffset));
+                        if(Math.abs((position.getA() + 35)) < goalOffset){
+                            deltaX = -(position.getA() + (35 - goalOffset + 4));
+                        }else {
+                            deltaX = -(position.getA() + (35 - goalOffset));
+                        }
                         deltaY = -(position.getB());
                         break;
                     case BLUE_POWERSHOT_CENTER:
-                        deltaX = -(position.getA() + (35 - goalOffset - powershotOffset));
+                        if(Math.abs((position.getA() + 35)) < goalOffset){
+                            deltaX = -(position.getA() + (35 - goalOffset - powershotOffset + 4));
+                        }else {
+                            deltaX = -(position.getA() + (35 - goalOffset - powershotOffset));
+                        }
                         deltaY = -(position.getB());
                         break;
                     case BLUE_POWERSHOT_RIGHT:
-                        deltaX = -(position.getA() + (35 - goalOffset - powershotOffset - powershotOffset));
+                        if(Math.abs((position.getA() + 35)) < goalOffset){
+                            deltaX = -(position.getA() + (35 - goalOffset - powershotOffset - powershotOffset + 4));
+                        }else {
+                            deltaX = -(position.getA() + (35 - goalOffset - powershotOffset - powershotOffset));
+                        }
                         deltaY = -(position.getB());
                         break;
                     case NONE:
@@ -199,6 +249,8 @@ public class TensorTeleop extends BasicOpmode {
                 if(fourbarPos == WOBBLE_FOURBAR_POSITION.IN && targetFourbarPos == WOBBLE_FOURBAR_POSITION.IN) {
                     telemetry.addData("Angle", Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY))));
                     hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY))) + angOffset));
+                }else{
+                    hardwareData.setTurret(UGUtils.getTurretValue(13.8));
                 }
             }
         });
@@ -245,7 +297,7 @@ public class TensorTeleop extends BasicOpmode {
                         }
                     }
                     lastDist = sensorData.getDistance();
-                    if(gamepad1.right_trigger > 0.1){
+                    if(gamepad1.right_trigger < 0.3){
                         speed = 1;
                     }
                 }else{
@@ -263,7 +315,6 @@ public class TensorTeleop extends BasicOpmode {
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 hardwareData.setIntakePower(gamepad1.right_bumper ? 1 : gamepad1.left_bumper ? -1 : 0);
-                hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN));
                 //To simplify the code and changes, both Blue and Red modes are in one TeleOp and can be switched
                 //With start and back
                 if(gamepad1.back){
@@ -273,30 +324,31 @@ public class TensorTeleop extends BasicOpmode {
                     color = COLOR.RED;
                 }
                 //Powershot control
-                //Currently on the dpad because its easier to press
-                if(gamepad1.x){
-                    if(color == COLOR.BLUE){
-                        turretTarget = TARGET.BLUE_POWERSHOT_LEFT;
-                    }else{
-                        turretTarget = TARGET.RED_POWERSHOT_LEFT;
-                    }
-                }else if(gamepad1.y){
-                    if(color == COLOR.BLUE){
-                        turretTarget = TARGET.BLUE_POWERSHOT_CENTER;
-                    }else{
-                        turretTarget = TARGET.RED_POWERSHOT_CENTER;
-                    }
-                }else if(gamepad1.b){
-                    if(color == COLOR.BLUE){
-                        turretTarget = TARGET.BLUE_POWERSHOT_RIGHT;
-                    }else{
-                        turretTarget = TARGET.RED_POWERSHOT_RIGHT;
-                    }
-                }else{
-                    if(color == COLOR.BLUE){
-                        turretTarget = TARGET.BLUE_GOAL;
-                    }else{
-                        turretTarget = TARGET.RED_GOAL;
+                if(!gamepad1.a) {
+                    if (gamepad1.x) {
+                        if (color == COLOR.BLUE) {
+                            turretTarget = TARGET.BLUE_POWERSHOT_LEFT;
+                        } else {
+                            turretTarget = TARGET.RED_POWERSHOT_LEFT;
+                        }
+                    } else if (gamepad1.y) {
+                        if (color == COLOR.BLUE) {
+                            turretTarget = TARGET.BLUE_POWERSHOT_CENTER;
+                        } else {
+                            turretTarget = TARGET.RED_POWERSHOT_CENTER;
+                        }
+                    } else if (gamepad1.b) {
+                        if (color == COLOR.BLUE) {
+                            turretTarget = TARGET.BLUE_POWERSHOT_RIGHT;
+                        } else {
+                            turretTarget = TARGET.RED_POWERSHOT_RIGHT;
+                        }
+                    } else {
+                        if (color == COLOR.BLUE) {
+                            turretTarget = TARGET.BLUE_GOAL;
+                        } else {
+                            turretTarget = TARGET.RED_GOAL;
+                        }
                     }
                 }
                 //Shooting is not on a hair trigger because it has gotten "stuck" before, constantly returning ~0.1
@@ -329,6 +381,13 @@ public class TensorTeleop extends BasicOpmode {
                     }
                 }
 
+                if(gamepad1.a && !stateMachine.logicStateActive("Auto Powershots")){
+                    stateMachine.activateLogic("Auto Powershots");
+                }
+                if(!gamepad1.a && stateMachine.logicStateActive("Auto Powershots")){
+                    stateMachine.deactivateState("Auto Powershots");
+                }
+
                 if(state == 0){
                     targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
                     targetForkPos = WOBBLE_FORK_POSITION.IN;
@@ -349,22 +408,103 @@ public class TensorTeleop extends BasicOpmode {
             }
         });
 
+        stateMachine.appendLogicState("Auto Powershots", new LogicState(stateMachine) {
+            boolean inited = false;
+            LinearEventSystem linearSystem;
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                if(!inited){
+                    stateMachine.appendLogicState("Stop", new LogicState(stateMachine) {
+                        @Override
+                        public void update(SensorData sensorData, HardwareData hardwareData) {
+
+                        }
+                    });
+                    linearSystem = new LinearEventSystem(stateMachine, LinearEventSystem.ENDTYPE.STOP_ALL);
+                    linearSystem.put("Stop", new TrueTimeTerminator(800));
+                    linearSystem.put("Shoot Left", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = color == COLOR.BLUE ? TARGET.BLUE_POWERSHOT_LEFT : TARGET.RED_POWERSHOT_RIGHT;
+                            shoot = true;
+                        }
+                    }, new TimeTerminator(7));
+
+                    linearSystem.put("Stop", new TrueTimeTerminator(500));
+
+                    linearSystem.put("Aim Centre", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = color == COLOR.BLUE ? TARGET.BLUE_POWERSHOT_CENTER : TARGET.RED_POWERSHOT_CENTER;
+                        }
+                    }, new TrueTimeTerminator(300));
+
+                    linearSystem.put("Shoot Centre", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = color == COLOR.BLUE ? TARGET.BLUE_POWERSHOT_RIGHT : TARGET.RED_POWERSHOT_LEFT;
+                            shoot = true;
+                        }
+                    }, new TimeTerminator(7));
+
+                    linearSystem.put("Stop", new TrueTimeTerminator(500));
+
+                    linearSystem.put("Aim Right", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = TensorTeleop.TARGET.BLUE_POWERSHOT_RIGHT;
+                        }
+                    }, new TrueTimeTerminator(500));
+
+                    linearSystem.put("Shoot Right", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            turretTarget = TensorTeleop.TARGET.BLUE_POWERSHOT_RIGHT;
+                            shoot = true;
+                            stateMachine.activateLogic("Vision Update");
+                        }
+                    }, new TimeTerminator(7));
+
+                    linearSystem.put("Stop", new TrueTimeTerminator(500));
+                    linearSystem.put("Deactive This System", new SingleLogicState(stateMachine) {
+                        @Override
+                        public void main(SensorData sensorData, HardwareData hardwareData) {
+                            stateMachine.deactivateState("Auto Powershots");
+                        }
+                    }, new TimeTerminator(7));
+                    inited = true;
+                }
+                linearSystem.update(sensorData, hardwareData);
+            }
+
+            @Override
+            public void onStop(SensorData sensorData, HardwareData hardwareData) {
+                linearSystem.reset();
+            }
+        });
+
         eventSystem.onStart("Operator", new LogicState(stateMachine) {
             boolean dpadUp, dpadDown, dpadLeft, dpadRight;
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
 
                 if(gamepad2.dpad_up && !dpadUp){
-                    pitchOffset += 0.01;
+                    pitchOffset -= 0.01;
                 }
                 if(gamepad2.dpad_down && !dpadDown){
-                    pitchOffset -= 0.01;
+                    pitchOffset += 0.01;
                 }
                 if(gamepad2.dpad_right && !dpadRight){
                     angOffset -= 1;
                 }
                 if(gamepad2.dpad_left && !dpadLeft){
                     angOffset += 1;
+                }
+
+                if(gamepad2.right_trigger > 0.15){
+                    hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_UP)+0.1);
+                }else{
+                    hardwareData.setIntakeShield(UGUtils.PWM_TO_SERVO(RobotConstants.UltimateGoal.INTAKE_BLOCKER_UP));
                 }
 
                 dpadUp = gamepad2.dpad_up;
@@ -409,16 +549,16 @@ public class TensorTeleop extends BasicOpmode {
                     }else {
                         hardwareData.setShooterTilt(0.355 + pitchOffset);
                     }
-                    if(Math.abs(vel - 4) < 0.25){
+                    if(Math.abs(vel - 4) < 0.75){
                         shooterReady = true;
                     }else{
                         shooterReady = false;
                     }
                 }else {
                     //Targeting the powershots
-                    hardwareData.setShooter(0.7 + system.getCorrection(4.2 - vel, shoot ? 1 : 0));
-                    hardwareData.setShooterTilt(0.355 + pitchOffset);
-                    if(Math.abs(vel - 4.2) < 0.1){
+                    hardwareData.setShooter(0.7 + system.getCorrection(3.9 - vel, shoot ? 1 : 0));
+                    hardwareData.setShooterTilt(0.365 + pitchOffset);
+                    if(Math.abs(vel - 3.9) < 0.15){
                         shooterReady = true;
                     }else{
                         //shooterReady = false;
@@ -435,7 +575,7 @@ public class TensorTeleop extends BasicOpmode {
                 if(state == 0){
                     //First we move the indexer into the hopper
                     hardwareData.setShooterLoadArm(0.985);
-                    timer = System.currentTimeMillis() + 95; //Wait for indexer to move and shooter to grab ring
+                    timer = System.currentTimeMillis() + 110; //Wait for indexer to move and shooter to grab ring
                     state = 1;
                 }
                 if(state == 1){
