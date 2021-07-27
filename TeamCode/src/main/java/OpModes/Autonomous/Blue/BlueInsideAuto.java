@@ -563,7 +563,7 @@ public class BlueInsideAuto extends BasicOpmode {
                 if(state == 0){
                     //First we move the indexer into the hopper
                     hardwareData.setShooterLoadArm(0.985);
-                    timer = System.currentTimeMillis() + 110; //Wait for indexer to move and shooter to grab ring
+                    timer = System.currentTimeMillis() + 130; //Wait for indexer to move and shooter to grab ring
                     state = 1;
                 }
                 if(state == 1){
@@ -573,7 +573,7 @@ public class BlueInsideAuto extends BasicOpmode {
                 }
                 if(state == 2){
                     hardwareData.setShooterLoadArm(0.7);//Retract the indexer out
-                    timer = System.currentTimeMillis() + 100; //Wait for indexer to move and next ring to fall
+                    timer = System.currentTimeMillis() + 130; //Wait for indexer to move and next ring to fall
                     state = 3;
                 }
                 if(state == 3){

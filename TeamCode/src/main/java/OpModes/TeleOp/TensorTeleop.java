@@ -5,6 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
+
 import Hardware.Hardware;
 import Hardware.HarwareUtils.UGUtils;
 import Hardware.Packets.HardwareData;
@@ -131,6 +137,49 @@ public class TensorTeleop extends BasicOpmode {
                 telemetry.addData("Color", color);
                 telemetry.addData("Timestamped Pos", timestampedPosition);
                 telemetry.addData("Pos", trackingPos);
+
+            }
+        });
+
+        eventSystem.onStart("Temps", new LogicState(stateMachine) {
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                Process process;
+                try {
+                    process = Runtime.getRuntime().exec("cat sys/class/thermal/thermal_zone0/temp");
+                    process.waitFor();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    String line = reader.readLine();
+                    if(line!=null) {
+                        float temp = Float.parseFloat(line);
+                        telemetry.addData("Temp", temp / 1000.0f);
+                    }else{
+                        telemetry.addData("Temp", "N/A");
+                    }
+                } catch (Exception e) {
+                    telemetry.addData("Temp", e.getLocalizedMessage());
+                }
+            }
+        });
+
+        eventSystem.onStart("Freq", new LogicState(stateMachine) {
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
+                Process process;
+                try {
+                    process = Runtime.getRuntime().exec("cat sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq");
+                    process.waitFor();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    String line = reader.readLine();
+                    if(line!=null) {
+                        float temp = Float.parseFloat(line);
+                        telemetry.addData("Freq", temp);
+                    }else{
+                        telemetry.addData("Freq", "N/A");
+                    }
+                } catch (Exception e) {
+                    telemetry.addData("Freq", e.getLocalizedMessage());
+                }
             }
         });
 
@@ -161,6 +210,11 @@ public class TensorTeleop extends BasicOpmode {
                         stateMachine.activateLogic("Change Blinkin Lights");
                     }
                 }
+                if((gamepad1.start || gamepad1.back) && !stateMachine.logicStateActive("Change Blinkin Lights")){
+                    hardwareData.setPattern(gamepad1.start ? RevBlinkinLedDriver.BlinkinPattern.RED : RevBlinkinLedDriver.BlinkinPattern.BLUE);
+                }else if(!stateMachine.logicStateActive("Change Blinkin Lights")){
+                    hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.CP1_LARSON_SCANNER);
+                }
             }
         });
 
@@ -170,6 +224,10 @@ public class TensorTeleop extends BasicOpmode {
             public void update(SensorData sensorData, HardwareData hardwareData) {
                 if(timer == 0){
                     timer = System.currentTimeMillis() + 400;
+                }
+                if(gamepad1.start || gamepad1.back){
+                    hardwareData.setPattern(gamepad1.start ? RevBlinkinLedDriver.BlinkinPattern.RED : RevBlinkinLedDriver.BlinkinPattern.BLUE);
+                    return;
                 }
                 hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
                 if(timer < System.currentTimeMillis()){

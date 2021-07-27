@@ -34,7 +34,7 @@ public class RobotConstants {
         public static final double INDEXER_OUT_POSITION = 0;
         public static final double INDEXER_TIMING = 0;
 
-        public static final double INTAKE_BLOCKER_DOWN = 1210;
+        public static final double INTAKE_BLOCKER_DOWN = 1203;
         public static final double INTAKE_BLOCKER_UP = 2250;
 
         public static final double WOBBLE_ARM_LEFT_DOWN = 0.1;
@@ -43,11 +43,11 @@ public class RobotConstants {
         public static final double WOBBLE_ARM_LEFT_CHANGE = 0.42;
         public static final double WOBBLE_ARM_RIGHT_CHANGE = 0.59;
 
-        public static final double WOBBLE_ARM_LEFT_TRAVEL = 0.65;
-        public static final double WOBBLE_ARM_RIGHT_TRAVEL = 0.35;
+        public static final double WOBBLE_ARM_LEFT_TRAVEL = 0.6;
+        public static final double WOBBLE_ARM_RIGHT_TRAVEL = 0.3;
 
-        public static final double WOBBLE_ARM_LEFT_SCORE = 0.65;
-        public static final double WOBBLE_ARM_RIGHT_SCORE = 0.35;
+        public static final double WOBBLE_ARM_LEFT_SCORE = 0.6;
+        public static final double WOBBLE_ARM_RIGHT_SCORE = 0.3;
 
         public static final double WOBBLE_FORK_LEFT_IN = 0.5208;
         public static final double WOBBLE_FORK_RIGHT_IN = 0.43622;

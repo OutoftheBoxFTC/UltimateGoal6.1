@@ -311,7 +311,7 @@ public class BlueCornerAuto extends BasicOpmode {
             Path highgoalPath, startingStackPath, wait1Path, wobblePath, wait2Path, secondWobblePath, shootSecondPath, parkPath;
             @Override
             public void init(SensorData sensorData, HardwareData hardwareData) {
-                highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(21, 25).complete();
+                highgoalPath = new PathBuilder(0, 0, Angle.degrees(0)).lineTo(21, 20).complete();
                 startingStackPath = new PathBuilder(highgoalPath.getEndpoint()).lineTo(21, 35).lineTo(21, 55).complete();
                 turretTarget = TensorTeleop.TARGET.BLUE_GOAL;
                 hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
