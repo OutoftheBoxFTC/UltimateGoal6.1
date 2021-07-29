@@ -20,7 +20,7 @@ import State.StateMachine;
 public class AdvancedVOdometer extends Odometer {
     private Vector3 prevEncoderValues, prevPosition;
     private static final double AUX_ROTATION_CONSTANT = 750.8771; //2305.27659012?
-    private double ROT_CONSTANT = 1/(15178.3496); //15292.23559
+    private double ROT_CONSTANT = 1/(15351.67200); //15292.23559
     private double x, y, rot;
     private long prevTime;
     public AdvancedVOdometer(StateMachine stateMachine, Vector3 position, Vector3 velocity) {

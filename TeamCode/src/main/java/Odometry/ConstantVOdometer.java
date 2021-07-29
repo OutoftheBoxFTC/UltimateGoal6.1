@@ -16,7 +16,7 @@ import State.*;
 public class ConstantVOdometer extends Odometer {
     private Vector3 prevEncoderValues, prevPosition;
     private static final double AUX_ROTATION_CONSTANT = 750.8771; //2305.27659012?
-    private double ROT_CONSTANT = 1/(15612.072973); //15178.3496
+    private double ROT_CONSTANT = 1/(15351.67200); //15178.3496
     private double x, y, rot;
     private long prevTime;
     public ConstantVOdometer(StateMachine stateMachine, Vector3 position, Vector3 velocity) {

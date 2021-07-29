@@ -23,6 +23,7 @@ import Motion.Terminators.TimeTerminator;
 import Motion.Terminators.TrueTimeTerminator;
 import Odometry.AdvancedVOdometer;
 import Odometry.ConstantVOdometer;
+import OpModes.Autonomous.Blue.BlueInsideAuto;
 import OpModes.BasicOpmode;
 import OpModes.TeleOp.TensorTeleop;
 import State.EventSystem.LinearEventSystem;
@@ -457,7 +458,7 @@ public class RedInsideAuto extends BasicOpmode {
                     }
                 }, new TimeTerminator(7));
 
-                wait2Path = new PathBuilder(wobblePath.getEndpoint()).lineTo(8, 118, Angle.degrees(0)).lineTo(-21, 122, Angle.degrees(83)).complete();
+                wait2Path = new PathBuilder(wobblePath.getEndpoint()).lineTo(8, 120, Angle.degrees(0)).lineTo(-21, 122, Angle.degrees(83)).complete();
                 linearSystem.put("Wait 2 Path", builder.follow(wait2Path, 2, 0.6, 0.15), new OrientationTerminator(position, wait2Path));
 
                 if(delayLocation == DELAY_LOCATION.SECOND_LOCATION || delayLocation == DELAY_LOCATION.BOTH_LOCATIONS){
@@ -467,7 +468,7 @@ public class RedInsideAuto extends BasicOpmode {
 
                 shootSecondPath = new PathBuilder(wait2Endpoint)
                         .lineTo(-21, 100)
-                        .lineTo(-3, 50, Angle.degrees(0)).complete();
+                        .lineTo(-11, 50, Angle.degrees(0)).complete();
 
                 linearSystem.put("Turret Activation", new TrueTimeTerminator(500));
 
@@ -502,12 +503,12 @@ public class RedInsideAuto extends BasicOpmode {
                     }
                 }, new TrueTimeTerminator(1000));
 
-                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(-3, 75, Angle.degrees(0)).complete();
+                parkPath = new PathBuilder(shootSecondPath.getEndpoint()).lineTo(-11, 75, Angle.degrees(0)).complete();
 
                 linearSystem.put("Shutdown Systems", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
-                        //hardware.smartDevices.get("SmartCV", SmartCV.class).shutdownTowerTrack();
+                        hardware.smartDevices.get("SmartCV", SmartCV.class).shutdownTowerTrack();
                         //stateMachine.deactivateState("Intake");
                         stateMachine.deactivateState("Shooter");
                         stateMachine.deactivateState("Load Shooter");

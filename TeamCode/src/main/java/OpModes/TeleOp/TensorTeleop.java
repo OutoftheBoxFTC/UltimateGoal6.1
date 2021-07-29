@@ -44,6 +44,7 @@ public class TensorTeleop extends BasicOpmode {
     boolean shoot = false, shooterReady = false;
     double speedMod = 1, angOffset = 0, pitchOffset = 0;
     public static double ARM_IDLE = 1400, ARM_DOWN = RobotConstants.UltimateGoal.INTAKE_BLOCKER_DOWN;
+    boolean notInRange = false;
 
     WOBBLE_FORK_POSITION forkPos = WOBBLE_FORK_POSITION.IN, targetForkPos = WOBBLE_FORK_POSITION.OUT;
     WOBBLE_FOURBAR_POSITION fourbarPos = WOBBLE_FOURBAR_POSITION.IN, targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
@@ -88,7 +89,7 @@ public class TensorTeleop extends BasicOpmode {
                     hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.HEARTBEAT_BLUE);
                 }
                 hardware.smartDevices.get("SmartCV", SmartCV.class).disableRingTrack();
-                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(30.45);
+                hardware.smartDevices.get("SmartCV", SmartCV.class).setPitchOffset(29.980765);//29.980765 ; 27.17
                 hardware.smartDevices.get("SmartCV", SmartCV.class).setVelocity(velocity);
                 if(isStarted()){
                     deactivateThis();
@@ -106,15 +107,25 @@ public class TensorTeleop extends BasicOpmode {
             }
         });
 
-        eventSystem.onStart("Wobble Release", new SingleLogicState(stateMachine) {
+        eventSystem.onStart("Wobble Release", new LogicState(stateMachine) {
+            long timer = 0;
+
             @Override
-            public void main(SensorData sensorData, HardwareData hardwareData) {
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                timer = System.currentTimeMillis() + 3000;
+            }
+
+            @Override
+            public void update(SensorData sensorData, HardwareData hardwareData) {
                 hardwareData.setWobbleForkLeft(RobotConstants.UltimateGoal.WOBBLE_FORK_LEFT_IN);
                 hardwareData.setWobbleForkRight(RobotConstants.UltimateGoal.WOBBLE_FORK_RIGHT_IN);
                 hardwareData.setWobbleFourbarRight(RobotConstants.UltimateGoal.WOBBLE_ARM_RIGHT_DOWN);
                 hardwareData.setWobbleFourbarLeft(RobotConstants.UltimateGoal.WOBBLE_ARM_LEFT_DOWN);
                 hardwareData.setWobbleOneuseRight(RobotConstants.UltimateGoal.ONEUSE_RIGHT_ARM_RELEASE);
                 hardwareData.setWobbleOneuseLeft(RobotConstants.UltimateGoal.ONEUSE_LEFT_ARM_RELEASE);
+                if(System.currentTimeMillis() > timer){
+                    deactivateThis();
+                }
             }
         });
 
@@ -137,49 +148,79 @@ public class TensorTeleop extends BasicOpmode {
                 telemetry.addData("Color", color);
                 telemetry.addData("Timestamped Pos", timestampedPosition);
                 telemetry.addData("Pos", trackingPos);
+                telemetry.addData("FPS", fps);
 
             }
         });
 
         eventSystem.onStart("Temps", new LogicState(stateMachine) {
+            volatile float temp = 0;
+
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while(opModeIsActive()) {
+                            Process process;
+                            try {
+                                process = Runtime.getRuntime().exec("cat sys/class/thermal/thermal_zone0/temp");
+                                process.waitFor();
+                                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                                String line = reader.readLine();
+                                if (line != null) {
+                                    //float temp = Float.parseFloat(line);
+                                    temp = Float.parseFloat(line) / 1000.0f;
+                                } else {
+                                    temp = -1;
+                                }
+                            } catch (Exception e) {
+                                temp = -1;
+                            }
+                        }
+                    }
+                }).start();
+            }
+
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                Process process;
-                try {
-                    process = Runtime.getRuntime().exec("cat sys/class/thermal/thermal_zone0/temp");
-                    process.waitFor();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                    String line = reader.readLine();
-                    if(line!=null) {
-                        float temp = Float.parseFloat(line);
-                        telemetry.addData("Temp", temp / 1000.0f);
-                    }else{
-                        telemetry.addData("Temp", "N/A");
-                    }
-                } catch (Exception e) {
-                    telemetry.addData("Temp", e.getLocalizedMessage());
-                }
+                telemetry.addData("Temp", temp);
             }
         });
 
         eventSystem.onStart("Freq", new LogicState(stateMachine) {
+            float temp;
+            @Override
+            public void init(SensorData sensorData, HardwareData hardwareData) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while(opModeIsActive()) {
+                            Process process;
+                            try {
+                                process = Runtime.getRuntime().exec("cat sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq");
+                                process.waitFor();
+                                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                                String line = reader.readLine();
+                                if (line != null) {
+                                    temp = Float.parseFloat(line);
+                                    //telemetry.addData("Freq", temp);
+                                } else {
+                                    //telemetry.addData("Freq", "N/A");
+                                    temp = -1;
+                                }
+                            } catch (Exception e) {
+                                //telemetry.addData("Freq", e.getLocalizedMessage());
+                                temp = -1;
+                            }
+                        }
+                    }
+                });
+            }
+
             @Override
             public void update(SensorData sensorData, HardwareData hardwareData) {
-                Process process;
-                try {
-                    process = Runtime.getRuntime().exec("cat sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq");
-                    process.waitFor();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                    String line = reader.readLine();
-                    if(line!=null) {
-                        float temp = Float.parseFloat(line);
-                        telemetry.addData("Freq", temp);
-                    }else{
-                        telemetry.addData("Freq", "N/A");
-                    }
-                } catch (Exception e) {
-                    telemetry.addData("Freq", e.getLocalizedMessage());
-                }
+                telemetry.addData("Freq", temp);
             }
         });
 
@@ -210,8 +251,9 @@ public class TensorTeleop extends BasicOpmode {
                         stateMachine.activateLogic("Change Blinkin Lights");
                     }
                 }
-                if((gamepad1.start || gamepad1.back) && !stateMachine.logicStateActive("Change Blinkin Lights")){
-                    hardwareData.setPattern(gamepad1.start ? RevBlinkinLedDriver.BlinkinPattern.RED : RevBlinkinLedDriver.BlinkinPattern.BLUE);
+                if((gamepad1.start || gamepad1.back || notInRange) && !stateMachine.logicStateActive("Change Blinkin Lights")){
+                    hardwareData.setPattern(gamepad1.start ? RevBlinkinLedDriver.BlinkinPattern.RED :
+                            gamepad1.back ? RevBlinkinLedDriver.BlinkinPattern.BLUE : RevBlinkinLedDriver.BlinkinPattern.RAINBOW_LAVA_PALETTE);
                 }else if(!stateMachine.logicStateActive("Change Blinkin Lights")){
                     hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.CP1_LARSON_SCANNER);
                 }
@@ -227,6 +269,10 @@ public class TensorTeleop extends BasicOpmode {
                 }
                 if(gamepad1.start || gamepad1.back){
                     hardwareData.setPattern(gamepad1.start ? RevBlinkinLedDriver.BlinkinPattern.RED : RevBlinkinLedDriver.BlinkinPattern.BLUE);
+                    return;
+                }
+                if(notInRange){
+                    hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.RAINBOW_LAVA_PALETTE);
                     return;
                 }
                 hardwareData.setPattern(RevBlinkinLedDriver.BlinkinPattern.GREEN);
@@ -274,7 +320,7 @@ public class TensorTeleop extends BasicOpmode {
                         break;
                     case BLUE_POWERSHOT_LEFT:
                         if(Math.abs((position.getA() + 35)) < goalOffset){
-                            deltaX = -(position.getA() + (35 - goalOffset + 4));
+                            deltaX = -(position.getA() + (35 - goalOffset));
                         }else {
                             deltaX = -(position.getA() + (35 - goalOffset));
                         }
@@ -282,7 +328,7 @@ public class TensorTeleop extends BasicOpmode {
                         break;
                     case BLUE_POWERSHOT_CENTER:
                         if(Math.abs((position.getA() + 35)) < goalOffset){
-                            deltaX = -(position.getA() + (35 - goalOffset - powershotOffset + 4));
+                            deltaX = -(position.getA() + (35 - goalOffset - powershotOffset));
                         }else {
                             deltaX = -(position.getA() + (35 - goalOffset - powershotOffset));
                         }
@@ -290,7 +336,7 @@ public class TensorTeleop extends BasicOpmode {
                         break;
                     case BLUE_POWERSHOT_RIGHT:
                         if(Math.abs((position.getA() + 35)) < goalOffset){
-                            deltaX = -(position.getA() + (35 - goalOffset - powershotOffset - powershotOffset + 4));
+                            deltaX = -(position.getA() + (35 - goalOffset - powershotOffset - powershotOffset));
                         }else {
                             deltaX = -(position.getA() + (35 - goalOffset - powershotOffset - powershotOffset));
                         }
@@ -305,8 +351,18 @@ public class TensorTeleop extends BasicOpmode {
                     //deltaY -= velocity.getB() * (dist / 120);
                 }
                 if(fourbarPos == WOBBLE_FOURBAR_POSITION.IN && targetFourbarPos == WOBBLE_FOURBAR_POSITION.IN) {
-                    telemetry.addData("Angle", Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY))));
-                    hardwareData.setTurret(UGUtils.getTurretValue(Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY))) + angOffset));
+                    double angle = Math.toDegrees(MathUtils.getRadRotDist(position.getC(), -Math.atan2(deltaX, deltaY)));
+                    telemetry.addData("Angle", angle);
+                    if((turretTarget == TARGET.FORWARD)){
+                        hardwareData.setTurret(UGUtils.getTurretValue(0));
+                    }else {
+                        if(!UGUtils.inRange(angle)){
+                            notInRange = true;
+                        }else{
+                            notInRange = false;
+                        }
+                        hardwareData.setTurret(UGUtils.getTurretValue(angle + angOffset));
+                    }
                 }else{
                     hardwareData.setTurret(UGUtils.getTurretValue(13.8));
                 }
@@ -438,14 +494,17 @@ public class TensorTeleop extends BasicOpmode {
                         state = 3;
                     }
                 }
-
+                /**
                 if(gamepad1.a && !stateMachine.logicStateActive("Auto Powershots")){
                     stateMachine.activateLogic("Auto Powershots");
                 }
                 if(!gamepad1.a && stateMachine.logicStateActive("Auto Powershots")){
                     stateMachine.deactivateState("Auto Powershots");
                 }
-
+                */
+                if(gamepad1.a){
+                    turretTarget = TARGET.FORWARD;
+                }
                 if(state == 0){
                     targetFourbarPos = WOBBLE_FOURBAR_POSITION.IN;
                     targetForkPos = WOBBLE_FORK_POSITION.IN;
@@ -633,7 +692,7 @@ public class TensorTeleop extends BasicOpmode {
                 if(state == 0){
                     //First we move the indexer into the hopper
                     hardwareData.setShooterLoadArm(0.985);
-                    timer = System.currentTimeMillis() + 110; //Wait for indexer to move and shooter to grab ring
+                    timer = System.currentTimeMillis() + 100; //Wait for indexer to move and shooter to grab ring
                     state = 1;
                 }
                 if(state == 1){
@@ -742,6 +801,7 @@ public class TensorTeleop extends BasicOpmode {
         BLUE_POWERSHOT_LEFT,
         BLUE_POWERSHOT_CENTER,
         BLUE_POWERSHOT_RIGHT,
+        FORWARD,
         NONE
     }
 

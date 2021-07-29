@@ -60,7 +60,7 @@ public class TensorPipeline extends OpenCvPipeline {
 
     @Override
     public Mat processFrame(Mat input) {
-        if(Math.toDegrees(Math.abs(velocity.getC())) > 5 || shutdown.get()){
+        if((Math.toDegrees(Math.abs(velocity.getC())) > 5 && Math.abs(velocity.getVector2().length()) > 5) || shutdown.get()){
             return input;
         }
         timestamp.set(System.currentTimeMillis());
@@ -75,7 +75,7 @@ public class TensorPipeline extends OpenCvPipeline {
         //List<Detection> dets = new ArrayList<>();
         bmp.recycle();
         for(Detector.Recognition d : dets) {
-            if(d.getConfidence() < 0.98f){
+            if(d.getConfidence() < 0.99f){
                 continue;
             }
             Rect r = new Rect(
@@ -161,7 +161,7 @@ public class TensorPipeline extends OpenCvPipeline {
     }
 
     public double calibratePitch(){
-        return BetterTowerGoalUtils.approximateCameraAngle(17.5, 126, pitch);
+        return BetterTowerGoalUtils.approximateCameraAngle(17.5, 60, pitch);
     }
 
     public double[] getPosition() {

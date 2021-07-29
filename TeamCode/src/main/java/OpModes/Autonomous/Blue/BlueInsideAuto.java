@@ -507,7 +507,7 @@ public class BlueInsideAuto extends BasicOpmode {
                 linearSystem.put("Shutdown Systems", new LogicState(stateMachine) {
                     @Override
                     public void update(SensorData sensorData, HardwareData hardwareData) {
-                        //hardware.smartDevices.get("SmartCV", SmartCV.class).shutdownTowerTrack();
+                        hardware.smartDevices.get("SmartCV", SmartCV.class).shutdownTowerTrack();
                         //stateMachine.deactivateState("Intake");
                         stateMachine.deactivateState("Shooter");
                         stateMachine.deactivateState("Load Shooter");
