@@ -26,6 +26,11 @@ public class TowerCV extends SmartDevice {
                 openCvCamera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
                 openCvCamera.setPipeline(ringPipeline);
             }
+
+            @Override
+            public void onError(int errorCode) {
+
+            }
         });
     }
 

@@ -50,17 +50,17 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.put("Shooter Indexer", new SmartServo(map.servo.get("shooterLoadArm"), new SmartServoConfiguration().setInitPos(0.8)));
         }
         if(registeredDevices.contains(HardwareDevices.WOBBLE)){
-            smartDevices.put("Wobble Oneuse Right", new SmartServo(map.servo.get("wobbleR"), new SmartServoConfiguration().setInitPos(0.5)));
-            smartDevices.put("Wobble Oneuse Left", new SmartServo(map.servo.get("wobbleL"), new SmartServoConfiguration().setInitPos(0.5)));
-            smartDevices.put("Wobble Fourbar Right", new SmartServo(map.servo.get("wobbleVL"), new SmartServoConfiguration().setInitPos(0.5)));
-            smartDevices.put("Wobble Fourbar Left", new SmartServo(map.servo.get("wobbleVR"), new SmartServoConfiguration().setInitPos(0.5)));
-            smartDevices.put("Wobble Fork Left", new SmartServo(map.servo.get("wobbleFR"), new SmartServoConfiguration()));
-            smartDevices.put("Wobble Fork Right", new SmartServo(map.servo.get("wobbleFL"), new SmartServoConfiguration()));
+            //smartDevices.put("Wobble Oneuse Right", new SmartServo(map.servo.get("wobbleR"), new SmartServoConfiguration().setInitPos(0.5)));
+            //smartDevices.put("Wobble Oneuse Left", new SmartServo(map.servo.get("wobbleL"), new SmartServoConfiguration().setInitPos(0.5)));
+            //smartDevices.put("Wobble Fourbar Right", new SmartServo(map.servo.get("wobbleVL"), new SmartServoConfiguration().setInitPos(0.5)));
+            //smartDevices.put("Wobble Fourbar Left", new SmartServo(map.servo.get("wobbleVR"), new SmartServoConfiguration().setInitPos(0.5)));
+            //smartDevices.put("Wobble Fork Left", new SmartServo(map.servo.get("wobbleFR"), new SmartServoConfiguration()));
+            //smartDevices.put("Wobble Fork Right", new SmartServo(map.servo.get("wobbleFL"), new SmartServoConfiguration()));
         }
         if(registeredDevices.contains(HardwareDevices.WEBCAM)){
             //smartDevices.put("Ring Detector", new SmartCV(map.get(WebcamName.class, "Webcam 2"), map));
             //smartDevices.put("TowerCam", new TowerCV(map.get(WebcamName.class, "Webcam 1"), map));
-            smartDevices.put("SmartCV", new SmartCV(map.get(WebcamName.class, "Webcam 3"), map.get(WebcamName.class, "Webcam 2"), map.get(WebcamName.class, "Webcam 1"), map));
+            smartDevices.put("SmartCV", new SmartCV(map.get(WebcamName.class, "Webcam 1"), map));
         }
         if(registeredDevices.contains(HardwareDevices.TURRET)){
             smartDevices.put("Turret", new SmartServo(map.servo.get("turret"), new SmartServoConfiguration().setInitPos(0.5)));
@@ -69,7 +69,7 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.put("Blinkin", new SmartBlinkin(map.get(RevBlinkinLedDriver.class, "Blinkin")));
         }
         if(registeredDevices.contains(HardwareDevices.DISTANCE_SENSOR)){
-            smartDevices.put("Distance Sensor", new Smart2MSensor(map.get(Rev2mDistanceSensor.class, "distanceSensor"), new Smart2MSensorConfiguration().setUnit(DistanceUnit.INCH)));
+            //smartDevices.put("Distance Sensor", new Smart2MSensor(map.get(Rev2mDistanceSensor.class, "distanceSensor"), new Smart2MSensorConfiguration().setUnit(DistanceUnit.INCH)));
         }
     }
 
@@ -82,12 +82,12 @@ public class UltimateGoalHardware extends Hardware {
             smartDevices.get("Back Right", SmartMotor.class).setPower(hardware.getBr());
         }
         if(enabledDevices.contains(HardwareDevices.WOBBLE)){
-            smartDevices.get("Wobble Oneuse Right", SmartServo.class).setPosition(hardware.getWobbleOneuseRight());
-            smartDevices.get("Wobble Oneuse Left", SmartServo.class).setPosition(hardware.getWobbleOneuseLeft());
-            smartDevices.get("Wobble Fourbar Right", SmartServo.class).setPosition(hardware.getWobbleFourbarRight());
-            smartDevices.get("Wobble Fourbar Left", SmartServo.class).setPosition(hardware.getWobbleFourbarLeft());
-            smartDevices.get("Wobble Fork Left", SmartServo.class).setPosition(hardware.getWobbleForkLeft());
-            smartDevices.get("Wobble Fork Right", SmartServo.class).setPosition(hardware.getWobbleForkRight());
+            //smartDevices.get("Wobble Oneuse Right", SmartServo.class).setPosition(hardware.getWobbleOneuseRight());
+            //smartDevices.get("Wobble Oneuse Left", SmartServo.class).setPosition(hardware.getWobbleOneuseLeft());
+            //smartDevices.get("Wobble Fourbar Right", SmartServo.class).setPosition(hardware.getWobbleFourbarRight());
+            //smartDevices.get("Wobble Fourbar Left", SmartServo.class).setPosition(hardware.getWobbleFourbarLeft());
+            //smartDevices.get("Wobble Fork Left", SmartServo.class).setPosition(hardware.getWobbleForkLeft());
+            //smartDevices.get("Wobble Fork Right", SmartServo.class).setPosition(hardware.getWobbleForkRight());
         }
         if(enabledDevices.contains(HardwareDevices.INTAKE)){
             smartDevices.get("Intake", SmartMotor.class).setPower(hardware.getIntake());
@@ -119,16 +119,16 @@ public class UltimateGoalHardware extends Hardware {
             //sensorData.setGyro(smartDevices.get("gyro", SmartNavXMicro.class).getHeading());
         }
         if(enabledDevices.contains(HardwareDevices.WEBCAM)){
-            SmartCV smartCV = smartDevices.get("SmartCV", SmartCV.class);
-            sensorData.setRings(smartCV.getRings());
-            sensorData.setTrack(smartCV.getTrack());
-            sensorData.setHeading(smartCV.getRedHeading());
-            sensorData.setRange(smartCV.getRange());
-            sensorData.setPitch(smartCV.getPitch());
-            sensorData.setPowershots(smartCV.getRedPowershots());
+            //SmartCV smartCV = smartDevices.get("SmartCV", SmartCV.class);
+            //sensorData.setRings(smartCV.getRings());
+            //sensorData.setTrack(smartCV.getTrack());
+            //sensorData.setHeading(smartCV.getRedHeading());
+            //sensorData.setRange(smartCV.getRange());
+            //sensorData.setPitch(smartCV.getPitch());
+            //sensorData.setPowershots(smartCV.getRedPowershots());
         }
         if(enabledDevices.contains(HardwareDevices.DISTANCE_SENSOR)){
-            sensorData.setDistance(smartDevices.get("Distance Sensor", Smart2MSensor.class).getDistance());
+            //sensorData.setDistance(smartDevices.get("Distance Sensor", Smart2MSensor.class).getDistance());
         }
         sensorData.setFps(1/(MathSystems.MathUtils.nanoToDSec(System.nanoTime()-prevTime)));
         prevTime = System.nanoTime();
